@@ -1,0 +1,8 @@
+node_modules
+.pnpm-store
+.next
+dist
+coverage
+pnpm-lock.yaml
+apps/api/drizzle
+apps/web/next-env.d.ts

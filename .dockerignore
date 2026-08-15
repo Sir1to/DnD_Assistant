@@ -1,0 +1,11 @@
+.git
+.github
+node_modules
+**/node_modules
+.pnpm-store
+**/.pnpm-store
+**/.next
+**/dist
+coverage
+.env
+*.log

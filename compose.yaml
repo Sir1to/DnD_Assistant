@@ -1,0 +1,152 @@
+name: fog-of-lore
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-fog_of_lore}
+      POSTGRES_USER: ${POSTGRES_USER:-fog_of_lore}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - backend
+
+  backup:
+    image: postgres:18-alpine
+    profiles:
+      - maintenance
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    entrypoint:
+      - /bin/sh
+      - -ec
+    command:
+      - |
+        target="/backups/fog-of-lore-$$(date -u +%Y%m%dT%H%M%SZ).dump"
+        pg_dump \
+          --host=postgres \
+          --username="${POSTGRES_USER:-fog_of_lore}" \
+          --dbname="${POSTGRES_DB:-fog_of_lore}" \
+          --format=custom \
+          --file="$$target"
+        chmod 600 "$$target"
+        echo "Created $$target"
+    volumes:
+      - ./backups:/backups
+    networks:
+      - backend
+
+  api:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/api.Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      API_PORT: 4000
+      WEB_ORIGIN: ${WEB_ORIGIN:?Set WEB_ORIGIN in .env}
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-fog_of_lore}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-fog_of_lore}
+      FILE_STORAGE_PATH: /app/data
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - fetch('http://localhost:4000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    ports:
+      - '${API_BIND_ADDRESS:-127.0.0.1}:4000:4000'
+    networks:
+      - backend
+      - frontend
+
+  web:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/web.Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api}
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - --quiet
+        - --tries=1
+        - --spider
+        - http://127.0.0.1:3000
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    ports:
+      - '${WEB_BIND_ADDRESS:-127.0.0.1}:3000:3000'
+    networks:
+      - frontend
+
+  caddy:
+    image: caddy:2-alpine
+    profiles:
+      - proxy
+    restart: unless-stopped
+    depends_on:
+      web:
+        condition: service_healthy
+    environment:
+      FOG_OF_LORE_DOMAIN: ${FOG_OF_LORE_DOMAIN:-localhost}
+    volumes:
+      - ./infrastructure/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - --quiet
+        - --tries=1
+        - --spider
+        - http://localhost:2019/config/
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp'
+    networks:
+      - frontend
+
+networks:
+  backend:
+    internal: true
+  frontend:
+
+volumes:
+  postgres-data:
+  caddy-data:
+  caddy-config:

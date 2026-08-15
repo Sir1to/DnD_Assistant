@@ -1,0 +1,34 @@
+{
+  "name": "@fog-of-lore/web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@fog-of-lore/contracts": "workspace:*",
+    "@fog-of-lore/domain": "workspace:*",
+    "@fog-of-lore/ui": "workspace:*",
+    "@tanstack/react-query": "5.101.4",
+    "next": "16.2.11",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "react-grid-layout": "2.2.3",
+    "react-markdown": "^10.1.0",
+    "socket.io-client": "4.8.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "26.1.1",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "postcss": "8.5.23",
+    "tailwindcss": "4.3.3",
+    "typescript": "6.0.3",
+    "vitest": "4.1.10"
+  }
+}
