@@ -16,6 +16,7 @@
     "lint": "eslint .",
     "typecheck": "pnpm typecheck:tooling && pnpm -r --if-present typecheck",
     "typecheck:tooling": "tsc -p tsconfig.tooling.json --noEmit",
+    "pretest": "pnpm predev",
     "test": "node --test scripts/deploy-production.test.mjs && pnpm -r --if-present test",
     "test:integration": "pnpm --filter @fog-of-lore/api test:integration",
     "test:e2e": "playwright test",
