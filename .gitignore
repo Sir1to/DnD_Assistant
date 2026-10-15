@@ -7,12 +7,12 @@ playwright-report/
 test-results/
 deploy-reports/
 *.tsbuildinfo
-backups/*.dump
-backups/*.sql
+backups/*
 data/*
 !data/.gitkeep
 /apps/api/data/
 .env
+.env.*
 .env.local
 .env.*.local
 !.env.example
