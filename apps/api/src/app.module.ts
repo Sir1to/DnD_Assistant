@@ -14,6 +14,7 @@ import { validateEnvironment } from './config/environment';
 import { DatabaseModule } from './database/database.module';
 import { DirectMessagesModule } from './direct-messages/direct-messages.module';
 import { HealthModule } from './health/health.module';
+import { RulesetsModule } from './rulesets/rulesets.module';
 
 @Module({
   imports: [
@@ -24,35 +25,40 @@ import { HealthModule } from './health/health.module';
     }),
     LoggerModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        pinoHttp: {
-          level: config.get<string>('NODE_ENV') === 'production' ? 'info' : 'debug',
-          redact: {
-            paths: [
-              'req.headers.authorization',
-              'req.headers.cookie',
-              'req.body.password',
-              'req.body.body',
-              'res.headers["set-cookie"]',
-              '*.password',
-              '*.token',
-            ],
-            censor: '[REDACTED]',
+      useFactory: (config: ConfigService) => {
+        const environment = config.get<string>('NODE_ENV');
+        return {
+          pinoHttp: {
+            level:
+              environment === 'test' ? 'silent' : environment === 'production' ? 'info' : 'debug',
+            redact: {
+              paths: [
+                'req.headers.authorization',
+                'req.headers.cookie',
+                'req.body.password',
+                'req.body.body',
+                'res.headers["set-cookie"]',
+                '*.password',
+                '*.token',
+              ],
+              censor: '[REDACTED]',
+            },
+            genReqId: (request, response) => {
+              const requestId = request.headers['x-request-id']?.toString().slice(0, 128);
+              const id = requestId || globalThis.crypto.randomUUID();
+              response.setHeader('x-request-id', id);
+              return id;
+            },
           },
-          genReqId: (request, response) => {
-            const requestId = request.headers['x-request-id']?.toString().slice(0, 128);
-            const id = requestId || globalThis.crypto.randomUUID();
-            response.setHeader('x-request-id', id);
-            return id;
-          },
-        },
-      }),
+        };
+      },
     }),
     DatabaseModule,
     HealthModule,
     AuthModule,
     CampaignsModule,
     CharactersModule,
+    RulesetsModule,
     BoardsModule,
     DirectMessagesModule,
   ],

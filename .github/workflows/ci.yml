@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - development
 
 permissions:
   contents: read
@@ -12,7 +13,33 @@ permissions:
 jobs:
   quality:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
+
+    env:
+      COOKIE_SECURE: 'false'
+      DATABASE_URL: postgresql://fog_of_lore:fog_of_lore_ci@localhost:5432/fog_of_lore_test
+      FILE_STORAGE_PATH: ./data/ci
+      LOGIN_RATE_LIMIT_ATTEMPTS: '20'
+      LOGIN_RATE_LIMIT_WINDOW_SECONDS: '60'
+      NODE_ENV: test
+      SESSION_TTL_DAYS: '1'
+      TEST_DATABASE_URL: postgresql://fog_of_lore:fog_of_lore_ci@localhost:5432/fog_of_lore_test
+      WEB_ORIGIN: http://localhost:3000
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: fog_of_lore_test
+          POSTGRES_PASSWORD: fog_of_lore_ci
+          POSTGRES_USER: fog_of_lore
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U fog_of_lore -d fog_of_lore_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
 
     steps:
       - name: Checkout
@@ -33,8 +60,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Check migration metadata
+        run: pnpm migrations:check
+
+      - name: Apply database migrations
+        run: pnpm db:migrate
+
       - name: Lint
         run: pnpm lint
+
+      - name: Check formatting
+        run: pnpm format:check
 
       - name: Typecheck
         run: pnpm typecheck
@@ -44,3 +80,17 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Browser end-to-end test
+        run: pnpm test:e2e
+
+      - name: Upload browser report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

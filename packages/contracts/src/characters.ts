@@ -18,6 +18,8 @@ export const abilityMethodSchema = z.enum([
   'MANUAL',
   'CAMPAIGN',
 ]);
+export const characterCreationModeSchema = z.enum(['AUTOMATIC', 'GUIDED', 'MANUAL']);
+export const characterSheetStatusSchema = z.enum(['DRAFT', 'READY', 'ARCHIVED']);
 
 export const abilityScoresSchema = z.object({
   strength: z.int().min(1).max(30),
@@ -63,10 +65,81 @@ export const characterSheetDataSchema = z.object({
   notes: z.string().max(20_000).default(''),
 });
 
+export const characterDocumentV2Schema = z.object({
+  documentVersion: z.literal(2),
+  ruleset: z.object({
+    id: characterRulesetSchema,
+    version: z.literal('5.2.1'),
+  }),
+  creation: z.object({
+    mode: characterCreationModeSchema,
+    decisions: z
+      .array(
+        z.object({
+          stepId: z.string().trim().min(1).max(100),
+          optionIds: idListSchema,
+        }),
+      )
+      .max(100),
+  }),
+  identity: z.object({
+    level: z.int().min(1).max(20),
+    speciesId: z.string().trim().max(100),
+    classId: z.string().trim().max(100),
+    backgroundId: z.string().trim().max(100),
+  }),
+  abilities: z.object({
+    method: abilityMethodSchema,
+    scores: abilityScoresSchema,
+  }),
+  choices: z.object({
+    skillIds: idListSchema,
+    spellIds: idListSchema,
+  }),
+  inventory: z.object({
+    equipment: z.array(characterEquipmentItemSchema).max(200),
+  }),
+  profile: z.object({
+    personality: z.string().max(4000),
+    appearance: z.string().max(4000),
+    backstory: z.string().max(20_000),
+    notes: z.string().max(20_000),
+  }),
+  ruleOverrides: z
+    .array(
+      z.object({
+        path: z.enum(['/derived/armorClass', '/derived/hitPointMaximum', '/derived/speed']),
+        value: z.int().min(0).max(999_999),
+        reason: z.string().trim().min(1).max(2000),
+        source: z.enum(['CAMPAIGN', 'LEGACY_V1']),
+      }),
+    )
+    .max(100),
+});
+
+const characterRuntimeCounterMapSchema = z.record(
+  z.string().trim().min(1).max(100),
+  z.int().min(0).max(999_999),
+);
+
+export const characterRuntimeStateSchema = z.object({
+  currentHitPoints: z.int().min(0).max(999_999),
+  temporaryHitPoints: z.int().min(0).max(999_999),
+  resources: characterRuntimeCounterMapSchema,
+  spellSlots: characterRuntimeCounterMapSchema,
+  conditions: z.array(z.string().trim().min(1).max(100)).max(100),
+  inspiration: z.boolean(),
+  deathSaveSuccesses: z.int().min(0).max(3),
+  deathSaveFailures: z.int().min(0).max(3),
+  revision: z.int().nonnegative(),
+  updatedAt: z.string().datetime(),
+});
+
 export const createCharacterSheetRequestSchema = z.object({
   name: z.string().trim().min(1).max(160),
   ownerUserId: z.string().uuid().optional(),
   ruleset: characterRulesetSchema.default('dnd5e-srd-5.2.1'),
+  creationMode: characterCreationModeSchema.optional(),
   data: characterSheetDataSchema,
 });
 
@@ -76,6 +149,70 @@ export const updateCharacterSheetRequestSchema = z.object({
   data: characterSheetDataSchema,
 });
 
+export const updateCharacterRuntimeRequestSchema = z
+  .object({
+    expectedRevision: z.int().nonnegative(),
+    currentHitPoints: z.int().min(0).max(999_999).optional(),
+    temporaryHitPoints: z.int().min(0).max(999_999).optional(),
+    resources: characterRuntimeCounterMapSchema.optional(),
+    spellSlots: characterRuntimeCounterMapSchema.optional(),
+    conditions: z.array(z.string().trim().min(1).max(100)).max(100).optional(),
+    inspiration: z.boolean().optional(),
+    deathSaveSuccesses: z.int().min(0).max(3).optional(),
+    deathSaveFailures: z.int().min(0).max(3).optional(),
+  })
+  .refine(
+    (input) =>
+      input.currentHitPoints !== undefined ||
+      input.temporaryHitPoints !== undefined ||
+      input.resources !== undefined ||
+      input.spellSlots !== undefined ||
+      input.conditions !== undefined ||
+      input.inspiration !== undefined ||
+      input.deathSaveSuccesses !== undefined ||
+      input.deathSaveFailures !== undefined,
+    { message: 'At least one runtime field must be changed' },
+  );
+
+export const characterDerivedValuesSchema = z.object({
+  abilityModifiers: z.record(abilityKeySchema, z.int()),
+  proficiencyBonus: z.int(),
+  hitPointMaximum: z.int().nonnegative(),
+  armorClass: z.int().nonnegative(),
+  speed: z.int().nonnegative(),
+  initiative: z.int(),
+  passivePerception: z.int(),
+});
+
+export const characterRuleIssueSchema = z.object({
+  code: z.string().trim().min(1),
+  path: z.string().startsWith('/'),
+  severity: z.enum(['ERROR', 'WARNING']),
+  message: z.string().trim().min(1),
+});
+
+export const updateCharacterDocumentRequestSchema = z.object({
+  expectedRevision: z.int().nonnegative(),
+  name: z.string().trim().min(1).max(160),
+  status: z.enum(['DRAFT', 'READY']),
+  document: characterDocumentV2Schema,
+});
+
+export const characterDocumentResponseSchema = z.object({
+  sheetId: z.string().uuid(),
+  campaignId: z.string().uuid(),
+  ownerUserId: z.string().uuid(),
+  ownerDisplayName: z.string(),
+  name: z.string(),
+  status: characterSheetStatusSchema,
+  storedDocumentVersion: z.union([z.literal(1), z.literal(2)]),
+  document: characterDocumentV2Schema,
+  derived: characterDerivedValuesSchema,
+  issues: z.array(characterRuleIssueSchema),
+  revision: z.int().nonnegative(),
+  updatedAt: z.string().datetime(),
+});
+
 export const characterSheetSchema = z.object({
   id: z.string().uuid(),
   campaignId: z.string().uuid(),
@@ -83,7 +220,13 @@ export const characterSheetSchema = z.object({
   ownerDisplayName: z.string(),
   name: z.string(),
   ruleset: characterRulesetSchema,
+  rulesetVersion: z.literal('5.2.1'),
+  documentVersion: z.union([z.literal(1), z.literal(2)]),
+  creationMode: characterCreationModeSchema,
+  status: characterSheetStatusSchema,
+  portraitAssetId: z.string().uuid().nullable(),
   data: characterSheetDataSchema,
+  runtime: characterRuntimeStateSchema,
   revision: z.int().nonnegative(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
@@ -166,8 +309,15 @@ export const characterOptionsResponseSchema = z.object({
 export type AbilityKey = z.infer<typeof abilityKeySchema>;
 export type AbilityMethod = z.infer<typeof abilityMethodSchema>;
 export type CharacterSheetData = z.infer<typeof characterSheetDataSchema>;
+export type CharacterDocumentV2 = z.infer<typeof characterDocumentV2Schema>;
+export type CharacterRuntimeState = z.infer<typeof characterRuntimeStateSchema>;
 export type CreateCharacterSheetRequest = z.infer<typeof createCharacterSheetRequestSchema>;
 export type UpdateCharacterSheetRequest = z.infer<typeof updateCharacterSheetRequestSchema>;
+export type UpdateCharacterRuntimeRequest = z.infer<typeof updateCharacterRuntimeRequestSchema>;
+export type CharacterDerivedValues = z.infer<typeof characterDerivedValuesSchema>;
+export type CharacterRuleIssue = z.infer<typeof characterRuleIssueSchema>;
+export type UpdateCharacterDocumentRequest = z.infer<typeof updateCharacterDocumentRequestSchema>;
+export type CharacterDocumentResponse = z.infer<typeof characterDocumentResponseSchema>;
 export type CharacterSheet = z.infer<typeof characterSheetSchema>;
 export type CampaignCharacterSheetsResponse = z.infer<typeof campaignCharacterSheetsResponseSchema>;
 export type PortableCharacterSheet = z.infer<typeof portableCharacterSheetSchema>;

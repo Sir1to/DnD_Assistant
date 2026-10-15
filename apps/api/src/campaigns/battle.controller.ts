@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Inject,
   Param,
   ParseUUIDPipe,
@@ -19,23 +20,46 @@ import {
   createBattleSceneObjectRequestSchema,
   createBattleSceneSaveRequestSchema,
   createBattleSceneRequestSchema,
+  duplicateBattleCombatantPresetRequestSchema,
+  generateRandomBattleMapRequestSchema,
+  importBattleEncounterRequestSchema,
+  importBattleCombatantPresetRequestSchema,
+  importPortableBattleCombatantPresetRequestSchema,
+  placeCharacterOnBattleRequestSchema,
   moveBattleTokenRequestSchema,
   nextBattleTurnRequestSchema,
+  saveBattleCombatantPresetRequestSchema,
+  saveCharacterSheetAsBattlePresetRequestSchema,
   updateBattleCombatantRequestSchema,
+  updateBattleCombatantPresetRequestSchema,
+  updateBattleObstacleRequestSchema,
   updateBattleSceneObjectRequestSchema,
   updateBattleSceneRequestSchema,
   updateBattleTokenRequestSchema,
   type AdjustBattleHpRequest,
   type BattleSceneSnapshot,
   type BattleSceneSave,
+  type BattleCombatantPreset,
   type CreateBattleCombatantRequest,
   type CreateBattleObstacleRequest,
   type CreateBattleSceneObjectRequest,
   type CreateBattleSceneSaveRequest,
   type CreateBattleSceneRequest,
+  type DuplicateBattleCombatantPresetRequest,
+  type GenerateRandomBattleMapRequest,
+  type GeneratedRandomBattleMap,
+  type ImportBattleEncounterRequest,
+  type ImportBattleCombatantPresetRequest,
+  type ImportPortableBattleCombatantPresetRequest,
+  type PlaceCharacterOnBattleRequest,
   type MoveBattleTokenRequest,
   type NextBattleTurnRequest,
+  type PortableBattleCombatantPreset,
+  type SaveBattleCombatantPresetRequest,
+  type SaveCharacterSheetAsBattlePresetRequest,
   type UpdateBattleCombatantRequest,
+  type UpdateBattleCombatantPresetRequest,
+  type UpdateBattleObstacleRequest,
   type UpdateBattleSceneObjectRequest,
   type UpdateBattleSceneRequest,
   type UpdateBattleTokenRequest,
@@ -74,12 +98,40 @@ export class BattleController {
     return this.battle.createScene(user.id, campaignId, input);
   }
 
+  @Post('campaigns/:campaignId/battle/encounter')
+  public importEncounter(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('campaignId', new ParseUUIDPipe({ version: '4' })) campaignId: string,
+    @Body(new ZodValidationPipe(importBattleEncounterRequestSchema))
+    input: ImportBattleEncounterRequest,
+  ): Promise<BattleSceneSnapshot> {
+    return this.battle.importEncounter(user.id, campaignId, input);
+  }
+
+  @Post('campaigns/:campaignId/battle/generate')
+  public generateRandomMap(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('campaignId', new ParseUUIDPipe({ version: '4' })) campaignId: string,
+    @Body(new ZodValidationPipe(generateRandomBattleMapRequestSchema))
+    input: GenerateRandomBattleMapRequest,
+  ): Promise<GeneratedRandomBattleMap> {
+    return this.battle.generateRandomMap(user.id, campaignId, input);
+  }
+
   @Get('campaigns/:campaignId/battle-saves')
   public listSaves(
     @CurrentUser() user: AuthenticatedUser,
     @Param('campaignId', new ParseUUIDPipe({ version: '4' })) campaignId: string,
   ): Promise<BattleSceneSave[]> {
     return this.battle.listSaves(user.id, campaignId);
+  }
+
+  @Get('campaigns/:campaignId/battle-combatant-presets')
+  public listCombatantPresets(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('campaignId', new ParseUUIDPipe({ version: '4' })) campaignId: string,
+  ): Promise<BattleCombatantPreset[]> {
+    return this.battle.listCombatantPresets(user.id, campaignId);
   }
 
   @Post('battle-scenes/:sceneId/saves')
@@ -135,6 +187,95 @@ export class BattleController {
     return this.battle.addCombatant(user.id, sceneId, input);
   }
 
+  @Post('battle-scenes/:sceneId/characters/:sheetId/place')
+  public placeCharacter(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('sceneId', new ParseUUIDPipe({ version: '4' })) sceneId: string,
+    @Param('sheetId', new ParseUUIDPipe({ version: '4' })) sheetId: string,
+    @Body(new ZodValidationPipe(placeCharacterOnBattleRequestSchema))
+    input: PlaceCharacterOnBattleRequest,
+  ): Promise<BattleSceneSnapshot> {
+    return this.battle.placeCharacter(user.id, sceneId, sheetId, input);
+  }
+
+  @Post('battle-combatants/:combatantId/preset')
+  public saveCombatantPreset(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('combatantId', new ParseUUIDPipe({ version: '4' })) combatantId: string,
+    @Body(new ZodValidationPipe(saveBattleCombatantPresetRequestSchema))
+    input: SaveBattleCombatantPresetRequest,
+  ): Promise<BattleCombatantPreset> {
+    return this.battle.saveCombatantPreset(user.id, combatantId, input);
+  }
+
+  @Post('characters/:sheetId/battle-combatant-preset')
+  public saveCharacterSheetAsCombatantPreset(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('sheetId', new ParseUUIDPipe({ version: '4' })) sheetId: string,
+    @Body(new ZodValidationPipe(saveCharacterSheetAsBattlePresetRequestSchema))
+    input: SaveCharacterSheetAsBattlePresetRequest,
+  ): Promise<BattleCombatantPreset> {
+    return this.battle.saveCharacterSheetAsCombatantPreset(user.id, sheetId, input);
+  }
+
+  @Patch('battle-combatant-presets/:presetId')
+  public updateCombatantPreset(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('presetId', new ParseUUIDPipe({ version: '4' })) presetId: string,
+    @Body(new ZodValidationPipe(updateBattleCombatantPresetRequestSchema))
+    input: UpdateBattleCombatantPresetRequest,
+  ): Promise<BattleCombatantPreset> {
+    return this.battle.updateCombatantPreset(user.id, presetId, input);
+  }
+
+  @Post('battle-combatant-presets/:presetId/duplicate')
+  public duplicateCombatantPreset(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('presetId', new ParseUUIDPipe({ version: '4' })) presetId: string,
+    @Body(new ZodValidationPipe(duplicateBattleCombatantPresetRequestSchema))
+    input: DuplicateBattleCombatantPresetRequest,
+  ): Promise<BattleCombatantPreset> {
+    return this.battle.duplicateCombatantPreset(user.id, presetId, input);
+  }
+
+  @Get('battle-combatant-presets/:presetId/export')
+  public exportCombatantPreset(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('presetId', new ParseUUIDPipe({ version: '4' })) presetId: string,
+  ): Promise<PortableBattleCombatantPreset> {
+    return this.battle.exportCombatantPreset(user.id, presetId);
+  }
+
+  @Post('campaigns/:campaignId/battle-combatant-presets/import')
+  public importPortableCombatantPreset(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('campaignId', new ParseUUIDPipe({ version: '4' })) campaignId: string,
+    @Body(new ZodValidationPipe(importPortableBattleCombatantPresetRequestSchema))
+    input: ImportPortableBattleCombatantPresetRequest,
+  ): Promise<BattleCombatantPreset> {
+    return this.battle.importPortableCombatantPreset(user.id, campaignId, input);
+  }
+
+  @Post('battle-scenes/:sceneId/combatant-presets/:presetId/import')
+  public importCombatantPreset(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('sceneId', new ParseUUIDPipe({ version: '4' })) sceneId: string,
+    @Param('presetId', new ParseUUIDPipe({ version: '4' })) presetId: string,
+    @Body(new ZodValidationPipe(importBattleCombatantPresetRequestSchema))
+    input: ImportBattleCombatantPresetRequest,
+  ): Promise<BattleSceneSnapshot> {
+    return this.battle.importCombatantPreset(user.id, sceneId, presetId, input);
+  }
+
+  @Delete('battle-combatant-presets/:presetId')
+  @HttpCode(204)
+  public async removeCombatantPreset(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('presetId', new ParseUUIDPipe({ version: '4' })) presetId: string,
+  ): Promise<void> {
+    await this.battle.removeCombatantPreset(user.id, presetId);
+  }
+
   @Post('battle-scenes/:sceneId/obstacles')
   public addObstacle(
     @CurrentUser() user: AuthenticatedUser,
@@ -151,6 +292,16 @@ export class BattleController {
     @Param('obstacleId', new ParseUUIDPipe({ version: '4' })) obstacleId: string,
   ): Promise<BattleSceneSnapshot> {
     return this.battle.removeObstacle(user.id, obstacleId);
+  }
+
+  @Patch('battle-scene-obstacles/:obstacleId')
+  public updateObstacle(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('obstacleId', new ParseUUIDPipe({ version: '4' })) obstacleId: string,
+    @Body(new ZodValidationPipe(updateBattleObstacleRequestSchema))
+    input: UpdateBattleObstacleRequest,
+  ): Promise<BattleSceneSnapshot> {
+    return this.battle.updateObstacle(user.id, obstacleId, input);
   }
 
   @Post('battle-scenes/:sceneId/objects')

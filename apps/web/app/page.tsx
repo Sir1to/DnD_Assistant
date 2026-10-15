@@ -1,5 +1,7 @@
 import Link from 'next/link';
 
+import { BuildStamp } from './components/build-stamp';
+
 const tools = [
   {
     label: 'Заметки',
@@ -120,6 +122,7 @@ export default function HomePage() {
       <footer>
         <span>Fog of Lore</span>
         <span>Ваш сервер · Ваши истории · Ваши данные</span>
+        <BuildStamp className="landing-build-stamp" />
       </footer>
     </main>
   );

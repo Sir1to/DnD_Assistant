@@ -1,0 +1,2 @@
+ALTER TABLE "battle_scenes" ADD COLUMN "background_preset" text;--> statement-breakpoint
+ALTER TABLE "battle_scenes" ADD CONSTRAINT "battle_scenes_background_preset_valid" CHECK ("battle_scenes"."background_preset" is null or "battle_scenes"."background_preset" in ('FOREST_CLEARING', 'FOREST_CREEK', 'RUINS_RUBBLE', 'RUINS_COURTYARD', 'DUNGEON_STONE', 'DUNGEON_DAMP', 'CAVE_CRYSTAL', 'CAVE_VOLCANIC', 'SWAMP_MURK', 'SWAMP_REEDS', 'DESERT_DUNES', 'DESERT_SALT', 'SNOW_TUNDRA', 'SNOW_GLACIER', 'URBAN_PLAZA', 'URBAN_ROAD'));

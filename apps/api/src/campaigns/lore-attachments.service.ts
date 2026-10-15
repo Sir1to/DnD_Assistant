@@ -10,7 +10,7 @@ import type { Database } from '../database/database.module';
 import { loreAttachments, loreEntries, loreEntryRecipients } from '../database/schema';
 import { CampaignAccessService } from './campaign-access.service';
 
-interface UploadedAttachment {
+export interface UploadedAttachment {
   originalname: string;
   mimetype: string;
   size: number;
@@ -24,6 +24,7 @@ const allowedMimeTypes = new Set([
   'image/gif',
   'application/pdf',
 ]);
+const allowedPortraitMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
 @Injectable()
 export class LoreAttachmentsService {
@@ -73,6 +74,56 @@ export class LoreAttachmentsService {
         .returning();
       if (!created) throw new Error('Attachment insert did not return a row');
       return this.toAttachment(created);
+    } catch (error) {
+      await rm(this.filePath(storageKey), { force: true });
+      throw error;
+    }
+  }
+
+  public async createPrivatePortrait(
+    userId: string,
+    campaignId: string,
+    title: string,
+    file?: UploadedAttachment,
+  ): Promise<LoreAttachment> {
+    await this.access.requireMembership(userId, campaignId);
+    this.validateFile(file, allowedPortraitMimeTypes, 5 * 1024 * 1024, 'JPEG, PNG or WebP');
+
+    const portrait = file as UploadedAttachment;
+    const storageKey = globalThis.crypto.randomUUID();
+    const originalName = this.safeName(portrait.originalname);
+    await mkdir(this.root, { recursive: true });
+    await writeFile(this.filePath(storageKey), portrait.buffer, { flag: 'wx' });
+    try {
+      const attachment = await this.database.transaction(async (transaction) => {
+        const [entry] = await transaction
+          .insert(loreEntries)
+          .values({
+            campaignId,
+            authorId: userId,
+            title: `${title.slice(0, 140)} · портрет`,
+            content: 'Портрет листа персонажа. Создан автоматически.',
+            category: 'PERSON',
+            status: 'DRAFT',
+            audience: 'MASTER',
+          })
+          .returning({ id: loreEntries.id });
+        if (!entry) throw new Error('Portrait lore entry insert did not return a row');
+        const [created] = await transaction
+          .insert(loreAttachments)
+          .values({
+            loreEntryId: entry.id,
+            uploadedByUserId: userId,
+            originalName,
+            mimeType: portrait.mimetype,
+            size: portrait.size,
+            storageKey,
+          })
+          .returning();
+        if (!created) throw new Error('Portrait attachment insert did not return a row');
+        return created;
+      });
+      return this.toAttachment(attachment);
     } catch (error) {
       await rm(this.filePath(storageKey), { force: true });
       throw error;
@@ -229,5 +280,23 @@ export class LoreAttachmentsService {
       );
     if (mimeType === 'application/pdf') return buffer.subarray(0, 5).toString('ascii') === '%PDF-';
     return false;
+  }
+
+  private validateFile(
+    file: UploadedAttachment | undefined,
+    mimeTypes: ReadonlySet<string>,
+    maxSize: number,
+    label: string,
+  ): asserts file is UploadedAttachment {
+    if (!file) throw new BadRequestException('Select a file to upload');
+    if (!mimeTypes.has(file.mimetype)) {
+      throw new BadRequestException(`Only ${label} files are supported`);
+    }
+    if (file.size < 1 || file.size > maxSize) {
+      throw new BadRequestException(`File size must be between 1 byte and ${maxSize} bytes`);
+    }
+    if (!this.matchesSignature(file.mimetype, file.buffer)) {
+      throw new BadRequestException('File contents do not match its declared type');
+    }
   }
 }

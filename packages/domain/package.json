@@ -8,6 +8,10 @@
     ".": {
       "types": "./src/index.ts",
       "default": "./dist/index.js"
+    },
+    "./dnd5e-bestiary": {
+      "types": "./src/dnd5e-bestiary.ts",
+      "default": "./dist/dnd5e-bestiary.js"
     }
   },
   "scripts": {

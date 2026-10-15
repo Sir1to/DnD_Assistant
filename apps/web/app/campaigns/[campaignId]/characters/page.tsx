@@ -25,7 +25,7 @@ import { io } from 'socket.io-client';
 import { useEffect, useRef, useState } from 'react';
 
 import { CampaignNavigation } from '../../../components/campaign-navigation';
-import { ApiError, apiRequest, readableError } from '../../../lib/api';
+import { ApiError, apiRequest, apiResourceUrl, readableError } from '../../../lib/api';
 
 const abilityLabels: Record<AbilityKey, string> = {
   strength: 'Сила',
@@ -297,6 +297,7 @@ function CharacterEditor({
   const [name, setName] = useState(sheet.name);
   const [data, setData] = useState(sheet.data);
   const [message, setMessage] = useState('');
+  const [portraitEditorOpen, setPortraitEditorOpen] = useState(false);
   const classOption = options.classes.find(({ id }) => id === data.classId);
   const background = options.backgrounds.find(({ id }) => id === data.backgroundId);
   const allowedSkillIds = new Set([
@@ -328,6 +329,21 @@ function CharacterEditor({
     mutationFn: () => apiRequest<void>(`/characters/${sheet.id}`, { method: 'DELETE' }),
     onSuccess: async () => {
       onDeleted();
+      await queryClient.invalidateQueries({ queryKey: ['campaign-characters', campaignId] });
+    },
+  });
+  const portraitMutation = useMutation({
+    mutationFn: (file: File) => {
+      const form = new FormData();
+      form.append('file', file);
+      return apiRequest<CharacterSheet>(`/characters/${sheet.id}/portrait`, {
+        method: 'POST',
+        body: form,
+      });
+    },
+    onSuccess: async () => {
+      setPortraitEditorOpen(false);
+      setMessage('Портрет сохранён');
       await queryClient.invalidateQueries({ queryKey: ['campaign-characters', campaignId] });
     },
   });
@@ -409,88 +425,111 @@ function CharacterEditor({
         </div>
       </div>
       {message ? <p className="save-message">{message}</p> : null}
-      {saveMutation.error || deleteMutation.error ? (
-        <p className="form-error">{readableError(saveMutation.error ?? deleteMutation.error)}</p>
+      {saveMutation.error || deleteMutation.error || portraitMutation.error ? (
+        <p className="form-error">
+          {readableError(saveMutation.error ?? deleteMutation.error ?? portraitMutation.error)}
+        </p>
       ) : null}
       <section className="character-section">
-        <div className="section-title">
-          <h3>Основа</h3>
-          <span>Владелец: {sheet.ownerDisplayName}</span>
+        <div className="character-identity-layout">
+          <button
+            aria-label="Изменить портрет персонажа"
+            className="character-portrait-button"
+            onClick={() => setPortraitEditorOpen(true)}
+            type="button"
+          >
+            {sheet.portraitAssetId ? (
+              <img
+                alt={`Портрет ${sheet.name}`}
+                src={apiResourceUrl(`/characters/${sheet.id}/portrait?v=${sheet.revision}`)}
+              />
+            ) : (
+              <span>{characterInitials(sheet.name)}</span>
+            )}
+            <small>{sheet.portraitAssetId ? 'Изменить' : 'Добавить портрет'}</small>
+          </button>
+          <div className="character-identity-fields">
+            <div className="section-title">
+              <h3>Основа</h3>
+              <span>Владелец: {sheet.ownerDisplayName}</span>
+            </div>
+            <div className="character-grid character-grid-four">
+              <Field label="Уровень">
+                <input
+                  type="number"
+                  min={1}
+                  max={20}
+                  value={data.level}
+                  onChange={(event) => patchData({ level: Number(event.target.value) })}
+                />
+              </Field>
+              <Field label="Вид">
+                <select
+                  value={data.speciesId}
+                  onChange={(event) => {
+                    const speciesId = event.target.value;
+                    patchData({
+                      speciesId,
+                      speed:
+                        options.species.find(({ id }) => id === speciesId)?.speed ?? data.speed,
+                    });
+                  }}
+                >
+                  <option value="">Не выбран</option>
+                  {options.species.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="Класс">
+                <select
+                  value={data.classId}
+                  onChange={(event) =>
+                    patchData({ classId: event.target.value, skillIds: [], spellIds: [] })
+                  }
+                >
+                  <option value="">Не выбран</option>
+                  {options.classes.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="Предыстория">
+                <select
+                  value={data.backgroundId}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    const previousBackgroundSkills = new Set(
+                      options.backgrounds.flatMap(({ skillIds }) => skillIds),
+                    );
+                    const next = options.backgrounds.find(({ id }) => id === value);
+                    patchData({
+                      backgroundId: value,
+                      skillIds: [
+                        ...new Set([
+                          ...data.skillIds.filter((id) => !previousBackgroundSkills.has(id)),
+                          ...(next?.skillIds ?? []),
+                        ]),
+                      ],
+                    });
+                  }}
+                >
+                  <option value="">Не выбрана</option>
+                  {options.backgrounds.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            </div>
+            {classOption ? <p className="choice-help">{classOption.description}</p> : null}
+          </div>
         </div>
-        <div className="character-grid character-grid-four">
-          <Field label="Уровень">
-            <input
-              type="number"
-              min={1}
-              max={20}
-              value={data.level}
-              onChange={(event) => patchData({ level: Number(event.target.value) })}
-            />
-          </Field>
-          <Field label="Вид">
-            <select
-              value={data.speciesId}
-              onChange={(event) => {
-                const speciesId = event.target.value;
-                patchData({
-                  speciesId,
-                  speed: options.species.find(({ id }) => id === speciesId)?.speed ?? data.speed,
-                });
-              }}
-            >
-              <option value="">Не выбран</option>
-              {options.species.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Класс">
-            <select
-              value={data.classId}
-              onChange={(event) =>
-                patchData({ classId: event.target.value, skillIds: [], spellIds: [] })
-              }
-            >
-              <option value="">Не выбран</option>
-              {options.classes.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Предыстория">
-            <select
-              value={data.backgroundId}
-              onChange={(event) => {
-                const value = event.target.value;
-                const previousBackgroundSkills = new Set(
-                  options.backgrounds.flatMap(({ skillIds }) => skillIds),
-                );
-                const next = options.backgrounds.find(({ id }) => id === value);
-                patchData({
-                  backgroundId: value,
-                  skillIds: [
-                    ...new Set([
-                      ...data.skillIds.filter((id) => !previousBackgroundSkills.has(id)),
-                      ...(next?.skillIds ?? []),
-                    ]),
-                  ],
-                });
-              }}
-            >
-              <option value="">Не выбрана</option>
-              {options.backgrounds.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
-          </Field>
-        </div>
-        {classOption ? <p className="choice-help">{classOption.description}</p> : null}
       </section>
       <section className="character-section">
         <div className="section-title">
@@ -717,6 +756,13 @@ function CharacterEditor({
         <summary>Источник правил и лицензия</summary>
         <p>{options.attribution}</p>
       </details>
+      {portraitEditorOpen ? (
+        <PortraitCropDialog
+          pending={portraitMutation.isPending}
+          onCancel={() => setPortraitEditorOpen(false)}
+          onSave={(file) => portraitMutation.mutateAsync(file)}
+        />
+      ) : null}
     </div>
   );
 }
@@ -941,6 +987,187 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       {children}
     </label>
   );
+}
+
+function PortraitCropDialog({
+  pending,
+  onCancel,
+  onSave,
+}: {
+  pending: boolean;
+  onCancel: () => void;
+  onSave: (file: File) => Promise<unknown>;
+}) {
+  const [source, setSource] = useState<{ file: File; url: string } | null>(null);
+  const [focalX, setFocalX] = useState(50);
+  const [focalY, setFocalY] = useState(50);
+  const [zoom, setZoom] = useState(1);
+  const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState('');
+  useEffect(
+    () => () => {
+      if (source) URL.revokeObjectURL(source.url);
+    },
+    [source],
+  );
+
+  return (
+    <div className="modal-backdrop">
+      <section className="beginner-wizard portrait-crop-dialog" role="dialog" aria-modal="true">
+        <div className="section-title">
+          <div>
+            <p className="eyebrow">Портрет героя</p>
+            <h2>Выберите квадратный кадр</h2>
+          </div>
+          <button className="modal-close" onClick={onCancel} type="button" aria-label="Закрыть">
+            ×
+          </button>
+        </div>
+        <input
+          accept="image/jpeg,image/png,image/webp"
+          type="file"
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            if (!file) return;
+            if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+              setError('Поддерживаются JPEG, PNG и WebP.');
+              return;
+            }
+            if (file.size > 10 * 1024 * 1024) {
+              setError('Исходное изображение должно быть не больше 10 МБ.');
+              return;
+            }
+            if (source) URL.revokeObjectURL(source.url);
+            setSource({ file, url: URL.createObjectURL(file) });
+            setError('');
+          }}
+        />
+        {source ? (
+          <>
+            <div className="portrait-crop-preview">
+              <img
+                alt="Предпросмотр портрета"
+                src={source.url}
+                style={{
+                  objectPosition: `${focalX}% ${focalY}%`,
+                  transform: `scale(${zoom})`,
+                }}
+              />
+            </div>
+            <div className="portrait-crop-controls">
+              <Field label="Кадр по горизонтали">
+                <input
+                  min={0}
+                  max={100}
+                  type="range"
+                  value={focalX}
+                  onChange={(event) => setFocalX(Number(event.target.value))}
+                />
+              </Field>
+              <Field label="Кадр по вертикали">
+                <input
+                  min={0}
+                  max={100}
+                  type="range"
+                  value={focalY}
+                  onChange={(event) => setFocalY(Number(event.target.value))}
+                />
+              </Field>
+              <Field label="Приближение">
+                <input
+                  min={1}
+                  max={2.5}
+                  step={0.05}
+                  type="range"
+                  value={zoom}
+                  onChange={(event) => setZoom(Number(event.target.value))}
+                />
+              </Field>
+            </div>
+          </>
+        ) : (
+          <p className="choice-help">
+            Исходник останется на вашем устройстве; сервер получит квадрат 512 × 512.
+          </p>
+        )}
+        {error ? <p className="form-error">{error}</p> : null}
+        <div className="wizard-footer">
+          <Button tone="quiet" onClick={onCancel}>
+            Отмена
+          </Button>
+          <Button
+            disabled={!source || pending || processing}
+            onClick={async () => {
+              if (!source) return;
+              setProcessing(true);
+              setError('');
+              try {
+                await onSave(await cropPortrait(source.file, focalX, focalY, zoom));
+              } catch {
+                setError('Не удалось обработать или сохранить изображение.');
+              } finally {
+                setProcessing(false);
+              }
+            }}
+          >
+            {pending || processing ? 'Сохраняем…' : 'Сохранить портрет'}
+          </Button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+async function cropPortrait(
+  file: File,
+  focalX: number,
+  focalY: number,
+  zoom: number,
+): Promise<File> {
+  const bitmap = await createImageBitmap(file);
+  try {
+    const outputSize = 512;
+    const baseCropSize = Math.min(bitmap.width, bitmap.height) / zoom;
+    const cropWidth = Math.min(bitmap.width, baseCropSize);
+    const cropHeight = Math.min(bitmap.height, baseCropSize);
+    const sourceX = (bitmap.width - cropWidth) * (focalX / 100);
+    const sourceY = (bitmap.height - cropHeight) * (focalY / 100);
+    const canvas = document.createElement('canvas');
+    canvas.width = outputSize;
+    canvas.height = outputSize;
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error('Canvas is unavailable');
+    context.drawImage(
+      bitmap,
+      sourceX,
+      sourceY,
+      cropWidth,
+      cropHeight,
+      0,
+      0,
+      outputSize,
+      outputSize,
+    );
+    const blob = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(
+        (result) => (result ? resolve(result) : reject(new Error('Portrait encoding failed'))),
+        'image/webp',
+        0.9,
+      );
+    });
+    return new File([blob], 'character-portrait.webp', { type: blob.type });
+  } finally {
+    bitmap.close();
+  }
+}
+
+function characterInitials(name: string): string {
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toLocaleUpperCase() ?? '')
+    .join('');
 }
 function Status({ text }: { text: string }) {
   return (

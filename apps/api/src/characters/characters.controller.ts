@@ -10,31 +10,50 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Res,
+  StreamableFile,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   createCharacterSheetRequestSchema,
   importCharacterSheetRequestSchema,
+  updateCharacterDocumentRequestSchema,
+  updateCharacterRuntimeRequestSchema,
   updateCharacterSheetRequestSchema,
   type CampaignCharacterSheetsResponse,
+  type CharacterDocumentResponse,
   type CharacterOptionsResponse,
+  type CharacterRuntimeState,
   type CharacterSheet,
   type CreateCharacterSheetRequest,
   type ImportCharacterSheetRequest,
   type PortableCharacterSheet,
+  type UpdateCharacterRuntimeRequest,
+  type UpdateCharacterDocumentRequest,
   type UpdateCharacterSheetRequest,
 } from '@fog-of-lore/contracts';
+import type { Response } from 'express';
 
 import type { AuthenticatedUser } from '../auth/auth.types';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { SessionAuthGuard } from '../auth/session-auth.guard';
+import {
+  LoreAttachmentsService,
+  type UploadedAttachment,
+} from '../campaigns/lore-attachments.service';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
 import { CharactersService } from './characters.service';
 
 @Controller()
 @UseGuards(SessionAuthGuard)
 export class CharactersController {
-  public constructor(@Inject(CharactersService) private readonly characters: CharactersService) {}
+  public constructor(
+    @Inject(CharactersService) private readonly characters: CharactersService,
+    @Inject(LoreAttachmentsService) private readonly attachments: LoreAttachmentsService,
+  ) {}
 
   @Get('rulesets/dnd5e/character-options')
   public options(): CharacterOptionsResponse {
@@ -85,6 +104,61 @@ export class CharactersController {
     input: UpdateCharacterSheetRequest,
   ): Promise<CharacterSheet> {
     return this.characters.update(user.id, sheetId, input);
+  }
+
+  @Get('characters/:sheetId/document')
+  public getDocument(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('sheetId', new ParseUUIDPipe({ version: '4' })) sheetId: string,
+  ): Promise<CharacterDocumentResponse> {
+    return this.characters.getDocument(user.id, sheetId);
+  }
+
+  @Patch('characters/:sheetId/document')
+  public updateDocument(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('sheetId', new ParseUUIDPipe({ version: '4' })) sheetId: string,
+    @Body(new ZodValidationPipe(updateCharacterDocumentRequestSchema))
+    input: UpdateCharacterDocumentRequest,
+  ): Promise<CharacterDocumentResponse> {
+    return this.characters.updateDocument(user.id, sheetId, input);
+  }
+
+  @Patch('characters/:sheetId/runtime')
+  public updateRuntime(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('sheetId', new ParseUUIDPipe({ version: '4' })) sheetId: string,
+    @Body(new ZodValidationPipe(updateCharacterRuntimeRequestSchema))
+    input: UpdateCharacterRuntimeRequest,
+  ): Promise<CharacterRuntimeState> {
+    return this.characters.updateRuntime(user.id, sheetId, input);
+  }
+
+  @Post('characters/:sheetId/portrait')
+  @UseInterceptors(FileInterceptor('file', { limits: { files: 1, fileSize: 5 * 1024 * 1024 } }))
+  public setPortrait(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('sheetId', new ParseUUIDPipe({ version: '4' })) sheetId: string,
+    @UploadedFile() file?: UploadedAttachment,
+  ): Promise<CharacterSheet> {
+    return this.characters.setPortrait(user.id, sheetId, file);
+  }
+
+  @Get('characters/:sheetId/portrait')
+  public async portrait(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('sheetId', new ParseUUIDPipe({ version: '4' })) sheetId: string,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<StreamableFile> {
+    const reference = await this.characters.portraitReference(user.id, sheetId);
+    const { attachment, buffer } = await this.attachments.readForBattleScene(
+      reference.attachmentId,
+      reference.campaignId,
+    );
+    response.setHeader('Content-Type', attachment.mimeType);
+    response.setHeader('Content-Length', String(attachment.size));
+    response.setHeader('Cache-Control', 'private, max-age=60');
+    return new StreamableFile(buffer);
   }
 
   @Delete('characters/:sheetId')

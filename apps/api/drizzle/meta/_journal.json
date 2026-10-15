@@ -92,6 +92,62 @@
       "when": 1786752000000,
       "tag": "0012_battle_visual_assets",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1786753800000,
+      "tag": "0013_battle_object_labels",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1786755600000,
+      "tag": "0014_repair_battle_object_labels",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1790370089571,
+      "tag": "0015_schema_checkpoint",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1790495128237,
+      "tag": "0016_remarkable_wilson_fisk",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1790526651400,
+      "tag": "0017_military_apocalypse",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1790620322000,
+      "tag": "0018_landscape_library",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1790956800000,
+      "tag": "0019_battle_asset_catalog",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1791721009119,
+      "tag": "0020_character_sheets_v2_runtime",
+      "breakpoints": true
     }
   ]
 }

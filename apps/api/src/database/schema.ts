@@ -71,6 +71,34 @@ export const battleObstacleKind = pgEnum('battle_obstacle_kind', [
   'DIFFICULT_TERRAIN',
 ]);
 export const battleSceneObjectKind = pgEnum('battle_scene_object_kind', ['PROP', 'CLUE']);
+export const battleTerrainTheme = pgEnum('battle_terrain_theme', [
+  'FOREST',
+  'RUINS',
+  'DUNGEON',
+  'CAVE',
+  'SWAMP',
+  'DESERT',
+  'SNOW',
+  'URBAN',
+]);
+export const battleLightingTheme = pgEnum('battle_lighting_theme', ['BRIGHT', 'DIM', 'DARK']);
+export const battleWeatherTheme = pgEnum('battle_weather_theme', [
+  'CLEAR',
+  'RAIN',
+  'FOG',
+  'SNOW',
+  'STORM',
+]);
+export const characterCreationMode = pgEnum('character_creation_mode', [
+  'AUTOMATIC',
+  'GUIDED',
+  'MANUAL',
+]);
+export const characterSheetStatus = pgEnum('character_sheet_status', [
+  'DRAFT',
+  'READY',
+  'ARCHIVED',
+]);
 
 export const users = pgTable(
   'users',
@@ -344,6 +372,13 @@ export const characterSheets = pgTable(
       .references(() => users.id, { onDelete: 'restrict' }),
     name: text('name').notNull(),
     ruleset: text('ruleset').notNull().default('dnd5e-srd-5.2.1'),
+    rulesetVersion: text('ruleset_version').notNull().default('5.2.1'),
+    documentVersion: integer('document_version').notNull().default(1),
+    creationMode: characterCreationMode('creation_mode').notNull().default('MANUAL'),
+    status: characterSheetStatus('status').notNull().default('DRAFT'),
+    portraitAssetId: uuid('portrait_asset_id').references(() => loreAttachments.id, {
+      onDelete: 'set null',
+    }),
     data: jsonb('data').notNull(),
     revision: integer('revision').notNull().default(0),
     ...timestamps,
@@ -354,8 +389,66 @@ export const characterSheets = pgTable(
     index('character_sheets_campaign_owner_index').on(table.campaignId, table.ownerUserId),
     check('character_sheets_name_length', sql`char_length(${table.name}) between 1 and 160`),
     check('character_sheets_ruleset_supported', sql`${table.ruleset} = 'dnd5e-srd-5.2.1'`),
+    check('character_sheets_ruleset_version_supported', sql`${table.rulesetVersion} = '5.2.1'`),
+    check('character_sheets_document_version_supported', sql`${table.documentVersion} in (1, 2)`),
     check('character_sheets_revision_nonnegative', sql`${table.revision} >= 0`),
     check('character_sheets_data_size', sql`pg_column_size(${table.data}) <= 262144`),
+  ],
+);
+
+export const characterRuntimeStates = pgTable(
+  'character_runtime_states',
+  {
+    sheetId: uuid('sheet_id')
+      .primaryKey()
+      .references(() => characterSheets.id, { onDelete: 'cascade' }),
+    currentHitPoints: integer('current_hit_points').notNull().default(0),
+    temporaryHitPoints: integer('temporary_hit_points').notNull().default(0),
+    resources: jsonb('resources')
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    spellSlots: jsonb('spell_slots')
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    conditions: jsonb('conditions')
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    inspiration: boolean('inspiration').notNull().default(false),
+    deathSaveSuccesses: integer('death_save_successes').notNull().default(0),
+    deathSaveFailures: integer('death_save_failures').notNull().default(0),
+    revision: integer('revision').notNull().default(0),
+    ...timestamps,
+  },
+  (table) => [
+    check(
+      'character_runtime_states_current_hp_range',
+      sql`${table.currentHitPoints} between 0 and 999999`,
+    ),
+    check(
+      'character_runtime_states_temporary_hp_range',
+      sql`${table.temporaryHitPoints} between 0 and 999999`,
+    ),
+    check(
+      'character_runtime_states_death_save_successes_range',
+      sql`${table.deathSaveSuccesses} between 0 and 3`,
+    ),
+    check(
+      'character_runtime_states_death_save_failures_range',
+      sql`${table.deathSaveFailures} between 0 and 3`,
+    ),
+    check('character_runtime_states_revision_nonnegative', sql`${table.revision} >= 0`),
+    check(
+      'character_runtime_states_resources_object',
+      sql`jsonb_typeof(${table.resources}) = 'object'`,
+    ),
+    check(
+      'character_runtime_states_spell_slots_object',
+      sql`jsonb_typeof(${table.spellSlots}) = 'object'`,
+    ),
+    check(
+      'character_runtime_states_conditions_array',
+      sql`jsonb_typeof(${table.conditions}) = 'array'`,
+    ),
   ],
 );
 
@@ -374,6 +467,10 @@ export const battleScenes = pgTable(
     backgroundAttachmentId: uuid('background_attachment_id').references(() => loreAttachments.id, {
       onDelete: 'set null',
     }),
+    terrainTheme: battleTerrainTheme('terrain_theme'),
+    backgroundPreset: text('background_preset'),
+    lightingTheme: battleLightingTheme('lighting_theme'),
+    weatherTheme: battleWeatherTheme('weather_theme'),
     activeCombatantId: uuid('active_combatant_id'),
     round: integer('round').notNull().default(1),
     revision: integer('revision').notNull().default(0),
@@ -388,6 +485,10 @@ export const battleScenes = pgTable(
     check('battle_scenes_name_length', sql`char_length(${table.name}) between 1 and 160`),
     check('battle_scenes_grid_columns_range', sql`${table.gridColumns} between 4 and 60`),
     check('battle_scenes_grid_rows_range', sql`${table.gridRows} between 4 and 60`),
+    check(
+      'battle_scenes_background_preset_valid',
+      sql`${table.backgroundPreset} is null or ${table.backgroundPreset} in ('FOREST_CLEARING', 'FOREST_CREEK', 'RUINS_RUBBLE', 'RUINS_COURTYARD', 'DUNGEON_STONE', 'DUNGEON_DAMP', 'CAVE_CRYSTAL', 'CAVE_VOLCANIC', 'SWAMP_MURK', 'SWAMP_REEDS', 'DESERT_DUNES', 'DESERT_SALT', 'SNOW_TUNDRA', 'SNOW_GLACIER', 'URBAN_PLAZA', 'URBAN_ROAD')`,
+    ),
     check('battle_scenes_round_positive', sql`${table.round} > 0`),
     check('battle_scenes_revision_nonnegative', sql`${table.revision} >= 0`),
   ],
@@ -400,6 +501,9 @@ export const battleCombatants = pgTable(
     sceneId: uuid('scene_id')
       .notNull()
       .references(() => battleScenes.id, { onDelete: 'cascade' }),
+    characterSheetId: uuid('character_sheet_id').references(() => characterSheets.id, {
+      onDelete: 'set null',
+    }),
     name: text('name').notNull(),
     kind: battleCombatantKind('kind').notNull(),
     initiative: integer('initiative').notNull().default(10),
@@ -427,6 +531,7 @@ export const battleCombatants = pgTable(
   },
   (table) => [
     index('battle_combatants_scene_id_index').on(table.sceneId),
+    index('battle_combatants_character_sheet_id_index').on(table.characterSheetId),
     index('battle_combatants_scene_initiative_index').on(table.sceneId, table.initiative),
     check('battle_combatants_name_length', sql`char_length(${table.name}) between 1 and 120`),
     check('battle_combatants_current_hp_range', sql`${table.currentHp} between 0 and 999999`),
@@ -455,6 +560,7 @@ export const battleTokens = pgTable(
     imageAttachmentId: uuid('image_attachment_id').references(() => loreAttachments.id, {
       onDelete: 'set null',
     }),
+    systemAssetId: text('system_asset_id'),
     x: integer('x').notNull().default(0),
     y: integer('y').notNull().default(0),
     size: integer('size').notNull().default(1),
@@ -470,7 +576,72 @@ export const battleTokens = pgTable(
     check('battle_tokens_y_nonnegative', sql`${table.y} >= 0`),
     check('battle_tokens_size_range', sql`${table.size} between 1 and 6`),
     check('battle_tokens_color_format', sql`${table.color} ~ '^#[0-9A-Fa-f]{6}$'`),
+    check(
+      'battle_tokens_system_asset_id_format',
+      sql`${table.systemAssetId} is null or ${table.systemAssetId} ~ '^[a-z0-9]+([.-][a-z0-9]+)*$'`,
+    ),
+    check(
+      'battle_tokens_visual_source',
+      sql`${table.imageAttachmentId} is null or ${table.systemAssetId} is null`,
+    ),
     check('battle_tokens_revision_nonnegative', sql`${table.revision} >= 0`),
+  ],
+);
+
+export const battleCombatantPresets = pgTable(
+  'battle_combatant_presets',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    campaignId: uuid('campaign_id')
+      .notNull()
+      .references(() => campaigns.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    kind: battleCombatantKind('kind').notNull(),
+    initiative: integer('initiative').notNull().default(10),
+    maxHp: integer('max_hp').notNull().default(10),
+    armorClass: integer('armor_class'),
+    speed: integer('speed').notNull().default(6),
+    className: text('class_name').notNull().default(''),
+    species: text('species').notNull().default(''),
+    hidden: boolean('hidden').notNull().default(false),
+    nameVisibility: battleNameVisibility('name_visibility').notNull().default('EXACT'),
+    hpVisibility: battleHpVisibility('hp_visibility').notNull().default('STATE'),
+    showArmorClass: boolean('show_armor_class').notNull().default(false),
+    showClassName: boolean('show_class_name').notNull().default(false),
+    showSpecies: boolean('show_species').notNull().default(false),
+    conditionsVisibility: battleConditionsVisibility('conditions_visibility')
+      .notNull()
+      .default('ALL'),
+    ownerUserId: uuid('owner_user_id').references(() => users.id, { onDelete: 'set null' }),
+    imageAttachmentId: uuid('image_attachment_id').references(() => loreAttachments.id, {
+      onDelete: 'set null',
+    }),
+    systemAssetId: text('system_asset_id'),
+    size: integer('size').notNull().default(1),
+    color: text('color').notNull().default('#7c5cff'),
+    ...timestamps,
+  },
+  (table) => [
+    index('battle_combatant_presets_campaign_id_index').on(table.campaignId),
+    index('battle_combatant_presets_campaign_updated_index').on(table.campaignId, table.updatedAt),
+    check(
+      'battle_combatant_presets_name_length',
+      sql`char_length(${table.name}) between 1 and 120`,
+    ),
+    check('battle_combatant_presets_max_hp_range', sql`${table.maxHp} between 1 and 999999`),
+    check('battle_combatant_presets_speed_range', sql`${table.speed} between 0 and 100`),
+    check('battle_combatant_presets_class_length', sql`char_length(${table.className}) <= 120`),
+    check('battle_combatant_presets_species_length', sql`char_length(${table.species}) <= 120`),
+    check('battle_combatant_presets_size_range', sql`${table.size} between 1 and 6`),
+    check('battle_combatant_presets_color_format', sql`${table.color} ~ '^#[0-9A-Fa-f]{6}$'`),
+    check(
+      'battle_combatant_presets_system_asset_id_format',
+      sql`${table.systemAssetId} is null or ${table.systemAssetId} ~ '^[a-z0-9]+([.-][a-z0-9]+)*$'`,
+    ),
+    check(
+      'battle_combatant_presets_visual_source',
+      sql`${table.imageAttachmentId} is null or ${table.systemAssetId} is null`,
+    ),
   ],
 );
 
@@ -487,6 +658,7 @@ export const battleSceneObstacles = pgTable(
     width: integer('width').notNull().default(1),
     height: integer('height').notNull().default(1),
     movementCost: integer('movement_cost').notNull().default(2),
+    systemAssetId: text('system_asset_id'),
     revision: integer('revision').notNull().default(0),
     ...timestamps,
   },
@@ -497,6 +669,10 @@ export const battleSceneObstacles = pgTable(
     check('battle_scene_obstacles_width_range', sql`${table.width} between 1 and 60`),
     check('battle_scene_obstacles_height_range', sql`${table.height} between 1 and 60`),
     check('battle_scene_obstacles_cost_range', sql`${table.movementCost} between 1 and 5`),
+    check(
+      'battle_scene_obstacles_system_asset_id_format',
+      sql`${table.systemAssetId} is null or ${table.systemAssetId} ~ '^[a-z0-9]+([.-][a-z0-9]+)*$'`,
+    ),
     check('battle_scene_obstacles_revision_nonnegative', sql`${table.revision} >= 0`),
   ],
 );
@@ -520,6 +696,7 @@ export const battleSceneObjects = pgTable(
     imageAttachmentId: uuid('image_attachment_id').references(() => loreAttachments.id, {
       onDelete: 'set null',
     }),
+    systemAssetId: text('system_asset_id'),
     currentHp: integer('current_hp'),
     maxHp: integer('max_hp'),
     revision: integer('revision').notNull().default(0),
@@ -535,6 +712,14 @@ export const battleSceneObjects = pgTable(
     check(
       'battle_scene_objects_hp_pair',
       sql`(${table.currentHp} is null and ${table.maxHp} is null) or (${table.currentHp} between 0 and 999999 and ${table.maxHp} between 1 and 999999 and ${table.currentHp} <= ${table.maxHp})`,
+    ),
+    check(
+      'battle_scene_objects_system_asset_id_format',
+      sql`${table.systemAssetId} is null or ${table.systemAssetId} ~ '^[a-z0-9]+([.-][a-z0-9]+)*$'`,
+    ),
+    check(
+      'battle_scene_objects_visual_source',
+      sql`${table.imageAttachmentId} is null or ${table.systemAssetId} is null`,
     ),
     check('battle_scene_objects_revision_nonnegative', sql`${table.revision} >= 0`),
   ],

@@ -6,3 +6,4 @@ coverage
 pnpm-lock.yaml
 apps/api/drizzle
 apps/web/next-env.d.ts
+packages/domain/src/data/dnd5e-srd-5.2.1-bestiary.json

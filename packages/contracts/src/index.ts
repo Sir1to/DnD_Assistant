@@ -6,5 +6,6 @@ export * from './characters';
 export * from './direct-messages';
 export * from './health';
 export * from './lore';
+export * from './rulesets';
 export * from './session-tools';
 export * from './websocket';

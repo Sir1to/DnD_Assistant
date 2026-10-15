@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { connection } from 'next/server';
 import type { ReactNode } from 'react';
 import { resolveTheme, themeStyle } from '@fog-of-lore/ui';
 
@@ -15,7 +16,10 @@ export const viewport: Viewport = {
   themeColor: '#171b17',
 };
 
-export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+  // Request-scoped rendering is required so Next.js can apply the CSP nonce from proxy.ts.
+  await connection();
+
   return (
     <html data-theme="tavern" lang="ru" style={themeStyle(resolveTheme('tavern'))}>
       <body>

@@ -5,6 +5,8 @@ import type {
   BattleSceneSnapshot,
   CampaignDetail,
   CampaignListResponse,
+  CharacterDocumentResponse,
+  CharacterSheetData,
   CombatState,
   CreateWidgetResult,
   DiceState,
@@ -13,14 +15,20 @@ import type {
   DirectConversation,
   DirectConversationsResponse,
   DirectMessage,
+  GeneratedRandomBattleMap,
   LoreEntry,
+  PortableBattleCombatantPreset,
   PortableCharacterSheet,
   TimerState,
   WidgetInstance,
 } from '@fog-of-lore/contracts';
+import { migrateCharacterSheetDataV1 } from '@fog-of-lore/domain';
 import type { Pool } from 'pg';
 import request from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 import { PG_POOL } from './database/database.constants';
 
@@ -30,10 +38,13 @@ const describeIntegration = testDatabaseUrl ? describe : describe.skip;
 describeIntegration('auth and campaigns API integration', () => {
   let app: INestApplication;
   let pool: Pool;
+  let testFileStoragePath = '';
 
   beforeAll(async () => {
+    testFileStoragePath = mkdtempSync(join(tmpdir(), 'fog-of-lore-integration-'));
     process.env.NODE_ENV = 'test';
     process.env.DATABASE_URL = testDatabaseUrl;
+    process.env.FILE_STORAGE_PATH = testFileStoragePath;
     process.env.WEB_ORIGIN = 'http://localhost:3000';
     process.env.COOKIE_SECURE = 'false';
     process.env.SESSION_TTL_DAYS = '30';
@@ -45,7 +56,7 @@ describeIntegration('auth and campaigns API integration', () => {
     app.setGlobalPrefix('api');
     await app.init();
     pool = app.get<Pool>(PG_POOL);
-  });
+  }, 30_000);
 
   beforeEach(async () => {
     await pool.query(
@@ -62,7 +73,7 @@ describeIntegration('auth and campaigns API integration', () => {
       .send({ name: 'Листы героев', description: '' })
       .expect(201);
     const campaign = campaignResponse.body as CampaignDetail;
-    const data = {
+    const data: CharacterSheetData = {
       level: 1,
       speciesId: 'human',
       classId: 'fighter',
@@ -95,6 +106,35 @@ describeIntegration('auth and campaigns API integration', () => {
       .expect(201);
     const created = createResponse.body as CharacterSheet;
     expect(created.ownerDisplayName).toBe('Владелец листа');
+    expect(created).toMatchObject({
+      rulesetVersion: '5.2.1',
+      documentVersion: 1,
+      creationMode: 'MANUAL',
+      status: 'DRAFT',
+      portraitAssetId: null,
+      runtime: { currentHitPoints: 12, temporaryHitPoints: 0, revision: 0 },
+    });
+
+    const runtimeResponse = await request(app.getHttpServer())
+      .patch(`/api/characters/${created.id}/runtime`)
+      .set('Cookie', ownerCookie)
+      .send({ expectedRevision: 0, currentHitPoints: 7, temporaryHitPoints: 3 })
+      .expect(200);
+    expect(runtimeResponse.body).toMatchObject({
+      currentHitPoints: 7,
+      temporaryHitPoints: 3,
+      revision: 1,
+    });
+    await request(app.getHttpServer())
+      .patch(`/api/characters/${created.id}/runtime`)
+      .set('Cookie', ownerCookie)
+      .send({ expectedRevision: 0, currentHitPoints: 6 })
+      .expect(409);
+    await request(app.getHttpServer())
+      .patch(`/api/characters/${created.id}/runtime`)
+      .set('Cookie', ownerCookie)
+      .send({ expectedRevision: 1, currentHitPoints: 13 })
+      .expect(400);
 
     await request(app.getHttpServer())
       .get(`/api/characters/${created.id}`)
@@ -106,10 +146,137 @@ describeIntegration('auth and campaigns API integration', () => {
       .set('Cookie', ownerCookie)
       .send({ expectedRevision: 0, name: 'Рада Серый Щит', data })
       .expect(200);
+    const afterStaticUpdate = await request(app.getHttpServer())
+      .get(`/api/characters/${created.id}`)
+      .set('Cookie', ownerCookie)
+      .expect(200);
+    expect((afterStaticUpdate.body as CharacterSheet).runtime.currentHitPoints).toBe(7);
     await request(app.getHttpServer())
       .patch(`/api/characters/${created.id}`)
       .set('Cookie', ownerCookie)
       .send({ expectedRevision: 0, name: 'Устаревшее имя', data })
+      .expect(409);
+
+    const documentViewResponse = await request(app.getHttpServer())
+      .get(`/api/characters/${created.id}/document`)
+      .set('Cookie', ownerCookie)
+      .expect(200);
+    const documentView = documentViewResponse.body as CharacterDocumentResponse;
+    expect(documentView).toMatchObject({
+      storedDocumentVersion: 1,
+      revision: 1,
+      document: { documentVersion: 2, creation: { mode: 'MANUAL' } },
+    });
+
+    const migrated = migrateCharacterSheetDataV1(data, 'GUIDED');
+    migrated.document.identity.classId = 'unknown-class';
+    await request(app.getHttpServer())
+      .patch(`/api/characters/${created.id}/document`)
+      .set('Cookie', ownerCookie)
+      .send({
+        expectedRevision: 1,
+        name: 'Рада Серый Щит',
+        status: 'READY',
+        document: migrated.document,
+      })
+      .expect(400);
+    migrated.document.identity.classId = data.classId;
+    const migratedResponse = await request(app.getHttpServer())
+      .patch(`/api/characters/${created.id}/document`)
+      .set('Cookie', ownerCookie)
+      .send({
+        expectedRevision: 1,
+        name: 'Рада Серый Щит',
+        status: 'READY',
+        document: migrated.document,
+      })
+      .expect(200);
+    expect(migratedResponse.body).toMatchObject({
+      storedDocumentVersion: 2,
+      status: 'READY',
+      revision: 2,
+      document: { creation: { mode: 'GUIDED' } },
+    });
+    const projectedV2Response = await request(app.getHttpServer())
+      .get(`/api/characters/${created.id}`)
+      .set('Cookie', ownerCookie)
+      .expect(200);
+    expect(projectedV2Response.body).toMatchObject({
+      documentVersion: 2,
+      creationMode: 'GUIDED',
+      status: 'READY',
+      data,
+      runtime: { currentHitPoints: 7, temporaryHitPoints: 3 },
+    });
+
+    const portraitBytes = Buffer.from([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x00,
+    ]);
+    const portraitResponse = await request(app.getHttpServer())
+      .post(`/api/characters/${created.id}/portrait`)
+      .set('Cookie', ownerCookie)
+      .attach('file', portraitBytes, { filename: 'rada.png', contentType: 'image/png' })
+      .expect(201);
+    expect((portraitResponse.body as CharacterSheet).portraitAssetId).toEqual(expect.any(String));
+    await request(app.getHttpServer())
+      .get(`/api/characters/${created.id}/portrait`)
+      .set('Cookie', ownerCookie)
+      .expect('Content-Type', /image\/png/)
+      .expect(200);
+
+    const sceneResponse = await request(app.getHttpServer())
+      .post(`/api/campaigns/${campaign.id}/battle`)
+      .set('Cookie', ownerCookie)
+      .send({ name: 'Проверка roster', gridColumns: 8, gridRows: 8 })
+      .expect(201);
+    const scene = sceneResponse.body as BattleSceneSnapshot;
+    const placedResponse = await request(app.getHttpServer())
+      .post(`/api/battle-scenes/${scene.scene!.id}/characters/${created.id}/place`)
+      .set('Cookie', ownerCookie)
+      .send({ color: '#123abc', size: 1 })
+      .expect(201);
+    const placed = placedResponse.body as BattleSceneSnapshot;
+    expect(placed.combatants[0]).toMatchObject({
+      name: 'Рада Серый Щит',
+      kind: 'PLAYER',
+      currentHp: 7,
+      maxHp: 12,
+      temporaryHp: 3,
+      armorClass: 16,
+      speed: 6,
+    });
+    expect(placed.tokens[0]).toMatchObject({ color: '#123abc', hasImage: true });
+    await request(app.getHttpServer())
+      .get(`/api/battle-tokens/${placed.tokens[0]!.id}/image`)
+      .set('Cookie', ownerCookie)
+      .expect('Content-Type', /image\/png/)
+      .expect(200);
+    await request(app.getHttpServer())
+      .post(`/api/battle-scenes/${scene.scene!.id}/characters/${created.id}/place`)
+      .set('Cookie', ownerCookie)
+      .send({ color: '#123abc', size: 1 })
+      .expect(409);
+
+    const saveResponse = await request(app.getHttpServer())
+      .post(`/api/battle-scenes/${scene.scene!.id}/saves`)
+      .set('Cookie', ownerCookie)
+      .send({ name: 'Герой с портретом' })
+      .expect(201);
+    const restoredResponse = await request(app.getHttpServer())
+      .post(`/api/battle-scene-saves/${saveResponse.body.id as string}/open`)
+      .set('Cookie', ownerCookie)
+      .expect(201);
+    const restored = restoredResponse.body as BattleSceneSnapshot;
+    expect(restored.tokens[0]).toMatchObject({ hasImage: true });
+    await request(app.getHttpServer())
+      .get(`/api/battle-tokens/${restored.tokens[0]!.id}/image`)
+      .set('Cookie', ownerCookie)
+      .expect(200);
+
+    await request(app.getHttpServer())
+      .patch(`/api/characters/${created.id}`)
+      .set('Cookie', ownerCookie)
+      .send({ expectedRevision: 2, name: 'Нельзя затереть v2', data })
       .expect(409);
 
     const exportResponse = await request(app.getHttpServer())
@@ -130,6 +297,9 @@ describeIntegration('auth and campaigns API integration', () => {
 
   afterAll(async () => {
     await app?.close();
+    if (testFileStoragePath) {
+      rmSync(testFileStoragePath, { recursive: true, force: true });
+    }
   });
 
   it('registers, authenticates, rotates and invalidates a session', async () => {
@@ -664,6 +834,205 @@ describeIntegration('auth and campaigns API integration', () => {
       .expect(204);
   });
 
+  it('generates deterministic editable battle drafts on the server', async () => {
+    const ownerCookie = await register('generator-owner@example.test', 'Мастер генератора');
+    const playerCookie = await register('generator-player@example.test', 'Игрок генератора');
+    const firstCampaignResponse = await request(app.getHttpServer())
+      .post('/api/campaigns')
+      .set('Cookie', ownerCookie)
+      .send({ name: 'Первая случайная карта' })
+      .expect(201);
+    const secondCampaignResponse = await request(app.getHttpServer())
+      .post('/api/campaigns')
+      .set('Cookie', ownerCookie)
+      .send({ name: 'Вторая случайная карта' })
+      .expect(201);
+    const firstCampaign = firstCampaignResponse.body as CampaignDetail;
+    const secondCampaign = secondCampaignResponse.body as CampaignDetail;
+    await invitePlayer(ownerCookie, firstCampaign.id, playerCookie);
+
+    const description = {
+      name: 'Засада у древнего алтаря',
+      description: 'Лесная тропа в тумане, старая святыня и стая волков.',
+      seed: 'integration-forest-42',
+      terrain: 'FOREST',
+      size: 'MEDIUM',
+      shape: 'HEXAGON',
+      playerCount: 4,
+      enemies: [{ name: 'Серый волк', count: 4, maxHp: 11, armorClass: 13 }],
+      danger: 'HIGH',
+      objective: 'DEFEND',
+      startingZones: 'OPPOSITE',
+      obstacleDensity: 'DENSE',
+      difficultTerrain: true,
+      lighting: 'DIM',
+      weather: 'FOG',
+      entrances: 2,
+      interactiveObjects: true,
+      hazards: true,
+    };
+
+    await request(app.getHttpServer())
+      .post(`/api/campaigns/${firstCampaign.id}/battle/generate`)
+      .set('Cookie', playerCookie)
+      .send(description)
+      .expect(403);
+    const firstResponse = await request(app.getHttpServer())
+      .post(`/api/campaigns/${firstCampaign.id}/battle/generate`)
+      .set('Cookie', ownerCookie)
+      .send(description)
+      .expect(201);
+    const secondResponse = await request(app.getHttpServer())
+      .post(`/api/campaigns/${secondCampaign.id}/battle/generate`)
+      .set('Cookie', ownerCookie)
+      .send(description)
+      .expect(201);
+    const first = firstResponse.body as GeneratedRandomBattleMap;
+    const second = secondResponse.body as GeneratedRandomBattleMap;
+
+    expect(first.scene).toMatchObject({
+      name: description.name,
+      status: 'DRAFT',
+      shape: 'HEXAGON',
+      activeCombatantId: null,
+      round: 1,
+    });
+    expect(first.generation).toMatchObject({
+      seed: description.seed,
+      terrain: 'FOREST',
+    });
+    expect(first.combatants).toHaveLength(4);
+    expect(first.tokens).toHaveLength(4);
+    expect(first.obstacles.length).toBeGreaterThan(0);
+    expect(first.objects.some(({ name }) => name === 'Точка обороны')).toBe(true);
+    expect(generatedLayout(first)).toEqual(generatedLayout(second));
+
+    await request(app.getHttpServer())
+      .post(`/api/campaigns/${firstCampaign.id}/battle/generate`)
+      .set('Cookie', ownerCookie)
+      .send({ ...description, seed: 'another-seed' })
+      .expect(409);
+    const playerDraft = await request(app.getHttpServer())
+      .get(`/api/campaigns/${firstCampaign.id}/battle`)
+      .set('Cookie', playerCookie)
+      .expect(200);
+    expect((playerDraft.body as BattleSceneSnapshot).scene).toBeNull();
+    expect((playerDraft.body as BattleSceneSnapshot).tokens).toEqual([]);
+  });
+
+  it('imports an Encounter Lab composition as independent battle combatants', async () => {
+    const ownerCookie = await register('encounter-owner@example.test', 'Encounter master');
+    const playerCookie = await register('encounter-player@example.test', 'Encounter player');
+    const campaignResponse = await request(app.getHttpServer())
+      .post('/api/campaigns')
+      .set('Cookie', ownerCookie)
+      .send({ name: 'Encounter Lab transfer' })
+      .expect(201);
+    const campaign = campaignResponse.body as CampaignDetail;
+    await invitePlayer(ownerCookie, campaign.id, playerCookie);
+
+    const composition = {
+      opponents: [
+        { source: 'SRD', monsterId: 'srd:goblin', count: 2 },
+        {
+          source: 'CUSTOM',
+          name: 'Clockwork guard',
+          count: 1,
+          initiative: 10,
+          maxHp: 10,
+          armorClass: null,
+          speed: 6,
+          size: 1,
+        },
+      ],
+    };
+    const withoutScene = await request(app.getHttpServer())
+      .post(`/api/campaigns/${campaign.id}/battle/encounter`)
+      .set('Cookie', ownerCookie)
+      .send(composition);
+    expect(withoutScene.status, JSON.stringify(withoutScene.body)).toBe(400);
+
+    await request(app.getHttpServer())
+      .post(`/api/campaigns/${campaign.id}/battle`)
+      .set('Cookie', ownerCookie)
+      .send({ name: 'Goblin ambush', gridColumns: 12, gridRows: 8, terrainTheme: 'FOREST' })
+      .expect(201);
+    await request(app.getHttpServer())
+      .post(`/api/campaigns/${campaign.id}/battle/encounter`)
+      .set('Cookie', playerCookie)
+      .send(composition)
+      .expect(403);
+    await request(app.getHttpServer())
+      .post(`/api/campaigns/${campaign.id}/battle/encounter`)
+      .set('Cookie', ownerCookie)
+      .send({
+        opponents: [
+          { source: 'SRD', monsterId: 'srd:goblin', count: 1 },
+          { source: 'SRD', monsterId: 'srd:not-a-monster', count: 1 },
+        ],
+      })
+      .expect(400);
+    const afterRejected = await request(app.getHttpServer())
+      .get(`/api/campaigns/${campaign.id}/battle`)
+      .set('Cookie', ownerCookie)
+      .expect(200);
+    expect((afterRejected.body as BattleSceneSnapshot).combatants).toEqual([]);
+
+    const importedResponse = await request(app.getHttpServer())
+      .post(`/api/campaigns/${campaign.id}/battle/encounter`)
+      .set('Cookie', ownerCookie)
+      .send(composition)
+      .expect(201);
+    const imported = importedResponse.body as BattleSceneSnapshot;
+    expect(imported.combatants).toHaveLength(3);
+    expect(imported.tokens).toHaveLength(3);
+    expect(
+      imported.combatants.filter(({ name }) => (name ?? '').startsWith('Goblin')),
+    ).toHaveLength(2);
+    expect(imported.combatants.find(({ name }) => name === 'Goblin 1')).toMatchObject({
+      kind: 'MONSTER',
+      initiative: 2,
+      currentHp: 7,
+      maxHp: 7,
+      armorClass: 15,
+      speed: 6,
+      species: 'humanoid',
+      hpVisibility: 'STATE',
+    });
+    expect(imported.combatants.find(({ name }) => name === 'Clockwork guard')).toMatchObject({
+      currentHp: 10,
+      maxHp: 10,
+      speed: 6,
+    });
+    expect(new Set(imported.tokens.map(({ x, y }) => `${x}:${y}`)).size).toBe(3);
+    expect(imported.tokens.every(({ systemAssetId }) => systemAssetId !== null)).toBe(true);
+
+    const crampedCampaignResponse = await request(app.getHttpServer())
+      .post('/api/campaigns')
+      .set('Cookie', ownerCookie)
+      .send({ name: 'Cramped encounter field' })
+      .expect(201);
+    const crampedCampaign = crampedCampaignResponse.body as CampaignDetail;
+    await request(app.getHttpServer())
+      .post(`/api/campaigns/${crampedCampaign.id}/battle`)
+      .set('Cookie', ownerCookie)
+      .send({ name: 'Four cells', gridColumns: 4, gridRows: 4 })
+      .expect(201);
+    await request(app.getHttpServer())
+      .post(`/api/campaigns/${crampedCampaign.id}/battle/encounter`)
+      .set('Cookie', ownerCookie)
+      .send({
+        opponents: [{ source: 'SRD', monsterId: 'srd:ancient-red-dragon', count: 2 }],
+      })
+      .expect(400);
+    const crampedSnapshot = await request(app.getHttpServer())
+      .get(`/api/campaigns/${crampedCampaign.id}/battle`)
+      .set('Cookie', ownerCookie)
+      .expect(200);
+    expect((crampedSnapshot.body as BattleSceneSnapshot).combatants).toEqual([]);
+    expect((crampedSnapshot.body as BattleSceneSnapshot).tokens).toEqual([]);
+  });
+
   it('serves separate master and player battle projections and validates movement', async () => {
     const ownerCookie = await register('battle-owner@example.test', 'Мастер боя');
     const playerCookie = await register('battle-player@example.test', 'Арден');
@@ -681,6 +1050,41 @@ describeIntegration('auth and campaigns API integration', () => {
     const playerId = (members.body.members as Array<{ userId: string; role: string }>).find(
       ({ role }) => role === 'PLAYER',
     )!.userId;
+    const sheetResponse = await request(app.getHttpServer())
+      .post(`/api/campaigns/${campaign.id}/characters`)
+      .set('Cookie', ownerCookie)
+      .send({
+        name: 'Арден из листа',
+        ownerUserId: playerId,
+        ruleset: 'dnd5e-srd-5.2.1',
+        data: {
+          level: 1,
+          speciesId: 'human',
+          classId: 'fighter',
+          backgroundId: 'soldier',
+          abilityMethod: 'STANDARD_ARRAY',
+          abilities: {
+            strength: 15,
+            dexterity: 14,
+            constitution: 13,
+            intelligence: 8,
+            wisdom: 12,
+            charisma: 10,
+          },
+          skillIds: ['athletics'],
+          spellIds: [],
+          equipment: [],
+          hitPoints: 22,
+          armorClass: 17,
+          speed: 30,
+          personality: '',
+          appearance: '',
+          backstory: '',
+          notes: '',
+        },
+      })
+      .expect(201);
+    const characterSheet = sheetResponse.body as CharacterSheet;
 
     const created = await request(app.getHttpServer())
       .post(`/api/campaigns/${campaign.id}/battle`)
@@ -704,10 +1108,17 @@ describeIntegration('auth and campaigns API integration', () => {
     const enemyImageResponse = await request(app.getHttpServer())
       .post(`/api/lore/${visualEntry.id}/attachments`)
       .set('Cookie', ownerCookie)
-      .attach('file', Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), {
-        filename: 'enemy.png',
-        contentType: 'image/png',
-      })
+      .attach(
+        'file',
+        Buffer.from(
+          'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+          'base64',
+        ),
+        {
+          filename: 'enemy.png',
+          contentType: 'image/png',
+        },
+      )
       .expect(201);
     const enemyImageId = (enemyImageResponse.body as { id: string }).id;
     const fireImageResponse = await request(app.getHttpServer())
@@ -901,6 +1312,49 @@ describeIntegration('auth and campaigns API integration', () => {
       currentHp: 5,
       maxHp: 10,
     });
+    const ownerMonsterToken = (damagedCrate.body as BattleSceneSnapshot).tokens.find(
+      ({ combatantId }) => combatantId === monster.id,
+    )!;
+    await request(app.getHttpServer())
+      .patch(`/api/battle-tokens/${ownerMonsterToken.id}`)
+      .set('Cookie', ownerCookie)
+      .send({
+        expectedRevision: ownerMonsterToken.revision,
+        imageAttachmentId: null,
+        systemAssetId: 'starter.prop.forest.fallen-tree',
+      })
+      .expect(400);
+    const systemAssetSnapshotResponse = await request(app.getHttpServer())
+      .patch(`/api/battle-tokens/${ownerMonsterToken.id}`)
+      .set('Cookie', ownerCookie)
+      .send({
+        expectedRevision: ownerMonsterToken.revision,
+        imageAttachmentId: null,
+        systemAssetId: 'starter.token.forest.dire-wolf',
+      })
+      .expect(200);
+    expect(
+      (systemAssetSnapshotResponse.body as BattleSceneSnapshot).tokens.find(
+        ({ id }) => id === ownerMonsterToken.id,
+      ),
+    ).toMatchObject({
+      imageAttachmentId: null,
+      systemAssetId: 'starter.token.forest.dire-wolf',
+      hasImage: true,
+    });
+    const playerSystemAssetResponse = await request(app.getHttpServer())
+      .get(`/api/campaigns/${campaign.id}/battle`)
+      .set('Cookie', playerCookie)
+      .expect(200);
+    expect(
+      (playerSystemAssetResponse.body as BattleSceneSnapshot).tokens.find(
+        ({ id }) => id === ownerMonsterToken.id,
+      ),
+    ).toMatchObject({
+      imageAttachmentId: null,
+      systemAssetId: 'starter.token.forest.dire-wolf',
+      hasImage: true,
+    });
     const saveResponse = await request(app.getHttpServer())
       .post(`/api/battle-scenes/${sceneId}/saves`)
       .set('Cookie', ownerCookie)
@@ -922,16 +1376,19 @@ describeIntegration('auth and campaigns API integration', () => {
       .post(`/api/battle-scene-saves/${save.id}/open`)
       .set('Cookie', playerCookie)
       .expect(403);
-    await request(app.getHttpServer())
+    const masterMoved = await request(app.getHttpServer())
       .post(`/api/battle-tokens/${movedHeroToken.id}/move`)
       .set('Cookie', ownerCookie)
       .send({ expectedRevision: movedHeroToken.revision, x: 11, y: 7 })
-      .expect(403);
+      .expect(201);
+    expect(
+      (masterMoved.body as BattleSceneSnapshot).tokens.find(({ id }) => id === heroToken.id),
+    ).toMatchObject({ x: 11, y: 7 });
     await request(app.getHttpServer())
       .post(`/api/battle-tokens/${heroToken.id}/move`)
       .set('Cookie', playerCookie)
       .send({ expectedRevision: heroToken.revision + 1, x: 11, y: 7 })
-      .expect(403);
+      .expect(409);
     await request(app.getHttpServer())
       .post(`/api/battle-combatants/${hero.id}/hp`)
       .set('Cookie', playerCookie)
@@ -948,7 +1405,148 @@ describeIntegration('auth and campaigns API integration', () => {
       .set('Cookie', ownerCookie)
       .expect(200);
     const ownerSnapshot = ownerBeforeSettings.body as BattleSceneSnapshot;
+    const ownerHero = ownerSnapshot.combatants.find(({ name }) => name === 'Арден')!;
     const ownerMonster = ownerSnapshot.combatants.find(({ name }) => name === 'Теневой зверь')!;
+    const presetResponse = await request(app.getHttpServer())
+      .post(`/api/battle-combatants/${ownerHero.id}/preset`)
+      .set('Cookie', ownerCookie)
+      .send({})
+      .expect(201);
+    const heroPreset = presetResponse.body as {
+      id: string;
+      name: string;
+      maxHp: number;
+      ownerUserId: string | null;
+    };
+    expect(heroPreset).toMatchObject({ name: 'Арден', maxHp: 20, ownerUserId: playerId });
+    const sheetPresetResponse = await request(app.getHttpServer())
+      .post(`/api/characters/${characterSheet.id}/battle-combatant-preset`)
+      .set('Cookie', ownerCookie)
+      .send({ color: '#445566' })
+      .expect(201);
+    const sheetPreset = sheetPresetResponse.body as { id: string };
+    expect(sheetPresetResponse.body).toMatchObject({
+      name: 'Арден из листа',
+      kind: 'PLAYER',
+      initiative: 2,
+      maxHp: 22,
+      armorClass: 17,
+      speed: 6,
+      className: 'Воин',
+      species: 'Человек',
+      ownerUserId: playerId,
+      color: '#445566',
+    });
+    const updatedPresetResponse = await request(app.getHttpServer())
+      .patch(`/api/battle-combatant-presets/${heroPreset.id}`)
+      .set('Cookie', ownerCookie)
+      .send({
+        ...presetResponse.body,
+        name: 'Арден-ветеран',
+        maxHp: 24,
+        imageAttachmentId: null,
+      })
+      .expect(200);
+    expect(updatedPresetResponse.body).toMatchObject({ name: 'Арден-ветеран', maxHp: 24 });
+    const duplicatePresetResponse = await request(app.getHttpServer())
+      .post(`/api/battle-combatant-presets/${heroPreset.id}/duplicate`)
+      .set('Cookie', ownerCookie)
+      .send({ name: 'Арден — резерв' })
+      .expect(201);
+    expect(duplicatePresetResponse.body).toMatchObject({ name: 'Арден — резерв', maxHp: 24 });
+    await request(app.getHttpServer())
+      .get(`/api/campaigns/${campaign.id}/battle-combatant-presets`)
+      .set('Cookie', playerCookie)
+      .expect(403);
+    const presetList = await request(app.getHttpServer())
+      .get(`/api/campaigns/${campaign.id}/battle-combatant-presets`)
+      .set('Cookie', ownerCookie)
+      .expect(200);
+    expect(presetList.body).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: heroPreset.id, name: 'Арден-ветеран' }),
+        expect.objectContaining({ id: sheetPreset.id, name: 'Арден из листа' }),
+        expect.objectContaining({ id: duplicatePresetResponse.body.id, name: 'Арден — резерв' }),
+      ]),
+    );
+    const monsterPresetResponse = await request(app.getHttpServer())
+      .post(`/api/battle-combatants/${ownerMonster.id}/preset`)
+      .set('Cookie', ownerCookie)
+      .send({})
+      .expect(201);
+    const monsterPresetId = (monsterPresetResponse.body as { id: string }).id;
+    await request(app.getHttpServer())
+      .get(`/api/battle-combatant-presets/${monsterPresetId}/export`)
+      .set('Cookie', playerCookie)
+      .expect(403);
+    const portablePresetResponse = await request(app.getHttpServer())
+      .get(`/api/battle-combatant-presets/${monsterPresetId}/export`)
+      .set('Cookie', ownerCookie)
+      .expect(200);
+    const portablePreset = portablePresetResponse.body as PortableBattleCombatantPreset;
+    expect(portablePreset).toMatchObject({
+      format: 'fog-of-lore.battle-combatant-preset',
+      version: 1,
+      preset: {
+        name: 'Теневой зверь',
+        kind: 'MONSTER',
+        systemAssetId: 'starter.token.forest.dire-wolf',
+      },
+      image: null,
+    });
+    expect(portablePreset.preset).not.toHaveProperty('ownerUserId');
+    expect(portablePreset.preset).not.toHaveProperty('imageAttachmentId');
+    await request(app.getHttpServer())
+      .post(`/api/campaigns/${campaign.id}/battle-combatant-presets/import`)
+      .set('Cookie', playerCookie)
+      .send({ preset: portablePreset })
+      .expect(403);
+    await request(app.getHttpServer())
+      .post(`/api/campaigns/${campaign.id}/battle-combatant-presets/import`)
+      .set('Cookie', ownerCookie)
+      .send({
+        preset: {
+          ...portablePreset,
+          preset: {
+            ...portablePreset.preset,
+            systemAssetId: 'starter.prop.forest.fallen-tree',
+          },
+        },
+      })
+      .expect(400);
+    const importedPortablePresetResponse = await request(app.getHttpServer())
+      .post(`/api/campaigns/${campaign.id}/battle-combatant-presets/import`)
+      .set('Cookie', ownerCookie)
+      .send({ preset: portablePreset })
+      .expect(201);
+    expect(importedPortablePresetResponse.body).toMatchObject({
+      name: 'Теневой зверь',
+      kind: 'MONSTER',
+      ownerUserId: null,
+      hasImage: true,
+    });
+    await request(app.getHttpServer())
+      .post(`/api/battle-scenes/${sceneId}/combatant-presets/${heroPreset.id}/import`)
+      .set('Cookie', playerCookie)
+      .send({})
+      .expect(403);
+    const importedPresetResponse = await request(app.getHttpServer())
+      .post(`/api/battle-scenes/${sceneId}/combatant-presets/${heroPreset.id}/import`)
+      .set('Cookie', ownerCookie)
+      .send({ name: 'Арден на мосту', maxHp: 30, ownerUserId: null, x: 8, y: 6 })
+      .expect(201);
+    const importedPresetSnapshot = importedPresetResponse.body as BattleSceneSnapshot;
+    const importedHero = importedPresetSnapshot.combatants.find(
+      ({ name }) => name === 'Арден на мосту',
+    )!;
+    expect(importedHero).toMatchObject({ currentHp: 30, maxHp: 30, conditions: [] });
+    expect(
+      importedPresetSnapshot.tokens.find(({ combatantId }) => combatantId === importedHero.id),
+    ).toMatchObject({ ownerUserId: null, x: 8, y: 6 });
+    await request(app.getHttpServer())
+      .delete(`/api/battle-combatant-presets/${heroPreset.id}`)
+      .set('Cookie', ownerCookie)
+      .expect(204);
     const afterVisibility = await request(app.getHttpServer())
       .patch(`/api/battle-combatants/${ownerMonster.id}`)
       .set('Cookie', ownerCookie)
@@ -1021,7 +1619,11 @@ describeIntegration('auth and campaigns API integration', () => {
     const restoredMonster = restored.combatants.find(({ name }) => name === 'Теневой зверь')!;
     expect(
       restored.tokens.find(({ combatantId }) => combatantId === restoredMonster.id),
-    ).toMatchObject({ hasImage: true, imageAttachmentId: enemyImageId });
+    ).toMatchObject({
+      hasImage: true,
+      imageAttachmentId: null,
+      systemAssetId: 'starter.token.forest.dire-wolf',
+    });
     expect(restored.obstacles).toMatchObject([{ kind: 'WALL', x: 5, y: 5 }]);
     expect(restored.objects).toEqual(
       expect.arrayContaining([
@@ -1190,6 +1792,72 @@ describeIntegration('auth and campaigns API integration', () => {
     return response.body as LoreEntry;
   }
 });
+
+function generatedLayout(map: GeneratedRandomBattleMap) {
+  return {
+    generation: map.generation,
+    scene: map.scene
+      ? {
+          name: map.scene.name,
+          status: map.scene.status,
+          shape: map.scene.shape,
+          gridColumns: map.scene.gridColumns,
+          gridRows: map.scene.gridRows,
+        }
+      : null,
+    combatants: sortGeneratedLayout(
+      map.combatants.map((item) => ({
+        name: item.name,
+        kind: item.kind,
+        initiative: item.initiative,
+        currentHp: item.currentHp,
+        maxHp: item.maxHp,
+        armorClass: item.armorClass,
+        speed: item.speed,
+        hidden: item.hidden,
+        nameVisibility: item.nameVisibility,
+        hpVisibility: item.hpVisibility,
+      })),
+    ),
+    tokens: sortGeneratedLayout(
+      map.tokens.map((item) => ({
+        ownerUserId: item.ownerUserId,
+        imageAttachmentId: item.imageAttachmentId,
+        x: item.x,
+        y: item.y,
+        size: item.size,
+        color: item.color,
+      })),
+    ),
+    obstacles: sortGeneratedLayout(
+      map.obstacles.map((item) => ({
+        kind: item.kind,
+        x: item.x,
+        y: item.y,
+        width: item.width,
+        height: item.height,
+        movementCost: item.movementCost,
+      })),
+    ),
+    objects: sortGeneratedLayout(
+      map.objects.map((item) => ({
+        kind: item.kind,
+        name: item.name,
+        x: item.x,
+        y: item.y,
+        width: item.width,
+        height: item.height,
+        blocksMovement: item.blocksMovement,
+        visibleToPlayers: item.visibleToPlayers,
+        showLabel: item.showLabel,
+      })),
+    ),
+  };
+}
+
+function sortGeneratedLayout<T>(items: T[]): T[] {
+  return items.sort((left, right) => JSON.stringify(left).localeCompare(JSON.stringify(right)));
+}
 
 function getSessionCookie(header: string | string[] | undefined): string {
   const values = Array.isArray(header) ? header : header ? [header] : [];

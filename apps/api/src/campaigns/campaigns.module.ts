@@ -34,6 +34,6 @@ import { LoreService } from './lore.service';
     LoreService,
     LoreAttachmentsService,
   ],
-  exports: [CampaignAccessService, CampaignEventsService],
+  exports: [CampaignAccessService, CampaignEventsService, LoreAttachmentsService],
 })
 export class CampaignsModule {}

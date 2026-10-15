@@ -5,10 +5,13 @@ dist/
 coverage/
 playwright-report/
 test-results/
+deploy-reports/
+*.tsbuildinfo
 backups/*.dump
 backups/*.sql
 data/*
 !data/.gitkeep
+/apps/api/data/
 .env
 .env.local
 .env.*.local

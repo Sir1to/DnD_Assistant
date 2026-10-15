@@ -4,6 +4,7 @@ import type { CampaignRole } from '@fog-of-lore/contracts';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
+import { BuildStamp } from './build-stamp';
 import { useTheme } from './theme-provider';
 
 export function CampaignNavigation({
@@ -76,6 +77,7 @@ export function CampaignNavigation({
         <span aria-hidden="true">{theme === 'tavern' ? '☀' : '☾'}</span>
         {theme === 'tavern' ? 'Светлая тема' : 'Тёмная тема'}
       </button>
+      <BuildStamp className="campaign-build-stamp" />
     </nav>
   );
 }
