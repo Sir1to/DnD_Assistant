@@ -207,6 +207,15 @@ async function expectNoPageOverflow(page: Page) {
   expect(overflow.document).toBeLessThanOrEqual(1);
 }
 
+async function stabilizeVisualSnapshot(page: Page) {
+  await page
+    .locator('.campaign-build-stamp')
+    .evaluateAll((elements) => elements.forEach((element) => (element.textContent = '\u00a0')));
+  await page
+    .locator('nextjs-portal')
+    .evaluateAll((elements) => elements.forEach((element) => element.remove()));
+}
+
 for (const viewport of viewports) {
   test(`empty battle layout remains usable at ${viewport.width}px`, async ({ page }) => {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
@@ -235,9 +244,7 @@ for (const viewport of viewports) {
 
     await expectNoPageOverflow(page);
 
-    await page
-      .locator('.campaign-build-stamp, nextjs-portal')
-      .evaluateAll((elements) => elements.forEach((element) => element.remove()));
+    await stabilizeVisualSnapshot(page);
     await expect(page).toHaveScreenshot(`empty-battle-${viewport.name}.png`, {
       animations: 'disabled',
       fullPage: true,
@@ -267,9 +274,7 @@ for (const viewport of viewports) {
     expect(panelBox!.x).toBeGreaterThanOrEqual(-1);
     expect(panelBox!.x + panelBox!.width).toBeLessThanOrEqual(viewport.width + 1);
 
-    await page
-      .locator('.campaign-build-stamp, nextjs-portal')
-      .evaluateAll((elements) => elements.forEach((element) => element.remove()));
+    await stabilizeVisualSnapshot(page);
     await expect(page).toHaveScreenshot(`populated-workshop-${viewport.name}.png`, {
       animations: 'disabled',
       maxDiffPixelRatio: crossPlatformSnapshotDiffRatio,
