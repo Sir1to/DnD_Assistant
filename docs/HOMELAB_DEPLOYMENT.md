@@ -2,6 +2,53 @@
 
 Полное руководство по развёртыванию на Debian 12/Ubuntu 24.04 (x86-64) VM в Proxmox, включая Docker, PostgreSQL, HTTPS, backup, архитектуру и диагностику. Его можно использовать как runbook: выполняйте разделы сверху вниз.
 
+## Текущий экземпляр и быстрый вход
+
+Актуальное состояние конкретного сервера на 30 сентября 2026 также кратко зафиксировано в
+`docs/CHAT_HANDOFF.md`. Для текущего экземпляра используются:
+
+| Параметр           | Значение                                     |
+| ------------------ | -------------------------------------------- |
+| SSH                | `projects@192.168.51.125`                    |
+| Ключ на Windows    | `C:\Users\Sir1to\.ssh\id_ed25519`            |
+| Каталог проекта    | `/opt/fog-of-lore`                           |
+| Tailscale hostname | `sir1to-projects.tail95395c.ts.net`          |
+| Tailscale IP       | `100.75.197.118`                             |
+| HTTPS              | `https://sir1to-projects.tail95395c.ts.net/` |
+
+Быстрая проверка из PowerShell:
+
+```powershell
+ssh -i C:\Users\Sir1to\.ssh\id_ed25519 -o BatchMode=yes projects@192.168.51.125 "cd /opt/fog-of-lore && docker compose ps && curl -fsS http://127.0.0.1:4000/api/health"
+```
+
+Ключ имеет passphrase и обычно уже загружен в Windows `ssh-agent`. Если `BatchMode` сообщает
+об ошибке авторизации, проверить `ssh-add -l`; добавление ключа и ввод passphrase выполняет
+пользователь командой `ssh-add C:\Users\Sir1to\.ssh\id_ed25519`. Пользователь `projects`
+может управлять Docker без `sudo`, но root-команды требуют пароль.
+
+На сервере сейчас находится незакоммиченный снимок локальной рабочей версии поверх commit
+`d3ac88a` ветки `development`. До отдельной синхронизации Git не применять разрушительные
+команды и не считать сервер обычным чистым clone. Никогда не перезаписывать `.env`, `data/`
+или `backups/` при передаче исходников.
+
+Tailscale Serve настроен так:
+
+```text
+https://sir1to-projects.tail95395c.ts.net (tailnet only)
+|-- / proxy http://127.0.0.1:8080
+```
+
+Backend `127.0.0.1:8080` обслуживает compose-сервис `tailscale-proxy` на Caddy. Если Serve
+потребуется восстановить, использовать `sudo tailscale serve --bg --yes
+http://127.0.0.1:8080`, а не `TCPForward` с `TerminateTLS`.
+
+Если с этого Windows-ПК `curl` получает HTTP 200, но Firefox показывает
+`PR_END_OF_FILE_ERROR`, причина известна: Happ/AdGuard/Mozilla VPN могут направлять приватный
+Tailscale-трафик через автоматически обнаруженный прокси. В Firefox выбрать «Без прокси»
+либо добавить в bypass `*.ts.net` и `100.64.0.0/10`. В такой ситуации не менять серверный
+сертификат и не переустанавливать Tailscale: TLS 1.3 и HTTP/2 уже проверены.
+
 ## Архитектура
 
 ```text
@@ -105,12 +152,43 @@ Compose использует named volume `postgres-data` для базы, bind 
 ```bash
 sudo mkdir -p /opt/fog-of-lore
 sudo chown -R "$USER":"$USER" /opt/fog-of-lore
-git clone <URL_ВАШЕГО_РЕПОЗИТОРИЯ> /opt/fog-of-lore
+git clone -b development https://github.com/Sir1to/DnD_Assistant.git /opt/fog-of-lore
 cd /opt/fog-of-lore
 mkdir -p data backups
 cp .env.example .env
 openssl rand -base64 36
 ```
+
+Для первого развёртывания можно использовать ветку `development`; переносить код в
+`main` заранее не требуется. Если репозиторий приватный, GitHub может запросить
+авторизацию через Personal Access Token или SSH-ключ.
+
+Если проект уже был склонирован на VM, обновите его из `development`:
+
+```bash
+cd /opt/fog-of-lore
+git switch development
+git pull --ff-only origin development
+docker compose build --pull
+docker compose up -d
+docker compose exec api pnpm db:migrate
+```
+
+Рекомендуемый рабочий процесс — разрабатывать и проверять изменения в `development`,
+а затем объединять её с `main` через Pull Request на GitHub. После этого production-VM
+можно перевести на стабильную ветку `main`:
+
+```bash
+cd /opt/fog-of-lore
+git switch main
+git pull --ff-only origin main
+docker compose build --pull
+docker compose up -d
+docker compose exec api pnpm db:migrate
+```
+
+Не выполняйте `git pull` с `--rebase` или `--allow-unrelated-histories` на production-VM
+без необходимости: история ветки должна обновляться обычным fast-forward способом.
 
 В `.env` для публичного HTTPS укажите:
 
@@ -128,17 +206,17 @@ FOG_OF_LORE_DOMAIN=fog.example.net
 
 ### Какие переменные действительно используются Compose
 
-Compose передаёт в production-контейнер API: `WEB_ORIGIN`, `COOKIE_SECURE`, PostgreSQL-параметры и принудительно задаёт `FILE_STORAGE_PATH=/app/data`. В web на этапе сборки передаётся `NEXT_PUBLIC_API_URL`. Значения `SESSION_TTL_DAYS`, `LOGIN_RATE_LIMIT_ATTEMPTS` и `LOGIN_RATE_LIMIT_WINDOW_SECONDS` из `.env.example` **сейчас не пробрасываются compose-файлом**; API применяет свои встроенные defaults: 30 дней, 5 попыток, 900 секунд. Не рассчитывайте на их изменение через `.env`, пока не добавите их в `compose.yaml`.
+Compose передаёт в production-контейнер API: `WEB_ORIGIN`, `COOKIE_SECURE`, PostgreSQL-параметры и принудительно задаёт `FILE_STORAGE_PATH=/app/data`. В web на этапе сборки передаётся `NEXT_PUBLIC_API_URL`. `APP_VERSION`, `APP_COMMIT` и `APP_BUILD_TIME` передаются обоим приложениям; штатный `pnpm release:build` вычисляет их сам. Значения `SESSION_TTL_DAYS`, `LOGIN_RATE_LIMIT_ATTEMPTS` и `LOGIN_RATE_LIMIT_WINDOW_SECONDS` из `.env.example` **сейчас не пробрасываются compose-файлом**; API применяет свои встроенные defaults: 30 дней, 5 попыток, 900 секунд. Не рассчитывайте на их изменение через `.env`, пока не добавите их в `compose.yaml`.
 
 ## Выбор сценария доступа
 
 Выберите ровно один основной сценарий и согласуйте с ним `WEB_ORIGIN` и `COOKIE_SECURE`.
 
-| Сценарий | Адрес в браузере | Настройки | Сеть |
-| --- | --- | --- | --- |
-| Публичный домен | `https://fog.example.net` | `COOKIE_SECURE=true`, Caddy profile | DNS A/AAAA, проброс 80/443 на VM |
-| Tailscale/VPN | HTTPS-адрес VPN или TLS на VPN | `WEB_ORIGIN` должен совпадать с ним; secure cookie только с HTTPS | не открывать порты в интернет |
-| Только LAN, временно | `http://VM_IP:3000` | `WEB_BIND_ADDRESS=0.0.0.0`, `COOKIE_SECURE=false`, `NEXT_PUBLIC_API_URL=http://VM_IP:4000/api`, `API_BIND_ADDRESS=0.0.0.0` | firewall только для LAN |
+| Сценарий             | Адрес в браузере               | Настройки                                                                                                                  | Сеть                             |
+| -------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| Публичный домен      | `https://fog.example.net`      | `COOKIE_SECURE=true`, Caddy profile                                                                                        | DNS A/AAAA, проброс 80/443 на VM |
+| Tailscale/VPN        | HTTPS-адрес VPN или TLS на VPN | `WEB_ORIGIN` должен совпадать с ним; secure cookie только с HTTPS                                                          | не открывать порты в интернет    |
+| Только LAN, временно | `http://VM_IP:3000`            | `WEB_BIND_ADDRESS=0.0.0.0`, `COOKIE_SECURE=false`, `NEXT_PUBLIC_API_URL=http://VM_IP:4000/api`, `API_BIND_ADDRESS=0.0.0.0` | firewall только для LAN          |
 
 Последний сценарий не подходит для недоверенной сети: HTTP передаёт сессию без TLS. Для постоянного LAN-доступа используйте внутренний DNS и VPN либо настройте внутренний TLS отдельно. Текущий `Caddyfile` получает публичный сертификат автоматически только если домен резолвится на VM и Caddy доступен снаружи по 80/443.
 
@@ -175,12 +253,38 @@ Caddy проксирует web, `/api` и `/socket.io`, получает сер�
 
 ## Обновление
 
-Перед обновлением сделайте backup, затем выполните команды по очереди:
+После того как рабочее дерево сервера приведено к чистой ветке `development`, штатное
+обновление запускается одной командой:
+
+```bash
+pnpm release:deploy
+```
+
+Сначала план можно проверить без изменений системы:
+
+```bash
+pnpm release:deploy -- --dry-run
+```
+
+Скрипт требует существующие production-образы для безопасного отката и выполняет цепочку
+`preflight → backup → git pull --ff-only → frozen install → migration check → release build →
+migrate → recreate → smoke test`. Перед сборкой текущие API/web-образы получают уникальные
+rollback-теги. Если миграция или smoke test завершаются ошибкой, скрипт останавливает новую
+версию, восстанавливает PostgreSQL из созданного dump (если миграция уже началась), возвращает
+предыдущие образы и ждёт их healthcheck. Исходники остаются на неудачном commit для диагностики;
+автоматический `git reset` намеренно не выполняется.
+
+`.env`, `data/` и `backups/` не копируются и не удаляются. Загруженные файлы не требуют
+отката, потому что во время миграции API и web остановлены. Для нестандартных имён образов
+задайте `DEPLOY_API_IMAGE` и `DEPLOY_WEB_IMAGE`; для другой ветки — `DEPLOY_BRANCH` или
+`--branch`. Флаг `--skip-pull` предназначен только для уже проверенного локального checkout.
+
+Ручная последовательность для диагностики остаётся такой:
 
 ```bash
 docker compose --profile maintenance run --rm backup
 git pull --ff-only
-docker compose build --pull
+pnpm release:build
 docker compose stop web api
 docker compose run --rm api pnpm db:migrate
 docker compose up -d
@@ -188,7 +292,28 @@ docker compose ps
 curl -fsS http://127.0.0.1:4000/api/health
 ```
 
+После успешной сборки `deploy-reports/build-*.json` фиксирует version, commit, признак
+грязного рабочего дерева и UTC-время. Эти же значения должны появиться в `build` ответа
+healthcheck и короткой метке в интерфейсе. Каталог отчётов не входит в Git; переносите
+нужный отчёт вместе с журналом конкретного deploy.
+
 Так новая схема применяется до возврата пользовательского трафика. Если миграция не прошла, не запускайте новую версию поверх старой схемы: изучите `docker compose logs api postgres`, восстановите dump при необходимости и возвращайтесь к известной версии кода. Миграции лежат в `apps/api/drizzle`. После изменения `schema.ts` локально выполните `pnpm db:generate`, проверьте SQL и только затем применяйте `pnpm db:migrate`. Не используйте `docker compose down -v`.
+
+Миграции `0013_battle_object_labels` и `0014_repair_battle_object_labels` идемпотентны.
+Если колонка `show_label` ранее была добавлена на сервере вручную, обычный `db:migrate`
+безопасно зафиксирует цепочку и продолжит с metadata checkpoint `0015`; удалять строки из
+`drizzle.__drizzle_migrations` или повторно изменять таблицу вручную не нужно. Перед запуском
+можно проверить фактическую схему и историю:
+
+```bash
+docker compose exec -T postgres sh -lc 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "\d battle_scene_objects"'
+docker compose exec -T postgres sh -lc 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "select * from drizzle.__drizzle_migrations order by created_at"'
+docker compose run --rm api pnpm migrations:check
+docker compose run --rm api pnpm db:migrate
+```
+
+`0015` не меняет таблицы: он синхронизирует Drizzle snapshot с уже применёнными SQL
+`0008–0014`, чтобы следующая генерация миграции не пыталась создать те же объекты повторно.
 
 ## Backup и восстановление
 

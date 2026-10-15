@@ -34,15 +34,39 @@ GET    /lore/:entryId
 PATCH  /lore/:entryId
 DELETE /lore/:entryId
 
+GET    /campaigns/:campaignId/characters
+POST   /campaigns/:campaignId/characters
+GET    /characters/:sheetId
+PATCH  /characters/:sheetId
+GET    /characters/:sheetId/document
+PATCH  /characters/:sheetId/document
+PATCH  /characters/:sheetId/runtime
+POST   /characters/:sheetId/portrait
+GET    /characters/:sheetId/portrait
+GET    /characters/:sheetId/export
+DELETE /characters/:sheetId
+
 GET    /campaigns/:campaignId/battle
 POST   /campaigns/:campaignId/battle
+POST   /campaigns/:campaignId/battle/encounter
+POST   /campaigns/:campaignId/battle/generate
+GET    /campaigns/:campaignId/battle-combatant-presets
+POST   /campaigns/:campaignId/battle-combatant-presets/import
 PATCH  /battle-scenes/:sceneId
 GET    /battle-scenes/:sceneId/background
 POST   /battle-scenes/:sceneId/combatants
+POST   /battle-scenes/:sceneId/characters/:sheetId/place
+POST   /battle-scenes/:sceneId/combatant-presets/:presetId/import
 POST   /battle-scenes/:sceneId/next-turn
+POST   /characters/:sheetId/battle-combatant-preset
 PATCH  /battle-combatants/:combatantId
 DELETE /battle-combatants/:combatantId
 POST   /battle-combatants/:combatantId/hp
+POST   /battle-combatants/:combatantId/preset
+PATCH  /battle-combatant-presets/:presetId
+POST   /battle-combatant-presets/:presetId/duplicate
+GET    /battle-combatant-presets/:presetId/export
+DELETE /battle-combatant-presets/:presetId
 POST   /battle-tokens/:tokenId/move
 
 GET    /widgets/catalog
@@ -80,6 +104,59 @@ session cookie. Запрос чужой кампании возвращает `4
 активный ход, внутри границы и оставшегося бюджета скорости. Урон и лечение доступны
 только мастерам. Фон активной сцены отдаётся по отдельному авторизованному маршруту,
 поэтому закрытую запись Альманаха не требуется публиковать ради боя.
+
+Боевые пресеты доступны только `OWNER`/`GM` и принадлежат кампании. Пресет создаётся из
+существующего участника или листа персонажа, редактируется, дублируется и удаляется
+независимо от сцен. Импорт создаёт нового независимого участника: текущие HP равны
+максимальным, состояния и потраченная скорость сброшены. Мастер может оставить первую
+свободную клетку и значения пресета либо перед добавлением выбрать владельца, координаты,
+размер, цвет и переопределить основные характеристики только для этого боя. Изменения
+импортированной копии не меняют пресет или другие бои.
+
+Переносимый формат `fog-of-lore.battle-combatant-preset` версии 1 исключает ID кампании,
+пользователя и вложения. Владелец при импорте всегда сбрасывается. Необязательное изображение
+токена переносится как base64 только для JPEG/PNG/WebP, проверяется по сигнатуре и фактическим
+размерам (до 512 КиБ и 4096×4096), а затем сохраняется в приватном черновике Альманаха новой
+кампании. Встроенный токен вместо файла переносится стабильным `systemAssetId`. Экспорт и
+импорт доступны только `OWNER`/`GM`.
+
+Встроенный стартовый набор боевых ассетов версионируется в доменном каталоге и не создаёт
+строк пользовательских вложений. `systemAssetId` хранится у токена, препятствия, объекта и
+боевого пресета, проходит через именованный снимок и безопасную player-проекцию. API принимает
+только существующий ID нужного типа (`TOKEN`, `OBSTACLE` или `PROP`); системный ассет и
+`imageAttachmentId` взаимоисключающие. Обычный токен `PLAYER` не принимает ни один вид
+изображения. Исключение — герой, размещённый из roster специальной серверной командой: он
+получает проверенный портрет связанного листа, но клиент не может назначить картинку
+произвольному PLAYER-токену.
+Сами файлы стартового набора являются публичными статическими ресурсами, но скрытый объект
+целиком удаляется из player-проекции, поэтому его ID и изображение не раскрываются.
+
+`POST /campaigns/:campaignId/battle/generate` принимает структурированное описание
+случайной карты: местность, размер/форму, число игроков, состав противников, опасность,
+цель, расположение стартов, плотность препятствий, сложную местность, свет, погоду,
+входы, интерактивные объекты и опасности. Пропущенные поля получают безопасные значения
+по умолчанию. `seed` необязателен; ответ всегда возвращает фактически использованный
+`generation.seed`, резюме и координаты стартов. Одинаковые описание и seed создают
+одинаковую раскладку (UUID новых строк различаются). Результат атомарно сохраняется как
+редактируемая сцена `DRAFT`, никогда не запускает бой и отвечает `409`, если в кампании
+уже есть неархивированная сцена.
+
+`POST /campaigns/:campaignId/battle/encounter` атомарно добавляет состав Encounter Lab
+на текущую неархивированную сцену. Для SRD-существ сервер заново читает
+проверенный статблок, переносит HP, КД, бонус инициативы, скорость и размер,
+затем расставляет новые токены по свободным клеткам. Каждая копия получает
+свои текущие HP, состояния и позицию. Если хотя бы один ID неизвестен или на поле
+нет места для всего состава, запрос не создаёт частичных участников. Маршрут доступен
+только `OWNER`/`GM`.
+
+Портрет листа загружается как JPEG/PNG/WebP через авторизованный multipart-маршрут. Web-клиент
+кадрирует исходник в квадрат 512×512 до отправки; сервер повторно проверяет MIME, сигнатуру,
+размер и принадлежность листа кампании. `OWNER`/`GM` может поставить лист непосредственно на
+текущую сцену. Имя, владелец, текущие и временные HP, состояния, КД, скорость, класс, вид и
+инициатива вычисляются сервером из документа/runtime, а `battle_combatant` сохраняет
+`character_sheet_id`. Повторное размещение того же листа на одной сцене возвращает `409`.
+Именованный снимок сохраняет связь и портрет; удалённый или чужой лист при восстановлении не
+подставляется.
 
 `POST /widgets/:widgetId/commands` принимает типизированные команды Timer,
 Dice/Randomizer и Combat Tracker. Каждая команда содержит `expectedRevision`;
@@ -167,12 +244,23 @@ POST   /campaigns/:campaignId/characters
 POST   /campaigns/:campaignId/characters/import
 GET    /characters/:sheetId
 PATCH  /characters/:sheetId
+GET    /characters/:sheetId/document
+PATCH  /characters/:sheetId/document
+PATCH  /characters/:sheetId/runtime
 DELETE /characters/:sheetId
 GET    /characters/:sheetId/export
 ```
 
-Лист использует `ruleset: dnd5e-srd-5.2.1`, валидируемый документ `data` и
-`expectedRevision` при изменении. `PLAYER` видит и меняет только собственные листы;
+Лист использует `ruleset: dnd5e-srd-5.2.1`, версию набора правил, версию документа,
+режим создания и валидируемый документ `data`. Старый UI по-прежнему получает совместимую
+v1-проекцию: сервер безопасно читает документы v1 и v2, но legacy `PATCH` не перезаписывает
+документ v2. `GET /document` возвращает единую v2-модель, производные значения, проблемы
+правил и фактическую версию хранимого документа. Для v1 это проекция без записи; первый
+успешный `PATCH /document` атомарно повышает лист до v2 по `expectedRevision`. `DRAFT` может хранить
+ошибки правил, а `READY` — нет. Campaign overrides создают только OWNER/GM; сохранённые legacy overrides
+нельзя подменить новыми. Постоянные текущие HP, временные HP, ресурсы, ячейки, состояния, вдохновение и
+спасброски от смерти хранятся отдельно в `runtime` и меняются через собственный маршрут с
+независимым `expectedRevision`. `PLAYER` видит и меняет только собственные листы;
 `OWNER` и `GM` — все листы кампании. Экспорт имеет формат
 `fog-of-lore.character-sheet`, версию `1` и не содержит ID кампании, пользователя,
 ревизии или внутренних временных меток. Импорт всегда создаёт новый лист и повторно
@@ -180,6 +268,23 @@ GET    /characters/:sheetId/export
 
 WebSocket-событие `campaign.characters.changed` не содержит листа и служит только
 сигналом обновить REST-снимок после изменения или reconnect.
+
+## Бестиарий D&D 5e
+
+```text
+GET    /rulesets/dnd5e/monsters
+GET    /rulesets/dnd5e/monsters/:monsterId
+```
+
+Первый маршрут возвращает лёгкие карточки всех 322 существ: стабильный SRD ID, название,
+размер, тип, CR, XP, КД, хиты и инициативу. Второй маршрут возвращает один нормализованный
+статблок с характеристиками, скоростями, чувствами, защитами, особенностями, действиями,
+реакциями и легендарными действиями. Оба маршрута требуют пользовательскую сессию; в каждом
+ответе полного статблока сохраняются `source: SRD 5.2.1` и `license: CC-BY-4.0`.
+
+Набор воспроизводимо генерируется `scripts/import-srd-bestiary.mjs` из открытых данных SRD.
+Список отделён от деталей намеренно: справочник и Encounter Lab не загружают около мегабайта
+описаний до выбора конкретного существа.
 
 ## Вложения знаний
 
