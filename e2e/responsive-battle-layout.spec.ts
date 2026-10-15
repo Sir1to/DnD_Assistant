@@ -232,9 +232,9 @@ for (const viewport of viewports) {
 
     await expectNoPageOverflow(page);
 
-    await page.addStyleTag({
-      content: '.campaign-build-stamp, nextjs-portal { visibility: hidden !important; }',
-    });
+    await page
+      .locator('.campaign-build-stamp, nextjs-portal')
+      .evaluateAll((elements) => elements.forEach((element) => element.remove()));
     await expect(page).toHaveScreenshot(`empty-battle-${viewport.name}.png`, {
       animations: 'disabled',
       fullPage: true,
@@ -264,9 +264,9 @@ for (const viewport of viewports) {
     expect(panelBox!.x).toBeGreaterThanOrEqual(-1);
     expect(panelBox!.x + panelBox!.width).toBeLessThanOrEqual(viewport.width + 1);
 
-    await page.addStyleTag({
-      content: '.campaign-build-stamp, nextjs-portal { visibility: hidden !important; }',
-    });
+    await page
+      .locator('.campaign-build-stamp, nextjs-portal')
+      .evaluateAll((elements) => elements.forEach((element) => element.remove()));
     await expect(page).toHaveScreenshot(`populated-workshop-${viewport.name}.png`, {
       animations: 'disabled',
       maxDiffPixelRatio: 0.04,
