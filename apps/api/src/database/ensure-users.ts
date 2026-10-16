@@ -1,12 +1,11 @@
 import 'dotenv/config';
 
 import argon2 from 'argon2';
-import { and, eq, ne } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import { z } from 'zod';
 
-import { campaignMembers, campaigns, users } from './schema';
+import { users } from './schema';
 
 const requestedUsersSchema = z
   .array(
@@ -17,7 +16,6 @@ const requestedUsersSchema = z
         .regex(/^[a-z0-9_-]{1,40}$/i),
       password: z.string().min(1).max(128),
       displayName: z.string().trim().min(1).max(80),
-      campaignRole: z.enum(['GM', 'PLAYER']),
     }),
   )
   .min(1)
@@ -32,7 +30,6 @@ async function main(): Promise<void> {
   const pool = new Pool({ connectionString: databaseUrl });
   const database = drizzle(pool);
   try {
-    const campaignRows = await database.select({ id: campaigns.id }).from(campaigns);
     for (const requested of requestedUsers) {
       const email = `${requested.login.toLowerCase()}@fog.local`;
       const passwordHash = await argon2.hash(requested.password, {
@@ -56,28 +53,8 @@ async function main(): Promise<void> {
           })
           .returning({ id: users.id });
         if (!account) throw new Error(`Could not provision ${requested.login}`);
-        for (const campaign of campaignRows) {
-          await transaction
-            .insert(campaignMembers)
-            .values({
-              campaignId: campaign.id,
-              userId: account.id,
-              role: requested.campaignRole,
-            })
-            .onConflictDoNothing();
-          await transaction
-            .update(campaignMembers)
-            .set({ role: requested.campaignRole })
-            .where(
-              and(
-                eq(campaignMembers.campaignId, campaign.id),
-                eq(campaignMembers.userId, account.id),
-                ne(campaignMembers.role, 'OWNER'),
-              ),
-            );
-        }
       });
-      process.stdout.write(`Provisioned ${requested.login} as ${requested.campaignRole}\n`);
+      process.stdout.write(`Provisioned ${requested.login}\n`);
     }
   } finally {
     await pool.end();
