@@ -253,7 +253,7 @@ describeIntegration('auth and campaigns API integration', () => {
       creationMode: 'GUIDED',
       status: 'READY',
       revision: 0,
-      runtime: { currentHitPoints: 12, temporaryHitPoints: 0, revision: 0 },
+      runtime: { currentHitPoints: 11, temporaryHitPoints: 0, revision: 0 },
     });
 
     const atomicId = (atomicCreateResponse.body as CharacterSheet).id;
