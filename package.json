@@ -28,7 +28,8 @@
     "release:deploy": "node scripts/deploy-production.mjs",
     "db:generate": "pnpm --filter @fog-of-lore/api db:generate",
     "db:migrate": "pnpm --filter @fog-of-lore/api db:migrate",
-    "db:seed": "pnpm --filter @fog-of-lore/api db:seed"
+    "db:seed": "pnpm --filter @fog-of-lore/api db:seed",
+    "db:ensure-users": "pnpm --filter @fog-of-lore/api db:ensure-users"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
