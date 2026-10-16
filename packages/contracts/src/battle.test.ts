@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  adjustBattleResourceRequestSchema,
   battleSceneSavePayloadSchema,
   createBattleSceneSaveRequestSchema,
   createBattleCombatantRequestSchema,
@@ -132,6 +133,42 @@ describe('battle contracts', () => {
     expect(
       placeCharacterOnBattleRequestSchema.parse({ x: 3, y: 4, initiative: 7, color: '#123abc' }),
     ).toMatchObject({ x: 3, y: 4, initiative: 7, color: '#123abc' });
+  });
+
+  it('validates bounded resource commands for linked combatants', () => {
+    expect(
+      adjustBattleResourceRequestSchema.parse({
+        expectedRevision: 3,
+        pool: 'SPELL_SLOTS',
+        resourceId: 'level-1',
+        mode: 'SPEND',
+        amount: 1,
+      }),
+    ).toEqual({
+      expectedRevision: 3,
+      pool: 'SPELL_SLOTS',
+      resourceId: 'level-1',
+      mode: 'SPEND',
+      amount: 1,
+    });
+    expect(
+      adjustBattleResourceRequestSchema.safeParse({
+        expectedRevision: 0,
+        pool: 'RESOURCES',
+        resourceId: '',
+        mode: 'RESTORE',
+        amount: 1,
+      }).success,
+    ).toBe(false);
+    expect(
+      adjustBattleResourceRequestSchema.safeParse({
+        expectedRevision: 0,
+        pool: 'RESOURCES',
+        resourceId: 'second-wind',
+        mode: 'SPEND',
+        amount: 0,
+      }).success,
+    ).toBe(false);
   });
 
   it('accepts stable system asset identifiers and keeps them exclusive with uploads', () => {

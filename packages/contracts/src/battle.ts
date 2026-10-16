@@ -86,6 +86,17 @@ export const battleSceneSchema = z.object({
   updatedAt: z.string().datetime(),
 });
 
+const battleRuntimeCounterMapSchema = z.record(
+  z.string().trim().min(1).max(100),
+  z.int().min(0).max(999_999),
+);
+
+export const battleCharacterRuntimeSchema = z.object({
+  resources: battleRuntimeCounterMapSchema,
+  spellSlots: battleRuntimeCounterMapSchema,
+  revision: z.int().nonnegative(),
+});
+
 export const battleCombatantSchema = z.object({
   id: z.string().uuid(),
   sceneId: z.string().uuid(),
@@ -110,6 +121,7 @@ export const battleCombatantSchema = z.object({
   showClassName: z.boolean(),
   showSpecies: z.boolean(),
   conditionsVisibility: battleConditionsVisibilitySchema,
+  characterRuntime: battleCharacterRuntimeSchema.nullable().default(null),
   revision: z.int().nonnegative(),
 });
 
@@ -648,6 +660,14 @@ export const adjustBattleHpRequestSchema = z.object({
   amount: z.int().nonnegative().max(999_999),
 });
 
+export const adjustBattleResourceRequestSchema = z.object({
+  expectedRevision: z.int().nonnegative(),
+  pool: z.enum(['RESOURCES', 'SPELL_SLOTS']),
+  resourceId: z.string().trim().min(1).max(100),
+  mode: z.enum(['SPEND', 'RESTORE']),
+  amount: z.int().positive().max(999_999),
+});
+
 export const nextBattleTurnRequestSchema = z.object({
   expectedRevision: z.int().nonnegative(),
 });
@@ -789,6 +809,7 @@ export type BattleHpVisibility = z.infer<typeof battleHpVisibilitySchema>;
 export type BattleConditionsVisibility = z.infer<typeof battleConditionsVisibilitySchema>;
 export type BattleScene = z.infer<typeof battleSceneSchema>;
 export type BattleCombatant = z.infer<typeof battleCombatantSchema>;
+export type BattleCharacterRuntime = z.infer<typeof battleCharacterRuntimeSchema>;
 export type BattleToken = z.infer<typeof battleTokenSchema>;
 export type BattleCombatantPreset = z.infer<typeof battleCombatantPresetSchema>;
 export type PortableBattleCombatantPresetImage = z.infer<
@@ -827,6 +848,7 @@ export type UpdateBattleSceneObjectRequest = z.infer<typeof updateBattleSceneObj
 export type UpdateBattleTokenRequest = z.infer<typeof updateBattleTokenRequestSchema>;
 export type MoveBattleTokenRequest = z.infer<typeof moveBattleTokenRequestSchema>;
 export type AdjustBattleHpRequest = z.infer<typeof adjustBattleHpRequestSchema>;
+export type AdjustBattleResourceRequest = z.infer<typeof adjustBattleResourceRequestSchema>;
 export type NextBattleTurnRequest = z.infer<typeof nextBattleTurnRequestSchema>;
 export type CreateBattleSceneSaveRequest = z.infer<typeof createBattleSceneSaveRequestSchema>;
 export type SaveBattleCombatantPresetRequest = z.infer<

@@ -7,9 +7,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import {
+  battleCharacterRuntimeSchema,
   battleCombatantSchema,
   battleSceneSavePayloadSchema,
   type AdjustBattleHpRequest,
+  type AdjustBattleResourceRequest,
   type BattleBackgroundPreset,
   type BattleCombatant,
   type BattleCombatantPreset,
@@ -149,6 +151,16 @@ export class BattleService {
       .from(battleCombatants)
       .where(eq(battleCombatants.sceneId, scene.id))
       .orderBy(desc(battleCombatants.initiative), battleCombatants.createdAt);
+    const linkedSheetIds = [
+      ...new Set(combatantRecords.flatMap(({ characterSheetId }) => characterSheetId ?? [])),
+    ];
+    const runtimeRecords = linkedSheetIds.length
+      ? await this.database
+          .select()
+          .from(characterRuntimeStates)
+          .where(inArray(characterRuntimeStates.sheetId, linkedSheetIds))
+      : [];
+    const runtimesBySheetId = new Map(runtimeRecords.map((runtime) => [runtime.sheetId, runtime]));
     const tokenRecords = await this.database
       .select()
       .from(battleTokens)
@@ -171,7 +183,12 @@ export class BattleService {
         campaignId,
         role,
         scene: this.toScene(scene),
-        combatants: combatantRecords.map((record) => this.toMasterCombatant(record)),
+        combatants: combatantRecords.map((record) =>
+          this.toMasterCombatant(
+            record,
+            record.characterSheetId ? runtimesBySheetId.get(record.characterSheetId) : undefined,
+          ),
+        ),
         tokens: tokenRecords.map((record) => this.toToken(record)),
         obstacles: obstacleRecords.map((record) => this.toObstacle(record)),
         objects: objectRecords.map((record) =>
@@ -1806,6 +1823,72 @@ export class BattleService {
     return this.get(userId, scene.campaignId);
   }
 
+  public async adjustResource(
+    userId: string,
+    combatantId: string,
+    input: AdjustBattleResourceRequest,
+  ): Promise<BattleSceneSnapshot> {
+    const { combatant, scene } = await this.requireCombatant(combatantId);
+    await this.access.requireEditor(userId, scene.campaignId);
+    if (!combatant.characterSheetId) {
+      throw new BadRequestException('Only a combatant linked to a character sheet has resources');
+    }
+
+    await this.database.transaction(async (transaction) => {
+      const [runtime] = await transaction
+        .select()
+        .from(characterRuntimeStates)
+        .where(eq(characterRuntimeStates.sheetId, combatant.characterSheetId!))
+        .limit(1);
+      if (!runtime) throw new ConflictException('The linked character runtime is missing');
+
+      const field = input.pool === 'RESOURCES' ? 'resources' : 'spellSlots';
+      const counters = battleCharacterRuntimeSchema.shape[field].parse(runtime[field]);
+      const current = counters[input.resourceId] ?? 0;
+      if (input.mode === 'SPEND' && input.amount > current) {
+        throw new BadRequestException('The character does not have enough of this resource');
+      }
+      const next = input.mode === 'SPEND' ? current - input.amount : current + input.amount;
+      if (next > 999_999) throw new BadRequestException('The resource value is too large');
+      const updatedCounters = { ...counters, [input.resourceId]: next };
+
+      const [updatedCombatant] = await transaction
+        .update(battleCombatants)
+        .set({ revision: sql`${battleCombatants.revision} + 1`, updatedAt: new Date() })
+        .where(
+          and(
+            eq(battleCombatants.id, combatantId),
+            eq(battleCombatants.revision, input.expectedRevision),
+          ),
+        )
+        .returning({ id: battleCombatants.id });
+      if (!updatedCombatant)
+        throw new ConflictException('The combatant changed in another session');
+
+      const [updatedRuntime] = await transaction
+        .update(characterRuntimeStates)
+        .set({
+          [field]: updatedCounters,
+          revision: sql`${characterRuntimeStates.revision} + 1`,
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(characterRuntimeStates.sheetId, combatant.characterSheetId!),
+            eq(characterRuntimeStates.revision, runtime.revision),
+          ),
+        )
+        .returning({ sheetId: characterRuntimeStates.sheetId });
+      if (!updatedRuntime) {
+        throw new ConflictException('The character runtime changed in another session');
+      }
+    });
+
+    this.events.publishBattleChanged(scene.campaignId);
+    this.events.publishCharactersChanged(scene.campaignId);
+    return this.get(userId, scene.campaignId);
+  }
+
   public async nextTurn(
     userId: string,
     sceneId: string,
@@ -2404,7 +2487,10 @@ export class BattleService {
     };
   }
 
-  private toMasterCombatant(record: typeof battleCombatants.$inferSelect): BattleCombatant {
+  private toMasterCombatant(
+    record: typeof battleCombatants.$inferSelect,
+    runtime?: typeof characterRuntimeStates.$inferSelect,
+  ): BattleCombatant {
     return {
       id: record.id,
       sceneId: record.sceneId,
@@ -2429,6 +2515,13 @@ export class BattleService {
       showClassName: record.showClassName,
       showSpecies: record.showSpecies,
       conditionsVisibility: record.conditionsVisibility,
+      characterRuntime: runtime
+        ? battleCharacterRuntimeSchema.parse({
+            resources: runtime.resources,
+            spellSlots: runtime.spellSlots,
+            revision: runtime.revision,
+          })
+        : null,
       revision: record.revision,
     };
   }
@@ -2458,6 +2551,7 @@ export class BattleService {
         record.conditionsVisibility === 'ALL'
           ? battleCombatantSchema.shape.conditions.parse(record.conditions)
           : [],
+      characterRuntime: null,
     };
   }
 

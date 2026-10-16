@@ -7318,6 +7318,63 @@ kbd {
   padding-inline: 6px;
 }
 
+.battle-runtime-resources {
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 7px;
+  margin-top: 9px;
+  padding-top: 9px;
+}
+
+.battle-runtime-resources > strong,
+.battle-runtime-resource-group > small {
+  font-size: 0.7rem;
+}
+
+.battle-runtime-resource-group {
+  display: grid;
+  gap: 4px;
+}
+
+.battle-runtime-resource-row {
+  align-items: center;
+  display: grid;
+  gap: 5px;
+  grid-template-columns: minmax(0, 1fr) auto 28px 28px;
+}
+
+.battle-runtime-resource-row span {
+  font-size: 0.68rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.battle-runtime-resource-row button,
+.battle-runtime-resource-add button {
+  cursor: pointer;
+  font-size: 0.62rem;
+  min-height: 28px;
+  padding: 3px 6px;
+}
+
+.battle-runtime-resource-add {
+  display: grid;
+  gap: 5px;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.battle-runtime-resource-add input[aria-label='Название ресурса'] {
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+
+.battle-runtime-resource-add input,
+.battle-runtime-resource-add select {
+  min-width: 0;
+  width: 100%;
+}
+
 .battle-combatant-card-actions {
   display: flex;
   margin-top: 7px;

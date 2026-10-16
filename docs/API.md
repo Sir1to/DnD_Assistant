@@ -64,6 +64,7 @@ POST   /characters/:sheetId/battle-combatant-preset
 PATCH  /battle-combatants/:combatantId
 DELETE /battle-combatants/:combatantId
 POST   /battle-combatants/:combatantId/hp
+POST   /battle-combatants/:combatantId/resources
 POST   /battle-combatants/:combatantId/preset
 PATCH  /battle-combatant-presets/:presetId
 POST   /battle-combatant-presets/:presetId/duplicate

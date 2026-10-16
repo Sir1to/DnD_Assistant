@@ -15,6 +15,7 @@ import {
 } from '@nestjs/common';
 import {
   adjustBattleHpRequestSchema,
+  adjustBattleResourceRequestSchema,
   createBattleCombatantRequestSchema,
   createBattleObstacleRequestSchema,
   createBattleSceneObjectRequestSchema,
@@ -37,6 +38,7 @@ import {
   updateBattleSceneRequestSchema,
   updateBattleTokenRequestSchema,
   type AdjustBattleHpRequest,
+  type AdjustBattleResourceRequest,
   type BattleSceneSnapshot,
   type BattleSceneSave,
   type BattleCombatantPreset,
@@ -384,6 +386,16 @@ export class BattleController {
     @Body(new ZodValidationPipe(adjustBattleHpRequestSchema)) input: AdjustBattleHpRequest,
   ): Promise<BattleSceneSnapshot> {
     return this.battle.adjustHp(user.id, combatantId, input);
+  }
+
+  @Post('battle-combatants/:combatantId/resources')
+  public adjustResource(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('combatantId', new ParseUUIDPipe({ version: '4' })) combatantId: string,
+    @Body(new ZodValidationPipe(adjustBattleResourceRequestSchema))
+    input: AdjustBattleResourceRequest,
+  ): Promise<BattleSceneSnapshot> {
+    return this.battle.adjustResource(user.id, combatantId, input);
   }
 
   @Post('battle-scenes/:sceneId/next-turn')

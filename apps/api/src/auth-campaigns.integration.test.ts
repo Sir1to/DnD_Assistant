@@ -139,11 +139,19 @@ describeIntegration('auth and campaigns API integration', () => {
     const runtimeResponse = await request(app.getHttpServer())
       .patch(`/api/characters/${created.id}/runtime`)
       .set('Cookie', ownerCookie)
-      .send({ expectedRevision: 0, currentHitPoints: 7, temporaryHitPoints: 3 })
+      .send({
+        expectedRevision: 0,
+        currentHitPoints: 7,
+        temporaryHitPoints: 3,
+        resources: { 'second-wind': 1 },
+        spellSlots: { 'level-1': 2 },
+      })
       .expect(200);
     expect(runtimeResponse.body).toMatchObject({
       currentHitPoints: 7,
       temporaryHitPoints: 3,
+      resources: { 'second-wind': 1 },
+      spellSlots: { 'level-1': 2 },
       revision: 1,
     });
     await request(app.getHttpServer())
@@ -376,6 +384,11 @@ describeIntegration('auth and campaigns API integration', () => {
       temporaryHp: 3,
       armorClass: 16,
       speed: 6,
+      characterRuntime: {
+        resources: { 'second-wind': 1 },
+        spellSlots: { 'level-1': 2 },
+        revision: 1,
+      },
     });
     expect(placed.tokens[0]).toMatchObject({ color: '#123abc', hasImage: true });
     await request(app.getHttpServer())
@@ -424,6 +437,46 @@ describeIntegration('auth and campaigns API integration', () => {
       currentHitPoints: 12,
       temporaryHitPoints: 0,
       revision: 3,
+    });
+
+    const resourceResponse = await request(app.getHttpServer())
+      .post(`/api/battle-combatants/${damagedHero.id}/resources`)
+      .set('Cookie', ownerCookie)
+      .send({
+        expectedRevision: 2,
+        pool: 'SPELL_SLOTS',
+        resourceId: 'level-1',
+        mode: 'SPEND',
+        amount: 1,
+      })
+      .expect(201);
+    expect((resourceResponse.body as BattleSceneSnapshot).combatants[0]).toMatchObject({
+      revision: 3,
+      characterRuntime: {
+        resources: { 'second-wind': 1 },
+        spellSlots: { 'level-1': 1 },
+        revision: 4,
+      },
+    });
+    await request(app.getHttpServer())
+      .post(`/api/battle-combatants/${damagedHero.id}/resources`)
+      .set('Cookie', ownerCookie)
+      .send({
+        expectedRevision: 3,
+        pool: 'SPELL_SLOTS',
+        resourceId: 'level-1',
+        mode: 'SPEND',
+        amount: 2,
+      })
+      .expect(400);
+    const runtimeAfterResource = await request(app.getHttpServer())
+      .get(`/api/characters/${created.id}`)
+      .set('Cookie', ownerCookie)
+      .expect(200);
+    expect((runtimeAfterResource.body as CharacterSheet).runtime).toMatchObject({
+      resources: { 'second-wind': 1 },
+      spellSlots: { 'level-1': 1 },
+      revision: 4,
     });
 
     const saveResponse = await request(app.getHttpServer())

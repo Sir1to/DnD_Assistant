@@ -2,6 +2,7 @@
 
 import type {
   AdjustBattleHpRequest,
+  AdjustBattleResourceRequest,
   BattleBackgroundPreset,
   BattleCombatant,
   BattleCombatantKind,
@@ -3912,6 +3913,10 @@ function MasterCombatantCard({
 }) {
   const queryClient = useQueryClient();
   const [amount, setAmount] = useState(1);
+  const [resourceAmount, setResourceAmount] = useState(1);
+  const [resourceId, setResourceId] = useState('');
+  const [resourcePool, setResourcePool] =
+    useState<AdjustBattleResourceRequest['pool']>('RESOURCES');
   const adjust = useMutation({
     mutationFn: (input: AdjustBattleHpRequest) =>
       apiRequest<BattleSceneSnapshot>(`/battle-combatants/${combatant.id}/hp`, {
@@ -3928,6 +3933,18 @@ function MasterCombatantCard({
         body: JSON.stringify(input),
       }),
     onSuccess: onSnapshot,
+    onError: () => void queryClient.invalidateQueries({ queryKey: battleKey }),
+  });
+  const adjustResource = useMutation({
+    mutationFn: (input: AdjustBattleResourceRequest) =>
+      apiRequest<BattleSceneSnapshot>(`/battle-combatants/${combatant.id}/resources`, {
+        method: 'POST',
+        body: JSON.stringify(input),
+      }),
+    onSuccess: (snapshot) => {
+      setResourceId('');
+      onSnapshot(snapshot);
+    },
     onError: () => void queryClient.invalidateQueries({ queryKey: battleKey }),
   });
   const remove = useMutation({
@@ -4020,6 +4037,105 @@ function MasterCombatantCard({
           Лечение
         </button>
       </div>
+      {combatant.characterRuntime ? (
+        <div className="battle-runtime-resources">
+          <strong>Расходуемые ресурсы</strong>
+          {(
+            [
+              ['RESOURCES', 'Ресурсы', combatant.characterRuntime.resources],
+              ['SPELL_SLOTS', 'Ячейки заклинаний', combatant.characterRuntime.spellSlots],
+            ] as const
+          ).map(([pool, label, counters]) => (
+            <div className="battle-runtime-resource-group" key={pool}>
+              <small>{label}</small>
+              {Object.entries(counters).length ? (
+                Object.entries(counters).map(([id, value]) => (
+                  <div className="battle-runtime-resource-row" key={id}>
+                    <span title={id}>{id}</span>
+                    <b>{value}</b>
+                    <button
+                      aria-label={`Потратить ${id}`}
+                      disabled={adjustResource.isPending || value < resourceAmount}
+                      onClick={() =>
+                        adjustResource.mutate({
+                          expectedRevision: combatant.revision,
+                          pool,
+                          resourceId: id,
+                          mode: 'SPEND',
+                          amount: resourceAmount,
+                        })
+                      }
+                      type="button"
+                    >
+                      −
+                    </button>
+                    <button
+                      aria-label={`Восстановить ${id}`}
+                      disabled={adjustResource.isPending}
+                      onClick={() =>
+                        adjustResource.mutate({
+                          expectedRevision: combatant.revision,
+                          pool,
+                          resourceId: id,
+                          mode: 'RESTORE',
+                          amount: resourceAmount,
+                        })
+                      }
+                      type="button"
+                    >
+                      +
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <span className="battle-terrain-hint">Пока пусто</span>
+              )}
+            </div>
+          ))}
+          <div className="battle-runtime-resource-add">
+            <select
+              aria-label="Тип ресурса"
+              onChange={(event) =>
+                setResourcePool(event.target.value as AdjustBattleResourceRequest['pool'])
+              }
+              value={resourcePool}
+            >
+              <option value="RESOURCES">Ресурс</option>
+              <option value="SPELL_SLOTS">Ячейка</option>
+            </select>
+            <input
+              aria-label="Название ресурса"
+              maxLength={100}
+              onChange={(event) => setResourceId(event.target.value)}
+              placeholder="Например, second-wind"
+              value={resourceId}
+            />
+            <input
+              aria-label="Количество ресурса"
+              max={999999}
+              min={1}
+              onChange={(event) => setResourceAmount(Math.max(1, Number(event.target.value)))}
+              type="number"
+              value={resourceAmount}
+            />
+            <button
+              disabled={adjustResource.isPending || !resourceId.trim()}
+              onClick={() =>
+                adjustResource.mutate({
+                  expectedRevision: combatant.revision,
+                  pool: resourcePool,
+                  resourceId,
+                  mode: 'RESTORE',
+                  amount: resourceAmount,
+                })
+              }
+              type="button"
+            >
+              Добавить
+            </button>
+          </div>
+        </div>
+      ) : null}
       <details className="battle-combatant-details">
         <summary>Характеристики и видимость</summary>
         {combatant.kind === 'PLAYER' ? (
