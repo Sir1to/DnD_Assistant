@@ -99,11 +99,20 @@ export default function CharactersPage() {
     },
   });
   const importMutation = useMutation({
-    mutationFn: (input: ImportCharacterSheetRequest) =>
-      apiRequest<CharacterSheet>(`/campaigns/${campaignId}/characters/import`, {
+    mutationFn: (input: ImportCharacterSheetRequest | { file: File }) => {
+      if ('file' in input) {
+        const form = new FormData();
+        form.append('file', input.file);
+        return apiRequest<CharacterSheet>(`/campaigns/${campaignId}/characters/import/folchar`, {
+          method: 'POST',
+          body: form,
+        });
+      }
+      return apiRequest<CharacterSheet>(`/campaigns/${campaignId}/characters/import`, {
         method: 'POST',
         body: JSON.stringify(input),
-      }),
+      });
+    },
     onSuccess: async (sheet) => {
       await queryClient.invalidateQueries({ queryKey: ['campaign-characters', campaignId] });
       setSelectedId(sheet.id);
@@ -142,7 +151,12 @@ export default function CharactersPage() {
   async function importFile(file: File) {
     setNotice('');
     try {
-      if (file.size > 300_000) throw new Error('Файл слишком большой. Максимум — 300 КБ.');
+      if (file.name.toLowerCase().endsWith('.folchar')) {
+        if (file.size > 6 * 1024 * 1024) throw new Error('Файл слишком большой. Максимум — 6 МБ.');
+        await importMutation.mutateAsync({ file });
+        return;
+      }
+      if (file.size > 300_000) throw new Error('JSON-файл слишком большой. Максимум — 300 КБ.');
       const sheet = JSON.parse(await file.text()) as PortableCharacterSheet;
       await importMutation.mutateAsync({ sheet });
     } catch (error) {
@@ -208,7 +222,7 @@ export default function CharactersPage() {
             <input
               ref={importRef}
               hidden
-              accept="application/json,.json,.fol-character.json"
+              accept="application/vnd.fog-of-lore.character+zip,.folchar,application/json,.json,.fol-character.json"
               type="file"
               onChange={(event) => {
                 const file = event.target.files?.[0];
@@ -417,14 +431,7 @@ function CharacterEditor({
     });
   }
   async function exportSheet() {
-    const exported = await apiRequest<PortableCharacterSheet>(`/characters/${sheet.id}/export`);
-    const blob = new Blob([JSON.stringify(exported, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = `${name.replace(/[^a-zа-яё0-9_-]+/gi, '-') || 'character'}.fol-character.json`;
-    anchor.click();
-    URL.revokeObjectURL(url);
+    downloadFolchar(sheet.id);
   }
 
   return (
@@ -445,7 +452,10 @@ function CharacterEditor({
             Сохранить
           </Button>
           <Button tone="quiet" onClick={() => void exportSheet()}>
-            Экспорт
+            Скачать .folchar
+          </Button>
+          <Button tone="quiet" onClick={() => window.print()}>
+            Печать A4
           </Button>
           <Button
             tone="quiet"
@@ -790,6 +800,7 @@ function CharacterEditor({
         <summary>Источник правил и лицензия</summary>
         <p>{options.attribution}</p>
       </details>
+      <PrintableCharacterSheet sheet={sheet} options={options} />
       {portraitEditorOpen ? (
         <PortraitCropDialog
           pending={portraitMutation.isPending}
@@ -886,6 +897,12 @@ function CharacterV2Summary({
         </div>
         <div>
           <Button onClick={onEditGuided}>Редактировать лист</Button>
+          <Button tone="quiet" onClick={() => downloadFolchar(sheet.id)}>
+            Скачать .folchar
+          </Button>
+          <Button tone="quiet" onClick={() => window.print()}>
+            Печать A4
+          </Button>
           <Button
             tone="quiet"
             disabled={portraitMutation.isPending}
@@ -1014,6 +1031,7 @@ function CharacterV2Summary({
       {portraitMutation.error ? (
         <p className="form-error">{readableError(portraitMutation.error)}</p>
       ) : null}
+      <PrintableCharacterSheet sheet={sheet} options={options} document={document} />
     </div>
   );
 }
@@ -1595,6 +1613,161 @@ function documentFromLegacy(data: CharacterSheetData): CharacterDocumentV2 {
       notes: data.notes,
     },
   };
+}
+
+function downloadFolchar(sheetId: string): void {
+  const anchor = document.createElement('a');
+  anchor.href = apiResourceUrl(`/characters/${sheetId}/export/folchar`);
+  anchor.download = '';
+  document.body.append(anchor);
+  anchor.click();
+  anchor.remove();
+}
+
+function PrintableCharacterSheet({
+  sheet,
+  options,
+  document: documentResponse,
+}: {
+  sheet: CharacterSheet;
+  options: CharacterOptionsResponse;
+  document?: CharacterDocumentResponse;
+}) {
+  const data = sheet.data;
+  const derived = documentResponse?.derived;
+  const optionName = (items: { id: string; name: string }[], id: string) =>
+    items.find((item) => item.id === id)?.name ?? (id || '—');
+  return (
+    <article className="character-print-sheet" aria-hidden="true">
+      <header>
+        <div>
+          <p>FOG OF LORE · D&D 5e SRD 5.2.1</p>
+          <h1>{sheet.name}</h1>
+          <span>{sheet.ownerDisplayName}</span>
+        </div>
+        <div className="character-print-level">
+          <strong>{data.level}</strong>
+          <span>уровень</span>
+        </div>
+      </header>
+      <section className="character-print-identity">
+        <div>
+          <span>Вид</span>
+          <strong>{optionName(options.species, data.speciesId)}</strong>
+        </div>
+        <div>
+          <span>Класс</span>
+          <strong>{optionName(options.classes, data.classId)}</strong>
+        </div>
+        <div>
+          <span>Предыстория</span>
+          <strong>{optionName(options.backgrounds, data.backgroundId)}</strong>
+        </div>
+      </section>
+      <section className="character-print-stats">
+        {abilityKeys.map((key) => {
+          const modifier = abilityModifier(data.abilities[key]);
+          return (
+            <div key={key}>
+              <span>{abilityLabels[key]}</span>
+              <strong>{data.abilities[key]}</strong>
+              <small>
+                {modifier >= 0 ? '+' : ''}
+                {modifier}
+              </small>
+            </div>
+          );
+        })}
+      </section>
+      <section className="character-print-combat">
+        <div>
+          <span>Макс. HP</span>
+          <strong>{derived?.hitPointMaximum ?? data.hitPoints}</strong>
+        </div>
+        <div>
+          <span>Текущие HP</span>
+          <strong>{sheet.runtime.currentHitPoints}</strong>
+        </div>
+        <div>
+          <span>Временные HP</span>
+          <strong>{sheet.runtime.temporaryHitPoints}</strong>
+        </div>
+        <div>
+          <span>КД</span>
+          <strong>{derived?.armorClass ?? data.armorClass}</strong>
+        </div>
+        <div>
+          <span>Скорость</span>
+          <strong>{derived?.speed ?? data.speed}</strong>
+        </div>
+        <div>
+          <span>Инициатива</span>
+          <strong>
+            {derived ? `${derived.initiative >= 0 ? '+' : ''}${derived.initiative}` : '—'}
+          </strong>
+        </div>
+      </section>
+      <div className="character-print-columns">
+        <section>
+          <h2>Навыки</h2>
+          <p>{data.skillIds.map((id) => optionName(options.skills, id)).join(', ') || '—'}</p>
+          <h2>Заклинания</h2>
+          <p>{data.spellIds.map((id) => optionName(options.spells, id)).join(', ') || '—'}</p>
+          <h2>Ресурсы</h2>
+          <p>{formatCounters(sheet.runtime.resources)}</p>
+          <h2>Ячейки заклинаний</h2>
+          <p>{formatCounters(sheet.runtime.spellSlots)}</p>
+        </section>
+        <section>
+          <h2>Снаряжение</h2>
+          <ul>
+            {data.equipment.length ? (
+              data.equipment.map((item, index) => (
+                <li key={`${item.optionId ?? item.name}:${index}`}>
+                  {item.name} × {item.quantity}
+                  {item.notes ? ` — ${item.notes}` : ''}
+                </li>
+              ))
+            ) : (
+              <li>—</li>
+            )}
+          </ul>
+          <h2>Состояния</h2>
+          <p>{sheet.runtime.conditions.join(', ') || '—'}</p>
+        </section>
+      </div>
+      <section className="character-print-story">
+        <h2>Личность и история</h2>
+        {data.appearance ? (
+          <p>
+            <strong>Внешность.</strong> {data.appearance}
+          </p>
+        ) : null}
+        {data.personality ? (
+          <p>
+            <strong>Личность.</strong> {data.personality}
+          </p>
+        ) : null}
+        {data.backstory ? (
+          <p>
+            <strong>История.</strong> {data.backstory}
+          </p>
+        ) : null}
+        {data.notes ? (
+          <p>
+            <strong>Заметки.</strong> {data.notes}
+          </p>
+        ) : null}
+        {!data.appearance && !data.personality && !data.backstory && !data.notes ? <p>—</p> : null}
+      </section>
+      <footer>Сформировано Fog of Lore · светлая печатная версия A4</footer>
+    </article>
+  );
+}
+
+function formatCounters(counters: Record<string, number>): string {
+  const entries = Object.entries(counters);
+  return entries.length ? entries.map(([name, value]) => `${name}: ${value}`).join(' · ') : '—';
 }
 
 function BeginnerWizard({

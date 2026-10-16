@@ -34,6 +34,7 @@ import {
   validateCharacterDocumentV2,
 } from '@fog-of-lore/domain';
 import { and, desc, eq, gt, sql } from 'drizzle-orm';
+import { z } from 'zod';
 
 import { CampaignAccessService } from '../campaigns/campaign-access.service';
 import { CampaignEventsService } from '../campaigns/campaign-events.service';
@@ -51,6 +52,7 @@ import {
   users,
 } from '../database/schema';
 import { projectStoredCharacterData, readStoredCharacterDocument } from './character-document';
+import { buildFolchar, parseFolchar } from './folchar';
 
 type CharacterRecord = {
   sheet: typeof characterSheets.$inferSelect;
@@ -644,6 +646,112 @@ export class CharactersService {
     };
   }
 
+  public async exportFolchar(
+    userId: string,
+    sheetId: string,
+  ): Promise<{ archive: Buffer; fileName: string }> {
+    const record = await this.load(sheetId);
+    if (!record) throw new NotFoundException('Character sheet not found');
+    await this.requireView(userId, record);
+    const sheet = this.toSheet(record);
+    const document = readStoredCharacterDocument(
+      record.sheet.data,
+      record.sheet.documentVersion,
+      record.sheet.creationMode,
+    );
+    if (!document)
+      throw new BadRequestException('Stored character sheet has an unsupported format');
+    let portrait: Buffer | undefined;
+    if (record.sheet.portraitAssetId) {
+      const portraitFile = await this.attachments.readForBattleScene(
+        record.sheet.portraitAssetId,
+        record.sheet.campaignId,
+      );
+      if (portraitFile.attachment.mimeType === 'image/webp') portrait = portraitFile.buffer;
+    }
+    return {
+      archive: buildFolchar({
+        exportedAt: new Date().toISOString(),
+        character: {
+          name: sheet.name,
+          status: sheet.status === 'ARCHIVED' ? 'DRAFT' : sheet.status,
+          document,
+          runtime: {
+            currentHitPoints: sheet.runtime.currentHitPoints,
+            temporaryHitPoints: sheet.runtime.temporaryHitPoints,
+            resources: sheet.runtime.resources,
+            spellSlots: sheet.runtime.spellSlots,
+            conditions: sheet.runtime.conditions,
+            inspiration: sheet.runtime.inspiration,
+            deathSaveSuccesses: sheet.runtime.deathSaveSuccesses,
+            deathSaveFailures: sheet.runtime.deathSaveFailures,
+          },
+        },
+        portrait,
+      }),
+      fileName: `${safePortableFileName(sheet.name)}.folchar`,
+    };
+  }
+
+  public async importFolchar(
+    userId: string,
+    campaignId: string,
+    file: UploadedAttachment | undefined,
+    ownerUserId?: string,
+  ): Promise<CharacterSheet> {
+    const role = await this.access.requireMembership(userId, campaignId);
+    if (!file) throw new BadRequestException('Select a .folchar file to import');
+    if (file.size < 1 || file.size > 6 * 1024 * 1024) {
+      throw new BadRequestException('The .folchar file must be no larger than 6 MB');
+    }
+    let owner: string;
+    try {
+      owner = ownerUserId ? z.string().uuid().parse(ownerUserId) : userId;
+    } catch {
+      throw new BadRequestException('Character owner must be a valid user ID');
+    }
+    if (role === 'PLAYER' && owner !== userId) {
+      throw new ForbiddenException('Players can only import their own character sheets');
+    }
+    let parsed: ReturnType<typeof parseFolchar>;
+    try {
+      parsed = parseFolchar(file.buffer);
+    } catch (error) {
+      throw new BadRequestException(
+        error instanceof Error
+          ? `Unsafe or invalid .folchar file: ${error.message}`
+          : 'Invalid .folchar file',
+      );
+    }
+    let created: CharacterSheet | undefined;
+    try {
+      created = await this.create(userId, campaignId, {
+        name: parsed.character.name,
+        ownerUserId: owner,
+        status: parsed.character.status,
+        document: parsed.character.document,
+      });
+      await this.updateRuntime(userId, created.id, {
+        expectedRevision: created.runtime.revision,
+        ...parsed.character.runtime,
+      });
+      if (parsed.portrait) {
+        await this.setPortrait(userId, created.id, {
+          originalname: 'portrait.webp',
+          mimetype: 'image/webp',
+          size: parsed.portrait.length,
+          buffer: parsed.portrait,
+        });
+      }
+      return await this.get(userId, created.id);
+    } catch (error) {
+      if (created) {
+        await this.database.delete(characterSheets).where(eq(characterSheets.id, created.id));
+      }
+      throw error;
+    }
+  }
+
   public import(
     userId: string,
     campaignId: string,
@@ -797,6 +905,15 @@ export function changedCharacterDocumentPaths(
   if (currentName !== nextName) paths.push('/name');
   if (currentStatus !== nextStatus) paths.push('/status');
   return [...new Set(paths)].sort();
+}
+
+function safePortableFileName(name: string): string {
+  const sanitized = name
+    .normalize('NFKC')
+    .replace(/[^\p{L}\p{N}_-]+/gu, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80);
+  return sanitized || 'character';
 }
 
 function collectChangedPaths(current: unknown, next: unknown, path = ''): string[] {

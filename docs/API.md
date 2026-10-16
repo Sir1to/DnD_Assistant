@@ -46,6 +46,8 @@ PATCH  /characters/:sheetId/runtime
 POST   /characters/:sheetId/portrait
 GET    /characters/:sheetId/portrait
 GET    /characters/:sheetId/export
+GET    /characters/:sheetId/export/folchar
+POST   /campaigns/:campaignId/characters/import/folchar
 DELETE /characters/:sheetId
 
 GET    /campaigns/:campaignId/battle
