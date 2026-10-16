@@ -1,4 +1,4 @@
-# Продолжение разработки — 15 октября 2026
+# Продолжение разработки — 16 октября 2026
 
 Этот файл — краткий контекст для следующего чата. Он описывает уже сделанное и ближайшую
 работу, чтобы не повторять исследование проекта.
@@ -12,7 +12,7 @@
 - Приватный ключ Windows: `C:\Users\Sir1to\.ssh\id_ed25519`.
 - Проект на сервере: `/opt/fog-of-lore`.
 - Сервер: `sir1to-projects`, Ubuntu Server 24.04.
-- Ветка локально и на сервере: `development`; развёрнутый application commit: `599d653`.
+- Ветка локально и на сервере: `development`; развёрнутый application commit: `4854008`.
 - Release tag `v0.1.0` указывает на проверенный функциональный commit `9b01911`;
   последующий `599d653` меняет только ignore-политику серверных backup и копий `.env`.
 - HTTPS внутри tailnet: `https://sir1to-projects.tail95395c.ts.net/`.
@@ -92,6 +92,17 @@ sudo tailscale serve --bg --yes http://127.0.0.1:8080
 сервере, пока прямой `curl` и HTTP/2-тест возвращают 200.
 
 ### Последняя проверка deploy
+
+16 октября 2026 развёрнут Character Sheets 2.0 до истории ревизий, мастерских исправлений и
+боевой синхронизации расходуемых ресурсов. На отдельной PostgreSQL 18 прошли все 11
+integration-сценариев; локально прошли 127 unit-тестов, TypeScript, ESLint и production web
+build. Перед переключением созданы rollback-образы и dump
+`/opt/fog-of-lore/backups/fog-of-lore-predeploy-20261016T172406Z.dump` (110 974 байта).
+Production API/web пересобраны с frozen lockfile, цепочка из 22 миграций проверена, миграции
+применены, контейнеры пересозданы и healthy. `/api/health` сообщает `version=0.1.0`,
+`commit=48540083eb60`, `database=up`; web, локальный proxy и tailnet HTTPS возвращают HTTP 200. Временные test/candidate-контейнеры и файлы передачи удалены. GitHub push не выполнялся:
+среда Codex заблокировала запись в remote, который не подтверждён как доверенный приватный
+репозиторий; локальная и серверная ветки содержат новые commits через проверенный Git bundle.
 
 15 октября 2026 `development` разложен на осмысленные commits, отправлен в GitHub и прошёл
 полный CI: migration check, PostgreSQL integration, lint, format, typecheck, unit, production
@@ -431,7 +442,7 @@ node node_modules/.pnpm/typescript@6.0.3/node_modules/typescript/bin/tsc -p apps
     золотые метки на полях, авторов/описания и кнопку восстановления. Прошли 126
     unit/contract/web/API тестов, TypeScript, ESLint, Prettier, migration check, API и production
     web build. PostgreSQL integration обновлён, но ещё не запущен из-за выключенного Docker
-    Desktop. Следующая отдельная runtime-команда также готова локально 16 октября: мастерская
+    Desktop. Следующая отдельная runtime-команда также развёрнута 16 октября: мастерская
     карточка связанного героя показывает постоянные ресурсы и ячейки заклинаний, а optimistic
     команда расхода/восстановления атомарно обновляет runtime и боевую ревизию. Игрокам эта
     проекция не раскрывается. Следующий срез — A4 renderer и `.folchar`.
