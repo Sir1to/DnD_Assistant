@@ -184,6 +184,34 @@ export class CharactersController {
     return new StreamableFile(buffer);
   }
 
+  @Get('characters/:sheetId/export/folchar')
+  public async exportFolchar(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('sheetId', new ParseUUIDPipe({ version: '4' })) sheetId: string,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<StreamableFile> {
+    const result = await this.characters.exportFolchar(user.id, sheetId);
+    response.setHeader('Content-Type', 'application/vnd.fog-of-lore.character+zip');
+    response.setHeader(
+      'Content-Disposition',
+      `attachment; filename*=UTF-8''${encodeURIComponent(result.fileName)}`,
+    );
+    response.setHeader('Content-Length', String(result.archive.length));
+    response.setHeader('Cache-Control', 'private, no-store');
+    return new StreamableFile(result.archive);
+  }
+
+  @Post('campaigns/:campaignId/characters/import/folchar')
+  @UseInterceptors(FileInterceptor('file', { limits: { files: 1, fileSize: 6 * 1024 * 1024 } }))
+  public importFolchar(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('campaignId', new ParseUUIDPipe({ version: '4' })) campaignId: string,
+    @UploadedFile() file: UploadedAttachment | undefined,
+    @Body('ownerUserId') ownerUserId?: string,
+  ): Promise<CharacterSheet> {
+    return this.characters.importFolchar(user.id, campaignId, file, ownerUserId);
+  }
+
   @Delete('characters/:sheetId')
   @HttpCode(204)
   public async delete(
