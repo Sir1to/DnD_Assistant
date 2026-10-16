@@ -148,6 +148,13 @@
       "when": 1791721009119,
       "tag": "0020_character_sheets_v2_runtime",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1792159395900,
+      "tag": "0021_material_boomerang",
+      "breakpoints": true
     }
   ]
 }

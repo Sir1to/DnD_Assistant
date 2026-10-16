@@ -3,10 +3,14 @@ import { describe, expect, it } from 'vitest';
 import {
   characterDocumentV2Schema,
   characterDocumentResponseSchema,
+  characterDocumentRevisionListResponseSchema,
+  characterOptionsResponseSchema,
   characterRuntimeStateSchema,
   characterSheetDataSchema,
+  createCharacterSheetRequestSchema,
   importCharacterSheetRequestSchema,
   portableCharacterSheetSchema,
+  restoreCharacterDocumentRevisionRequestSchema,
   updateCharacterDocumentRequestSchema,
 } from './characters';
 
@@ -87,6 +91,7 @@ describe('character sheet contracts', () => {
           passivePerception: 10,
         },
         issues: [],
+        masterCorrections: [],
         revision: 0,
         updatedAt: new Date().toISOString(),
       }).storedDocumentVersion,
@@ -107,6 +112,35 @@ describe('character sheet contracts', () => {
     ).toBe(10);
   });
 
+  it('validates immutable document history and restore commands', () => {
+    const response = characterDocumentRevisionListResponseSchema.parse({
+      sheetId: '10000000-0000-4000-8000-000000000001',
+      currentRevision: 3,
+      revisions: [
+        {
+          id: '10000000-0000-4000-8000-000000000004',
+          documentRevision: 3,
+          name: 'Mira',
+          status: 'READY',
+          actorKind: 'GAME_MASTER',
+          kind: 'UPDATED',
+          summary: 'Уточнена предыстория',
+          changedByUserId: '10000000-0000-4000-8000-000000000003',
+          changedByDisplayName: 'GM',
+          masterCorrectionPaths: ['/profile/backstory'],
+          createdAt: new Date().toISOString(),
+        },
+      ],
+    });
+    expect(response.revisions[0]?.masterCorrectionPaths).toEqual(['/profile/backstory']);
+    expect(
+      restoreCharacterDocumentRevisionRequestSchema.parse({
+        expectedRevision: 3,
+        summary: 'Возврат к исходной версии',
+      }),
+    ).toMatchObject({ expectedRevision: 3 });
+  });
+
   it('does not allow archived status through the document editor command', () => {
     expect(() =>
       updateCharacterDocumentRequestSchema.parse({
@@ -116,5 +150,58 @@ describe('character sheet contracts', () => {
         document: {},
       }),
     ).toThrow();
+  });
+
+  it('requires a versioned guided-creation graph in character options', () => {
+    expect(() =>
+      characterOptionsResponseSchema.parse({
+        ruleset: 'dnd5e-srd-5.2.1',
+        attribution: 'SRD attribution',
+        guided: {
+          version: 1,
+          steps: [{ id: 'concept', title: 'Концепция', description: 'Начальный шаг.' }],
+          abilityMethods: [
+            { id: 'STANDARD_ARRAY', name: 'Массив', description: 'Готовые значения.' },
+          ],
+        },
+        classes: [],
+        species: [],
+        backgrounds: [],
+        skills: [],
+        spells: [],
+        equipment: [],
+        builds: [],
+      }),
+    ).not.toThrow();
+  });
+
+  it('accepts atomic creation of a version 2 character document', () => {
+    expect(() =>
+      createCharacterSheetRequestSchema.parse({
+        name: 'Арина',
+        status: 'READY',
+        document: {
+          documentVersion: 2,
+          ruleset: { id: 'dnd5e-srd-5.2.1', version: '5.2.1' },
+          creation: { mode: 'GUIDED', decisions: [] },
+          identity: { level: 1, speciesId: 'human', classId: 'fighter', backgroundId: 'soldier' },
+          abilities: {
+            method: 'STANDARD_ARRAY',
+            scores: {
+              strength: 15,
+              dexterity: 14,
+              constitution: 13,
+              intelligence: 12,
+              wisdom: 10,
+              charisma: 8,
+            },
+          },
+          choices: { skillIds: ['athletics', 'intimidation'], spellIds: [] },
+          inventory: { equipment: [] },
+          profile: { personality: '', appearance: '', backstory: '', notes: '' },
+          ruleOverrides: [],
+        },
+      }),
+    ).not.toThrow();
   });
 });

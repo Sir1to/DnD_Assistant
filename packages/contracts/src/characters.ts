@@ -135,13 +135,25 @@ export const characterRuntimeStateSchema = z.object({
   updatedAt: z.string().datetime(),
 });
 
-export const createCharacterSheetRequestSchema = z.object({
+const createLegacyCharacterSheetRequestSchema = z.object({
   name: z.string().trim().min(1).max(160),
   ownerUserId: z.string().uuid().optional(),
   ruleset: characterRulesetSchema.default('dnd5e-srd-5.2.1'),
   creationMode: characterCreationModeSchema.optional(),
   data: characterSheetDataSchema,
 });
+
+const createCharacterDocumentRequestSchema = z.object({
+  name: z.string().trim().min(1).max(160),
+  ownerUserId: z.string().uuid().optional(),
+  status: z.enum(['DRAFT', 'READY']),
+  document: characterDocumentV2Schema,
+});
+
+export const createCharacterSheetRequestSchema = z.union([
+  createLegacyCharacterSheetRequestSchema,
+  createCharacterDocumentRequestSchema,
+]);
 
 export const updateCharacterSheetRequestSchema = z.object({
   expectedRevision: z.int().nonnegative(),
@@ -196,6 +208,47 @@ export const updateCharacterDocumentRequestSchema = z.object({
   name: z.string().trim().min(1).max(160),
   status: z.enum(['DRAFT', 'READY']),
   document: characterDocumentV2Schema,
+  changeSummary: z.string().trim().min(1).max(500).optional(),
+});
+
+export const characterMasterCorrectionSchema = z.object({
+  path: z.string().startsWith('/').max(500),
+  correctedByUserId: z.string().uuid(),
+  correctedAt: z.string().datetime(),
+  revision: z.int().nonnegative(),
+});
+
+export const characterDocumentRevisionKindSchema = z.enum([
+  'CREATED',
+  'UPDATED',
+  'RESTORED',
+  'MIGRATED',
+]);
+export const characterRevisionActorKindSchema = z.enum(['PLAYER', 'GAME_MASTER', 'SYSTEM']);
+
+export const characterDocumentRevisionSchema = z.object({
+  id: z.string().uuid(),
+  documentRevision: z.int().nonnegative(),
+  name: z.string().trim().min(1).max(160),
+  status: characterSheetStatusSchema,
+  actorKind: characterRevisionActorKindSchema,
+  kind: characterDocumentRevisionKindSchema,
+  summary: z.string().trim().min(1).max(500).nullable(),
+  changedByUserId: z.string().uuid(),
+  changedByDisplayName: z.string().trim().min(1),
+  masterCorrectionPaths: z.array(z.string().startsWith('/').max(500)),
+  createdAt: z.string().datetime(),
+});
+
+export const characterDocumentRevisionListResponseSchema = z.object({
+  sheetId: z.string().uuid(),
+  currentRevision: z.int().nonnegative(),
+  revisions: z.array(characterDocumentRevisionSchema),
+});
+
+export const restoreCharacterDocumentRevisionRequestSchema = z.object({
+  expectedRevision: z.int().nonnegative(),
+  summary: z.string().trim().min(1).max(500).optional(),
 });
 
 export const characterDocumentResponseSchema = z.object({
@@ -209,6 +262,7 @@ export const characterDocumentResponseSchema = z.object({
   document: characterDocumentV2Schema,
   derived: characterDerivedValuesSchema,
   issues: z.array(characterRuleIssueSchema),
+  masterCorrections: z.array(characterMasterCorrectionSchema),
   revision: z.int().nonnegative(),
   updatedAt: z.string().datetime(),
 });
@@ -293,10 +347,26 @@ export const characterBuildTemplateSchema = z.object({
   spellIds: z.array(z.string()),
   equipmentIds: z.array(z.string()),
 });
+export const guidedCharacterCreationStepSchema = z.object({
+  id: z.string().trim().min(1).max(100),
+  title: z.string().trim().min(1).max(160),
+  description: z.string().trim().min(1).max(1000),
+});
+export const guidedCharacterAbilityMethodSchema = z.object({
+  id: abilityMethodSchema,
+  name: z.string().trim().min(1).max(160),
+  description: z.string().trim().min(1).max(1000),
+});
+export const guidedCharacterCreationSchema = z.object({
+  version: z.literal(1),
+  steps: z.array(guidedCharacterCreationStepSchema).min(1).max(100),
+  abilityMethods: z.array(guidedCharacterAbilityMethodSchema).min(1).max(20),
+});
 
 export const characterOptionsResponseSchema = z.object({
   ruleset: characterRulesetSchema,
   attribution: z.string(),
+  guided: guidedCharacterCreationSchema,
   classes: z.array(characterClassOptionSchema),
   species: z.array(characterSpeciesOptionSchema),
   backgrounds: z.array(characterBackgroundOptionSchema),
@@ -318,6 +388,14 @@ export type CharacterDerivedValues = z.infer<typeof characterDerivedValuesSchema
 export type CharacterRuleIssue = z.infer<typeof characterRuleIssueSchema>;
 export type UpdateCharacterDocumentRequest = z.infer<typeof updateCharacterDocumentRequestSchema>;
 export type CharacterDocumentResponse = z.infer<typeof characterDocumentResponseSchema>;
+export type CharacterMasterCorrection = z.infer<typeof characterMasterCorrectionSchema>;
+export type CharacterDocumentRevision = z.infer<typeof characterDocumentRevisionSchema>;
+export type CharacterDocumentRevisionListResponse = z.infer<
+  typeof characterDocumentRevisionListResponseSchema
+>;
+export type RestoreCharacterDocumentRevisionRequest = z.infer<
+  typeof restoreCharacterDocumentRevisionRequestSchema
+>;
 export type CharacterSheet = z.infer<typeof characterSheetSchema>;
 export type CampaignCharacterSheetsResponse = z.infer<typeof campaignCharacterSheetsResponseSchema>;
 export type PortableCharacterSheet = z.infer<typeof portableCharacterSheetSchema>;

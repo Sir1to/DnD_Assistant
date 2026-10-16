@@ -40,6 +40,8 @@ GET    /characters/:sheetId
 PATCH  /characters/:sheetId
 GET    /characters/:sheetId/document
 PATCH  /characters/:sheetId/document
+GET    /characters/:sheetId/document-revisions
+POST   /characters/:sheetId/document-revisions/:documentRevision/restore
 PATCH  /characters/:sheetId/runtime
 POST   /characters/:sheetId/portrait
 GET    /characters/:sheetId/portrait
@@ -246,6 +248,8 @@ GET    /characters/:sheetId
 PATCH  /characters/:sheetId
 GET    /characters/:sheetId/document
 PATCH  /characters/:sheetId/document
+GET    /characters/:sheetId/document-revisions
+POST   /characters/:sheetId/document-revisions/:documentRevision/restore
 PATCH  /characters/:sheetId/runtime
 DELETE /characters/:sheetId
 GET    /characters/:sheetId/export
@@ -265,6 +269,13 @@ v1-проекцию: сервер безопасно читает докумен
 `fog-of-lore.character-sheet`, версию `1` и не содержит ID кампании, пользователя,
 ревизии или внутренних временных меток. Импорт всегда создаёт новый лист и повторно
 проверяет владельца и данные на сервере.
+
+Каждая запись v2-документа атомарно добавляет append-only ревизию с автором,
+типом изменения и необязательным `changeSummary`. Восстановление требует текущий
+`expectedRevision` и создаёт новую ревизию вместо перезаписи истории. Если OWNER/GM меняет
+чужой лист, сервер сам определяет изменённые JSON Pointer-пути и помечает их как
+`Правка мастера`; клиент не может подделать эти метки. Следующее изменение того же
+поля владельцем снимает активную метку.
 
 WebSocket-событие `campaign.characters.changed` не содержит листа и служит только
 сигналом обновить REST-снимок после изменения или reconnect.

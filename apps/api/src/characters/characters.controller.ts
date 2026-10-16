@@ -7,6 +7,7 @@ import {
   HttpCode,
   Inject,
   Param,
+  ParseIntPipe,
   ParseUUIDPipe,
   Patch,
   Post,
@@ -24,6 +25,7 @@ import {
   updateCharacterRuntimeRequestSchema,
   updateCharacterSheetRequestSchema,
   type CampaignCharacterSheetsResponse,
+  type CharacterDocumentRevisionListResponse,
   type CharacterDocumentResponse,
   type CharacterOptionsResponse,
   type CharacterRuntimeState,
@@ -31,6 +33,8 @@ import {
   type CreateCharacterSheetRequest,
   type ImportCharacterSheetRequest,
   type PortableCharacterSheet,
+  restoreCharacterDocumentRevisionRequestSchema,
+  type RestoreCharacterDocumentRevisionRequest,
   type UpdateCharacterRuntimeRequest,
   type UpdateCharacterDocumentRequest,
   type UpdateCharacterSheetRequest,
@@ -122,6 +126,25 @@ export class CharactersController {
     input: UpdateCharacterDocumentRequest,
   ): Promise<CharacterDocumentResponse> {
     return this.characters.updateDocument(user.id, sheetId, input);
+  }
+
+  @Get('characters/:sheetId/document-revisions')
+  public listDocumentRevisions(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('sheetId', new ParseUUIDPipe({ version: '4' })) sheetId: string,
+  ): Promise<CharacterDocumentRevisionListResponse> {
+    return this.characters.listDocumentRevisions(user.id, sheetId);
+  }
+
+  @Post('characters/:sheetId/document-revisions/:documentRevision/restore')
+  public restoreDocumentRevision(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('sheetId', new ParseUUIDPipe({ version: '4' })) sheetId: string,
+    @Param('documentRevision', ParseIntPipe) documentRevision: number,
+    @Body(new ZodValidationPipe(restoreCharacterDocumentRevisionRequestSchema))
+    input: RestoreCharacterDocumentRevisionRequest,
+  ): Promise<CharacterDocumentResponse> {
+    return this.characters.restoreDocumentRevision(user.id, sheetId, documentRevision, input);
   }
 
   @Patch('characters/:sheetId/runtime')

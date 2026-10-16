@@ -5,6 +5,7 @@ import type {
   BattleSceneSnapshot,
   CampaignDetail,
   CampaignListResponse,
+  CharacterDocumentRevisionListResponse,
   CharacterDocumentResponse,
   CharacterSheetData,
   CombatState,
@@ -22,7 +23,11 @@ import type {
   TimerState,
   WidgetInstance,
 } from '@fog-of-lore/contracts';
-import { migrateCharacterSheetDataV1 } from '@fog-of-lore/domain';
+import {
+  applyDnd5eGuidedIdentity,
+  createDnd5eGuidedCharacterDocument,
+  migrateCharacterSheetDataV1,
+} from '@fog-of-lore/domain';
 import type { Pool } from 'pg';
 import request from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
@@ -73,6 +78,22 @@ describeIntegration('auth and campaigns API integration', () => {
       .send({ name: 'Листы героев', description: '' })
       .expect(201);
     const campaign = campaignResponse.body as CampaignDetail;
+    const invitationResponse = await request(app.getHttpServer())
+      .post(`/api/campaigns/${campaign.id}/invitations`)
+      .set('Cookie', ownerCookie)
+      .send({ expiresInDays: 7 })
+      .expect(201);
+    await request(app.getHttpServer())
+      .post(`/api/invitations/${invitationResponse.body.token as string}/accept`)
+      .set('Cookie', strangerCookie)
+      .expect(201);
+    const membersResponse = await request(app.getHttpServer())
+      .get(`/api/campaigns/${campaign.id}/members`)
+      .set('Cookie', ownerCookie)
+      .expect(200);
+    const playerId = (membersResponse.body.members as Array<{ userId: string; role: string }>).find(
+      ({ role }) => role === 'PLAYER',
+    )!.userId;
     const data: CharacterSheetData = {
       level: 1,
       speciesId: 'human',
@@ -209,6 +230,117 @@ describeIntegration('auth and campaigns API integration', () => {
       runtime: { currentHitPoints: 7, temporaryHitPoints: 3 },
     });
 
+    let guidedDocument = createDnd5eGuidedCharacterDocument();
+    guidedDocument = applyDnd5eGuidedIdentity(guidedDocument, 'speciesId', 'human');
+    guidedDocument = applyDnd5eGuidedIdentity(guidedDocument, 'backgroundId', 'soldier');
+    guidedDocument = applyDnd5eGuidedIdentity(guidedDocument, 'classId', 'fighter');
+    const atomicCreateResponse = await request(app.getHttpServer())
+      .post(`/api/campaigns/${campaign.id}/characters`)
+      .set('Cookie', ownerCookie)
+      .send({ name: 'Арина', status: 'READY', document: guidedDocument })
+      .expect(201);
+    expect(atomicCreateResponse.body).toMatchObject({
+      name: 'Арина',
+      documentVersion: 2,
+      creationMode: 'GUIDED',
+      status: 'READY',
+      revision: 0,
+      runtime: { currentHitPoints: 12, temporaryHitPoints: 0, revision: 0 },
+    });
+
+    const atomicId = (atomicCreateResponse.body as CharacterSheet).id;
+    const initialHistoryResponse = await request(app.getHttpServer())
+      .get(`/api/characters/${atomicId}/document-revisions`)
+      .set('Cookie', ownerCookie)
+      .expect(200);
+    expect(initialHistoryResponse.body).toMatchObject({
+      currentRevision: 0,
+      revisions: [{ documentRevision: 0, kind: 'CREATED', actorKind: 'GAME_MASTER' }],
+    });
+
+    const editedDocument = structuredClone(guidedDocument);
+    editedDocument.profile.backstory = 'Дочь кузнеца из северного посёлка.';
+    await request(app.getHttpServer())
+      .patch(`/api/characters/${atomicId}/document`)
+      .set('Cookie', ownerCookie)
+      .send({
+        expectedRevision: 0,
+        name: 'Арина',
+        status: 'READY',
+        document: editedDocument,
+        changeSummary: 'Добавлена предыстория',
+      })
+      .expect(200);
+    const editedHistoryResponse = await request(app.getHttpServer())
+      .get(`/api/characters/${atomicId}/document-revisions`)
+      .set('Cookie', ownerCookie)
+      .expect(200);
+    const editedHistory = editedHistoryResponse.body as CharacterDocumentRevisionListResponse;
+    expect(editedHistory.revisions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          documentRevision: 1,
+          kind: 'UPDATED',
+          summary: 'Добавлена предыстория',
+        }),
+      ]),
+    );
+    const restoredDocumentResponse = await request(app.getHttpServer())
+      .post(`/api/characters/${atomicId}/document-revisions/0/restore`)
+      .set('Cookie', ownerCookie)
+      .send({ expectedRevision: 1 })
+      .expect(201);
+    expect(restoredDocumentResponse.body).toMatchObject({
+      revision: 2,
+      document: { profile: { backstory: '' } },
+    });
+
+    const playerCharacterResponse = await request(app.getHttpServer())
+      .post(`/api/campaigns/${campaign.id}/characters`)
+      .set('Cookie', ownerCookie)
+      .send({
+        name: 'Тара',
+        ownerUserId: playerId,
+        status: 'READY',
+        document: guidedDocument,
+      })
+      .expect(201);
+    const playerCharacter = playerCharacterResponse.body as CharacterSheet;
+    const masterEditedDocument = structuredClone(guidedDocument);
+    masterEditedDocument.profile.notes = 'Уточнение мастера';
+    const masterCorrectionResponse = await request(app.getHttpServer())
+      .patch(`/api/characters/${playerCharacter.id}/document`)
+      .set('Cookie', ownerCookie)
+      .send({
+        expectedRevision: 0,
+        name: 'Тара',
+        status: 'READY',
+        document: masterEditedDocument,
+      })
+      .expect(200);
+    expect((masterCorrectionResponse.body as CharacterDocumentResponse).masterCorrections).toEqual([
+      expect.objectContaining({ path: '/profile/notes', revision: 1 }),
+    ]);
+    masterEditedDocument.profile.notes = 'Игрок принял изменение';
+    const playerEditResponse = await request(app.getHttpServer())
+      .patch(`/api/characters/${playerCharacter.id}/document`)
+      .set('Cookie', strangerCookie)
+      .send({
+        expectedRevision: 1,
+        name: 'Тара',
+        status: 'READY',
+        document: masterEditedDocument,
+      })
+      .expect(200);
+    expect((playerEditResponse.body as CharacterDocumentResponse).masterCorrections).toEqual([]);
+
+    guidedDocument.identity.classId = 'unknown-class';
+    await request(app.getHttpServer())
+      .post(`/api/campaigns/${campaign.id}/characters`)
+      .set('Cookie', ownerCookie)
+      .send({ name: 'Некорректный лист', status: 'READY', document: guidedDocument })
+      .expect(400);
+
     const portraitBytes = Buffer.from([
       0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x00,
     ]);
@@ -256,6 +388,43 @@ describeIntegration('auth and campaigns API integration', () => {
       .set('Cookie', ownerCookie)
       .send({ color: '#123abc', size: 1 })
       .expect(409);
+
+    const damagedResponse = await request(app.getHttpServer())
+      .post(`/api/battle-combatants/${placed.combatants[0]!.id}/hp`)
+      .set('Cookie', ownerCookie)
+      .send({ expectedRevision: placed.combatants[0]!.revision, mode: 'DAMAGE', amount: 5 })
+      .expect(201);
+    const damagedHero = (damagedResponse.body as BattleSceneSnapshot).combatants[0]!;
+    expect(damagedHero).toMatchObject({ currentHp: 5, temporaryHp: 0, revision: 1 });
+    const runtimeAfterDamage = await request(app.getHttpServer())
+      .get(`/api/characters/${created.id}`)
+      .set('Cookie', ownerCookie)
+      .expect(200);
+    expect((runtimeAfterDamage.body as CharacterSheet).runtime).toMatchObject({
+      currentHitPoints: 5,
+      temporaryHitPoints: 0,
+      revision: 2,
+    });
+
+    const healedResponse = await request(app.getHttpServer())
+      .post(`/api/battle-combatants/${damagedHero.id}/hp`)
+      .set('Cookie', ownerCookie)
+      .send({ expectedRevision: damagedHero.revision, mode: 'HEAL', amount: 20 })
+      .expect(201);
+    expect((healedResponse.body as BattleSceneSnapshot).combatants[0]).toMatchObject({
+      currentHp: 12,
+      temporaryHp: 0,
+      revision: 2,
+    });
+    const runtimeAfterHealing = await request(app.getHttpServer())
+      .get(`/api/characters/${created.id}`)
+      .set('Cookie', ownerCookie)
+      .expect(200);
+    expect((runtimeAfterHealing.body as CharacterSheet).runtime).toMatchObject({
+      currentHitPoints: 12,
+      temporaryHitPoints: 0,
+      revision: 3,
+    });
 
     const saveResponse = await request(app.getHttpServer())
       .post(`/api/battle-scenes/${scene.scene!.id}/saves`)

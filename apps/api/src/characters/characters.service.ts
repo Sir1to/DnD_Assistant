@@ -8,18 +8,26 @@ import {
 } from '@nestjs/common';
 import type {
   CampaignCharacterSheetsResponse,
+  CharacterDocumentRevisionListResponse,
   CharacterDocumentResponse,
+  CharacterDocumentV2,
+  CharacterMasterCorrection,
   CharacterOptionsResponse,
   CharacterRuntimeState,
   CharacterSheet,
   CreateCharacterSheetRequest,
   ImportCharacterSheetRequest,
   PortableCharacterSheet,
+  RestoreCharacterDocumentRevisionRequest,
   UpdateCharacterRuntimeRequest,
   UpdateCharacterDocumentRequest,
   UpdateCharacterSheetRequest,
 } from '@fog-of-lore/contracts';
-import { characterRuntimeStateSchema } from '@fog-of-lore/contracts';
+import {
+  characterDocumentV2Schema,
+  characterMasterCorrectionSchema,
+  characterRuntimeStateSchema,
+} from '@fog-of-lore/contracts';
 import {
   deriveCharacterDocumentV2,
   dnd5eCharacterOptions,
@@ -37,6 +45,7 @@ import { DATABASE } from '../database/database.constants';
 import type { Database } from '../database/database.module';
 import {
   campaignMembers,
+  characterDocumentRevisions,
   characterRuntimeStates,
   characterSheets,
   users,
@@ -98,6 +107,66 @@ export class CharactersService {
     const role = await this.access.requireMembership(userId, campaignId);
     const ownerUserId = role === 'PLAYER' ? userId : (input.ownerUserId ?? userId);
     await this.requireCampaignMember(campaignId, ownerUserId);
+
+    if ('document' in input) {
+      if (
+        role === 'PLAYER' &&
+        input.document.ruleOverrides.some(({ source }) => source === 'CAMPAIGN')
+      ) {
+        throw new ForbiddenException('Only a game master can save campaign rule overrides');
+      }
+      if (input.document.ruleOverrides.some(({ source }) => source === 'LEGACY_V1')) {
+        throw new BadRequestException('Legacy rule overrides cannot be used in a new character');
+      }
+      const overridePaths = new Set(input.document.ruleOverrides.map(({ path }) => path));
+      if (overridePaths.size !== input.document.ruleOverrides.length) {
+        throw new BadRequestException('A derived field can only have one rule override');
+      }
+      const issues = validateCharacterDocumentV2(input.document);
+      if (input.status === 'READY' && issues.some(({ severity }) => severity === 'ERROR')) {
+        throw new BadRequestException('A ready character must satisfy the selected ruleset');
+      }
+      const derived = deriveCharacterDocumentV2(input.document);
+      const created = await this.database.transaction(async (transaction) => {
+        const [sheet] = await transaction
+          .insert(characterSheets)
+          .values({
+            campaignId,
+            ownerUserId,
+            createdByUserId: userId,
+            name: input.name,
+            ruleset: input.document.ruleset.id,
+            rulesetVersion: input.document.ruleset.version,
+            documentVersion: 2,
+            creationMode: input.document.creation.mode,
+            status: input.status,
+            data: input.document,
+          })
+          .returning();
+        if (!sheet) throw new Error('Character sheet insert did not return a row');
+        await transaction.insert(characterRuntimeStates).values({
+          sheetId: sheet.id,
+          currentHitPoints: derived.hitPointMaximum,
+        });
+        await transaction.insert(characterDocumentRevisions).values({
+          sheetId: sheet.id,
+          documentRevision: sheet.revision,
+          name: sheet.name,
+          status: sheet.status,
+          document: input.document,
+          changedByUserId: userId,
+          actorKind: revisionActorKind(role),
+          kind: 'CREATED',
+          summary: 'Создание листа персонажа',
+        });
+        return sheet;
+      });
+
+      this.events.publishCharactersChanged(campaignId);
+      const record = await this.load(created.id);
+      if (!record) throw new Error('Created character sheet could not be loaded');
+      return this.toSheet(record);
+    }
 
     const created = await this.database.transaction(async (transaction) => {
       const [sheet] = await transaction
@@ -236,6 +305,23 @@ export class CharactersService {
       throw new BadRequestException('A ready character must satisfy the selected ruleset');
     }
     const derived = deriveCharacterDocumentV2(input.document);
+    const changedPaths = changedCharacterDocumentPaths(
+      currentDocument,
+      input.document,
+      existing.sheet.name,
+      input.name,
+      existing.sheet.status,
+      input.status,
+    );
+    const changedAt = new Date();
+    const nextRevision = existing.sheet.revision + 1;
+    const masterCorrections = updateMasterCorrections(
+      existing.sheet.masterCorrections,
+      changedPaths,
+      role !== 'PLAYER' && existing.sheet.ownerUserId !== userId
+        ? { userId, changedAt, revision: nextRevision }
+        : undefined,
+    );
 
     const [updated] = await this.database.transaction(async (transaction) => {
       const rows = await transaction
@@ -248,8 +334,9 @@ export class CharactersService {
           creationMode: input.document.creation.mode,
           status: input.status,
           data: input.document,
+          masterCorrections,
           revision: sql`${characterSheets.revision} + 1`,
-          updatedAt: new Date(),
+          updatedAt: changedAt,
         })
         .where(
           and(
@@ -272,6 +359,19 @@ export class CharactersService {
               gt(characterRuntimeStates.currentHitPoints, derived.hitPointMaximum),
             ),
           );
+        await transaction.insert(characterDocumentRevisions).values({
+          sheetId,
+          documentRevision: rows[0].revision,
+          name: rows[0].name,
+          status: rows[0].status,
+          document: input.document,
+          masterCorrections,
+          changedByUserId: userId,
+          actorKind: revisionActorKind(role),
+          kind: 'UPDATED',
+          summary: input.changeSummary,
+          createdAt: changedAt,
+        });
       }
       return rows;
     });
@@ -280,6 +380,159 @@ export class CharactersService {
     this.events.publishCharactersChanged(existing.sheet.campaignId);
     const record = await this.load(updated.id);
     if (!record) throw new Error('Updated character sheet could not be loaded');
+    return this.toDocument(record);
+  }
+
+  public async listDocumentRevisions(
+    userId: string,
+    sheetId: string,
+  ): Promise<CharacterDocumentRevisionListResponse> {
+    const existing = await this.load(sheetId);
+    if (!existing) throw new NotFoundException('Character sheet not found');
+    await this.requireView(userId, existing);
+    const revisions = await this.database
+      .select({
+        revision: characterDocumentRevisions,
+        changedByDisplayName: users.displayName,
+      })
+      .from(characterDocumentRevisions)
+      .innerJoin(users, eq(users.id, characterDocumentRevisions.changedByUserId))
+      .where(eq(characterDocumentRevisions.sheetId, sheetId))
+      .orderBy(desc(characterDocumentRevisions.documentRevision));
+
+    return {
+      sheetId,
+      currentRevision: existing.sheet.revision,
+      revisions: revisions.map(({ revision, changedByDisplayName }) => ({
+        id: revision.id,
+        documentRevision: revision.documentRevision,
+        name: revision.name,
+        status: revision.status,
+        actorKind: revision.actorKind,
+        kind: revision.kind,
+        summary: revision.summary,
+        changedByUserId: revision.changedByUserId,
+        changedByDisplayName,
+        masterCorrectionPaths: revision.masterCorrections
+          .filter(
+            ({ revision: correctionRevision }) => correctionRevision === revision.documentRevision,
+          )
+          .map(({ path }) => path),
+        createdAt: revision.createdAt.toISOString(),
+      })),
+    };
+  }
+
+  public async restoreDocumentRevision(
+    userId: string,
+    sheetId: string,
+    documentRevision: number,
+    input: RestoreCharacterDocumentRevisionRequest,
+  ): Promise<CharacterDocumentResponse> {
+    const existing = await this.load(sheetId);
+    if (!existing) throw new NotFoundException('Character sheet not found');
+    const role = await this.requireView(userId, existing);
+    const [source] = await this.database
+      .select()
+      .from(characterDocumentRevisions)
+      .where(
+        and(
+          eq(characterDocumentRevisions.sheetId, sheetId),
+          eq(characterDocumentRevisions.documentRevision, documentRevision),
+        ),
+      )
+      .limit(1);
+    if (!source) throw new NotFoundException('Character document revision not found');
+
+    const document = characterDocumentV2Schema.parse(source.document);
+    const currentDocument = readStoredCharacterDocument(
+      existing.sheet.data,
+      existing.sheet.documentVersion,
+      existing.sheet.creationMode,
+    );
+    if (!currentDocument) {
+      throw new BadRequestException('Stored character sheet has an unsupported format');
+    }
+    const issues = validateCharacterDocumentV2(document);
+    if (source.status === 'READY' && issues.some(({ severity }) => severity === 'ERROR')) {
+      throw new BadRequestException('The stored revision no longer satisfies the selected ruleset');
+    }
+
+    const changedAt = new Date();
+    const nextRevision = existing.sheet.revision + 1;
+    const changedPaths = changedCharacterDocumentPaths(
+      currentDocument,
+      document,
+      existing.sheet.name,
+      source.name,
+      existing.sheet.status,
+      source.status,
+    );
+    const masterCorrections = updateMasterCorrections(
+      source.masterCorrections,
+      changedPaths,
+      role !== 'PLAYER' && existing.sheet.ownerUserId !== userId
+        ? { userId, changedAt, revision: nextRevision }
+        : undefined,
+    );
+    const derived = deriveCharacterDocumentV2(document);
+    const [updated] = await this.database.transaction(async (transaction) => {
+      const rows = await transaction
+        .update(characterSheets)
+        .set({
+          name: source.name,
+          ruleset: document.ruleset.id,
+          rulesetVersion: document.ruleset.version,
+          documentVersion: 2,
+          creationMode: document.creation.mode,
+          status: source.status,
+          data: document,
+          masterCorrections,
+          revision: sql`${characterSheets.revision} + 1`,
+          updatedAt: changedAt,
+        })
+        .where(
+          and(
+            eq(characterSheets.id, sheetId),
+            eq(characterSheets.revision, input.expectedRevision),
+          ),
+        )
+        .returning();
+      if (!rows[0]) return rows;
+
+      await transaction
+        .update(characterRuntimeStates)
+        .set({
+          currentHitPoints: sql`least(${characterRuntimeStates.currentHitPoints}, ${derived.hitPointMaximum})`,
+          revision: sql`${characterRuntimeStates.revision} + 1`,
+          updatedAt: changedAt,
+        })
+        .where(
+          and(
+            eq(characterRuntimeStates.sheetId, sheetId),
+            gt(characterRuntimeStates.currentHitPoints, derived.hitPointMaximum),
+          ),
+        );
+      await transaction.insert(characterDocumentRevisions).values({
+        sheetId,
+        documentRevision: rows[0].revision,
+        name: source.name,
+        status: source.status,
+        document,
+        masterCorrections,
+        changedByUserId: userId,
+        actorKind: revisionActorKind(role),
+        kind: 'RESTORED',
+        summary: input.summary ?? `Восстановлена ревизия ${documentRevision}`,
+        createdAt: changedAt,
+      });
+      return rows;
+    });
+    if (!updated) throw new ConflictException('The character sheet changed in another session');
+
+    this.events.publishCharactersChanged(existing.sheet.campaignId);
+    const record = await this.load(updated.id);
+    if (!record) throw new Error('Restored character sheet could not be loaded');
     return this.toDocument(record);
   }
 
@@ -488,6 +741,9 @@ export class CharactersService {
       document,
       derived: deriveCharacterDocumentV2(document),
       issues: validateCharacterDocumentV2(document),
+      masterCorrections: characterMasterCorrectionSchema
+        .array()
+        .parse(record.sheet.masterCorrections),
       revision: record.sheet.revision,
       updatedAt: record.sheet.updatedAt.toISOString(),
     };
@@ -523,4 +779,66 @@ function overrideIdentity(override: {
   source: string;
 }): string {
   return JSON.stringify([override.path, override.value, override.reason, override.source]);
+}
+
+function revisionActorKind(role: 'OWNER' | 'GM' | 'PLAYER'): 'PLAYER' | 'GAME_MASTER' {
+  return role === 'PLAYER' ? 'PLAYER' : 'GAME_MASTER';
+}
+
+export function changedCharacterDocumentPaths(
+  current: CharacterDocumentV2,
+  next: CharacterDocumentV2,
+  currentName: string,
+  nextName: string,
+  currentStatus: string,
+  nextStatus: string,
+): string[] {
+  const paths = collectChangedPaths(current, next);
+  if (currentName !== nextName) paths.push('/name');
+  if (currentStatus !== nextStatus) paths.push('/status');
+  return [...new Set(paths)].sort();
+}
+
+function collectChangedPaths(current: unknown, next: unknown, path = ''): string[] {
+  if (Object.is(current, next)) return [];
+  if (Array.isArray(current) || Array.isArray(next)) {
+    return JSON.stringify(current) === JSON.stringify(next) ? [] : [path || '/'];
+  }
+  if (isRecord(current) && isRecord(next)) {
+    return [...new Set([...Object.keys(current), ...Object.keys(next)])].flatMap((key) =>
+      collectChangedPaths(current[key], next[key], `${path}/${escapeJsonPointer(key)}`),
+    );
+  }
+  return [path || '/'];
+}
+
+function updateMasterCorrections(
+  current: CharacterMasterCorrection[],
+  changedPaths: string[],
+  master?: { userId: string; changedAt: Date; revision: number },
+): CharacterMasterCorrection[] {
+  const changed = new Set(changedPaths);
+  const retained = characterMasterCorrectionSchema
+    .array()
+    .parse(current)
+    .filter(({ path }) => !changed.has(path));
+  if (!master) return retained;
+  const correctedAt = master.changedAt.toISOString();
+  return [
+    ...retained,
+    ...changedPaths.map((path) => ({
+      path,
+      correctedByUserId: master.userId,
+      correctedAt,
+      revision: master.revision,
+    })),
+  ];
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function escapeJsonPointer(value: string): string {
+  return value.replaceAll('~', '~0').replaceAll('/', '~1');
 }

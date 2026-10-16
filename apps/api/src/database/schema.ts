@@ -19,6 +19,13 @@ const timestamps = {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 };
 
+type CharacterMasterCorrectionRecord = {
+  path: string;
+  correctedByUserId: string;
+  correctedAt: string;
+  revision: number;
+};
+
 export const campaignRole = pgEnum('campaign_role', ['OWNER', 'GM', 'PLAYER']);
 export const boardViewAudience = pgEnum('board_view_audience', ['MASTER', 'PLAYERS']);
 export const loreCategory = pgEnum('lore_category', [
@@ -98,6 +105,17 @@ export const characterSheetStatus = pgEnum('character_sheet_status', [
   'DRAFT',
   'READY',
   'ARCHIVED',
+]);
+export const characterDocumentRevisionKind = pgEnum('character_document_revision_kind', [
+  'CREATED',
+  'UPDATED',
+  'RESTORED',
+  'MIGRATED',
+]);
+export const characterRevisionActorKind = pgEnum('character_revision_actor_kind', [
+  'PLAYER',
+  'GAME_MASTER',
+  'SYSTEM',
 ]);
 
 export const users = pgTable(
@@ -380,6 +398,10 @@ export const characterSheets = pgTable(
       onDelete: 'set null',
     }),
     data: jsonb('data').notNull(),
+    masterCorrections: jsonb('master_corrections')
+      .$type<CharacterMasterCorrectionRecord[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
     revision: integer('revision').notNull().default(0),
     ...timestamps,
   },
@@ -393,6 +415,10 @@ export const characterSheets = pgTable(
     check('character_sheets_document_version_supported', sql`${table.documentVersion} in (1, 2)`),
     check('character_sheets_revision_nonnegative', sql`${table.revision} >= 0`),
     check('character_sheets_data_size', sql`pg_column_size(${table.data}) <= 262144`),
+    check(
+      'character_sheets_master_corrections_array',
+      sql`jsonb_typeof(${table.masterCorrections}) = 'array'`,
+    ),
   ],
 );
 
@@ -448,6 +474,59 @@ export const characterRuntimeStates = pgTable(
     check(
       'character_runtime_states_conditions_array',
       sql`jsonb_typeof(${table.conditions}) = 'array'`,
+    ),
+  ],
+);
+
+export const characterDocumentRevisions = pgTable(
+  'character_document_revisions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    sheetId: uuid('sheet_id')
+      .notNull()
+      .references(() => characterSheets.id, { onDelete: 'cascade' }),
+    documentRevision: integer('document_revision').notNull(),
+    name: text('name').notNull(),
+    status: characterSheetStatus('status').notNull(),
+    document: jsonb('document').notNull(),
+    masterCorrections: jsonb('master_corrections')
+      .$type<CharacterMasterCorrectionRecord[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    changedByUserId: uuid('changed_by_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    actorKind: characterRevisionActorKind('actor_kind').notNull(),
+    kind: characterDocumentRevisionKind('kind').notNull(),
+    summary: text('summary'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('character_document_revisions_sheet_revision_unique').on(
+      table.sheetId,
+      table.documentRevision,
+    ),
+    index('character_document_revisions_sheet_created_index').on(table.sheetId, table.createdAt),
+    check('character_document_revisions_revision_nonnegative', sql`${table.documentRevision} >= 0`),
+    check(
+      'character_document_revisions_name_length',
+      sql`char_length(${table.name}) between 1 and 160`,
+    ),
+    check(
+      'character_document_revisions_document_object',
+      sql`jsonb_typeof(${table.document}) = 'object'`,
+    ),
+    check(
+      'character_document_revisions_document_size',
+      sql`pg_column_size(${table.document}) <= 262144`,
+    ),
+    check(
+      'character_document_revisions_master_corrections_array',
+      sql`jsonb_typeof(${table.masterCorrections}) = 'array'`,
+    ),
+    check(
+      'character_document_revisions_summary_length',
+      sql`${table.summary} is null or char_length(${table.summary}) between 1 and 500`,
     ),
   ],
 );

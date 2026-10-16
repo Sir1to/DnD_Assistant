@@ -35,12 +35,12 @@ export function pointBuySpent(scores: AbilityScores): number | null {
   return spent;
 }
 
-interface Option {
+export interface Option {
   id: string;
   name: string;
   description: string;
 }
-interface ClassOption extends Option {
+export interface ClassOption extends Option {
   hitDie: number;
   primaryAbilities: AbilityKey[];
   skillChoices: number;
@@ -852,16 +852,4 @@ export const dnd5eBuilds = [
 export const dnd5eAttribution =
   'This work includes material from the System Reference Document 5.2.1 by Wizards of the Coast LLC, available at https://www.dndbeyond.com/srd. The SRD 5.2.1 is licensed under the Creative Commons Attribution 4.0 International License, available at https://creativecommons.org/licenses/by/4.0/legalcode.';
 
-export function dnd5eCharacterOptions() {
-  return {
-    ruleset: 'dnd5e-srd-5.2.1' as const,
-    attribution: dnd5eAttribution,
-    classes: dnd5eClasses,
-    species: dnd5eSpecies,
-    backgrounds: dnd5eBackgrounds,
-    skills: dnd5eSkills,
-    spells: dnd5eSpells,
-    equipment: dnd5eEquipment,
-    builds: dnd5eBuilds,
-  };
-}
+export { dnd5eCharacterOptions } from './dnd5e-character-creation';

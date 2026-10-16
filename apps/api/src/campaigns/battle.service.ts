@@ -1769,22 +1769,40 @@ export class BattleService {
       input.amount,
       input.mode,
     );
-    const [updated] = await this.database
-      .update(battleCombatants)
-      .set({
-        ...hp,
-        revision: sql`${battleCombatants.revision} + 1`,
-        updatedAt: new Date(),
-      })
-      .where(
-        and(
-          eq(battleCombatants.id, combatantId),
-          eq(battleCombatants.revision, input.expectedRevision),
-        ),
-      )
-      .returning({ id: battleCombatants.id });
-    if (!updated) throw new ConflictException('The combatant changed in another session');
+    await this.database.transaction(async (transaction) => {
+      const [updated] = await transaction
+        .update(battleCombatants)
+        .set({
+          ...hp,
+          revision: sql`${battleCombatants.revision} + 1`,
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(battleCombatants.id, combatantId),
+            eq(battleCombatants.revision, input.expectedRevision),
+          ),
+        )
+        .returning({ id: battleCombatants.id });
+      if (!updated) throw new ConflictException('The combatant changed in another session');
+
+      if (combatant.characterSheetId) {
+        const [runtime] = await transaction
+          .update(characterRuntimeStates)
+          .set({
+            currentHitPoints: hp.currentHp,
+            temporaryHitPoints: hp.temporaryHp,
+            revision: sql`${characterRuntimeStates.revision} + 1`,
+            updatedAt: new Date(),
+          })
+          .where(eq(characterRuntimeStates.sheetId, combatant.characterSheetId))
+          .returning({ sheetId: characterRuntimeStates.sheetId });
+        if (!runtime)
+          throw new ConflictException('The character runtime changed in another session');
+      }
+    });
     this.events.publishBattleChanged(scene.campaignId);
+    if (combatant.characterSheetId) this.events.publishCharactersChanged(scene.campaignId);
     return this.get(userId, scene.campaignId);
   }
 
