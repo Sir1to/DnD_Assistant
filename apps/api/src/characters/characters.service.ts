@@ -11,6 +11,7 @@ import type {
   CharacterDocumentRevisionListResponse,
   CharacterDocumentResponse,
   CharacterDocumentV2,
+  CharacterFolcharImportPreview,
   CharacterMasterCorrection,
   CharacterOptionsResponse,
   CharacterRuntimeState,
@@ -52,7 +53,7 @@ import {
   users,
 } from '../database/schema';
 import { projectStoredCharacterData, readStoredCharacterDocument } from './character-document';
-import { buildFolchar, parseFolchar } from './folchar';
+import { buildFolchar, buildFolcharImportPreview, parseFolchar } from './folchar';
 
 type CharacterRecord = {
   sheet: typeof characterSheets.$inferSelect;
@@ -700,10 +701,8 @@ export class CharactersService {
     ownerUserId?: string,
   ): Promise<CharacterSheet> {
     const role = await this.access.requireMembership(userId, campaignId);
-    if (!file) throw new BadRequestException('Select a .folchar file to import');
-    if (file.size < 1 || file.size > 6 * 1024 * 1024) {
-      throw new BadRequestException('The .folchar file must be no larger than 6 MB');
-    }
+    const parsed = this.parseFolcharUpload(file);
+    const preview = buildFolcharImportPreview(parsed);
     let owner: string;
     try {
       owner = ownerUserId ? z.string().uuid().parse(ownerUserId) : userId;
@@ -713,22 +712,12 @@ export class CharactersService {
     if (role === 'PLAYER' && owner !== userId) {
       throw new ForbiddenException('Players can only import their own character sheets');
     }
-    let parsed: ReturnType<typeof parseFolchar>;
-    try {
-      parsed = parseFolchar(file.buffer);
-    } catch (error) {
-      throw new BadRequestException(
-        error instanceof Error
-          ? `Unsafe or invalid .folchar file: ${error.message}`
-          : 'Invalid .folchar file',
-      );
-    }
     let created: CharacterSheet | undefined;
     try {
       created = await this.create(userId, campaignId, {
         name: parsed.character.name,
         ownerUserId: owner,
-        status: parsed.character.status,
+        status: preview.status,
         document: parsed.character.document,
       });
       await this.updateRuntime(userId, created.id, {
@@ -750,6 +739,15 @@ export class CharactersService {
       }
       throw error;
     }
+  }
+
+  public async previewFolchar(
+    userId: string,
+    campaignId: string,
+    file: UploadedAttachment | undefined,
+  ): Promise<CharacterFolcharImportPreview> {
+    await this.access.requireMembership(userId, campaignId);
+    return buildFolcharImportPreview(this.parseFolcharUpload(file));
   }
 
   public import(
@@ -778,6 +776,24 @@ export class CharactersService {
       .where(eq(characterSheets.id, sheetId))
       .limit(1);
     return record;
+  }
+
+  private parseFolcharUpload(
+    file: UploadedAttachment | undefined,
+  ): ReturnType<typeof parseFolchar> {
+    if (!file) throw new BadRequestException('Select a .folchar file to import');
+    if (file.size < 1 || file.size > 6 * 1024 * 1024) {
+      throw new BadRequestException('The .folchar file must be no larger than 6 MB');
+    }
+    try {
+      return parseFolchar(file.buffer);
+    } catch (error) {
+      throw new BadRequestException(
+        error instanceof Error
+          ? `Unsafe or invalid .folchar file: ${error.message}`
+          : 'Invalid .folchar file',
+      );
+    }
   }
 
   private async requireView(

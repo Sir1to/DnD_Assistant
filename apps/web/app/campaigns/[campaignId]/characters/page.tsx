@@ -11,6 +11,7 @@ import type {
   CharacterDocumentRevisionListResponse,
   CharacterDocumentResponse,
   CharacterDocumentV2,
+  CharacterFolcharImportPreview,
   CharacterOptionsResponse,
   CharacterSheet,
   CharacterSheetData,
@@ -64,6 +65,10 @@ export default function CharactersPage() {
   const [guidedBuilderSheet, setGuidedBuilderSheet] = useState<CharacterSheet | null>(null);
   const [newCharacterMode, setNewCharacterMode] = useState<'GUIDED' | 'MANUAL'>('GUIDED');
   const [notice, setNotice] = useState('');
+  const [folcharImport, setFolcharImport] = useState<{
+    file: File;
+    preview: CharacterFolcharImportPreview;
+  } | null>(null);
   const campaignQuery = useQuery({
     queryKey: ['campaigns', campaignId],
     queryFn: () => apiRequest<CampaignDetail>(`/campaigns/${campaignId}`),
@@ -99,10 +104,11 @@ export default function CharactersPage() {
     },
   });
   const importMutation = useMutation({
-    mutationFn: (input: ImportCharacterSheetRequest | { file: File }) => {
+    mutationFn: (input: ImportCharacterSheetRequest | { file: File; ownerUserId?: string }) => {
       if ('file' in input) {
         const form = new FormData();
         form.append('file', input.file);
+        if (input.ownerUserId) form.append('ownerUserId', input.ownerUserId);
         return apiRequest<CharacterSheet>(`/campaigns/${campaignId}/characters/import/folchar`, {
           method: 'POST',
           body: form,
@@ -116,8 +122,20 @@ export default function CharactersPage() {
     onSuccess: async (sheet) => {
       await queryClient.invalidateQueries({ queryKey: ['campaign-characters', campaignId] });
       setSelectedId(sheet.id);
+      setFolcharImport(null);
       setNotice('Лист импортирован. Проверьте его перед игрой.');
     },
+  });
+  const folcharPreviewMutation = useMutation({
+    mutationFn: (file: File) => {
+      const form = new FormData();
+      form.append('file', file);
+      return apiRequest<CharacterFolcharImportPreview>(
+        `/campaigns/${campaignId}/characters/import/preview`,
+        { method: 'POST', body: form },
+      );
+    },
+    onSuccess: (preview, file) => setFolcharImport({ file, preview }),
   });
 
   useEffect(() => {
@@ -153,7 +171,7 @@ export default function CharactersPage() {
     try {
       if (file.name.toLowerCase().endsWith('.folchar')) {
         if (file.size > 6 * 1024 * 1024) throw new Error('Файл слишком большой. Максимум — 6 МБ.');
-        await importMutation.mutateAsync({ file });
+        await folcharPreviewMutation.mutateAsync(file);
         return;
       }
       if (file.size > 300_000) throw new Error('JSON-файл слишком большой. Максимум — 300 КБ.');
@@ -231,9 +249,11 @@ export default function CharactersPage() {
             />
           </div>
           {notice ? <p className="character-notice">{notice}</p> : null}
-          {createMutation.error || importMutation.error ? (
+          {createMutation.error || importMutation.error || folcharPreviewMutation.error ? (
             <p className="form-error">
-              {readableError(createMutation.error ?? importMutation.error)}
+              {readableError(
+                createMutation.error ?? importMutation.error ?? folcharPreviewMutation.error,
+              )}
             </p>
           ) : null}
           <div className="character-list">
@@ -313,7 +333,171 @@ export default function CharactersPage() {
           }}
         />
       ) : null}
+      {folcharImport ? (
+        <FolcharImportPreviewDialog
+          file={folcharImport.file}
+          preview={folcharImport.preview}
+          options={optionsQuery.data}
+          members={membersQuery.data?.members ?? []}
+          canAssign={campaignQuery.data.role !== 'PLAYER'}
+          pending={importMutation.isPending}
+          error={importMutation.error}
+          onCancel={() => {
+            setFolcharImport(null);
+            importMutation.reset();
+          }}
+          onConfirm={(ownerUserId) =>
+            importMutation.mutate({ file: folcharImport.file, ownerUserId })
+          }
+        />
+      ) : null}
     </main>
+  );
+}
+
+function FolcharImportPreviewDialog({
+  file,
+  preview,
+  options,
+  members,
+  canAssign,
+  pending,
+  error,
+  onCancel,
+  onConfirm,
+}: {
+  file: File;
+  preview: CharacterFolcharImportPreview;
+  options: CharacterOptionsResponse;
+  members: CampaignMembersResponse['members'];
+  canAssign: boolean;
+  pending: boolean;
+  error: Error | null;
+  onCancel: () => void;
+  onConfirm: (ownerUserId?: string) => void;
+}) {
+  const [ownerUserId, setOwnerUserId] = useState('');
+  const species = options.species.find(({ id }) => id === preview.identity.speciesId)?.name;
+  const characterClass = options.classes.find(({ id }) => id === preview.identity.classId)?.name;
+  const background = options.backgrounds.find(
+    ({ id }) => id === preview.identity.backgroundId,
+  )?.name;
+  const blockingIssues = preview.issues.filter(({ severity }) => severity === 'ERROR');
+  return (
+    <div className="modal-backdrop">
+      <section
+        className="beginner-wizard folchar-import-preview"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="folchar-preview-title"
+      >
+        <header className="guided-builder-header">
+          <div>
+            <p className="eyebrow">Проверенный контейнер .folchar</p>
+            <h2 id="folchar-preview-title">Импортировать «{preview.name}»?</h2>
+          </div>
+          <button className="modal-close" onClick={onCancel} type="button" aria-label="Закрыть">
+            ×
+          </button>
+        </header>
+        <p className="choice-help">
+          Сервер проверил структуру ZIP, безопасные пути, CRC32, SHA-256 и схемы данных. До
+          подтверждения в кампании ничего не создаётся.
+        </p>
+        <dl className="folchar-preview-grid">
+          <div>
+            <dt>Персонаж</dt>
+            <dd>
+              {preview.identity.level} уровень ·{' '}
+              {(species ?? preview.identity.speciesId) || 'вид не выбран'}
+              {' · '}
+              {(characterClass ?? preview.identity.classId) || 'класс не выбран'}
+            </dd>
+          </div>
+          <div>
+            <dt>Предыстория</dt>
+            <dd>{(background ?? preview.identity.backgroundId) || 'не выбрана'}</dd>
+          </div>
+          <div>
+            <dt>Боевые параметры</dt>
+            <dd>
+              {preview.runtime.currentHitPoints}/{preview.derived.hitPointMaximum} HP
+              {preview.runtime.temporaryHitPoints
+                ? ` + ${preview.runtime.temporaryHitPoints} временных`
+                : ''}
+              {' · '}КД {preview.derived.armorClass} · скорость {preview.derived.speed}
+            </dd>
+          </div>
+          <div>
+            <dt>Содержимое</dt>
+            <dd>
+              {preview.hasPortrait ? 'портрет' : 'без портрета'} · видов ресурсов{' '}
+              {preview.runtime.resourceCount} · ячеек {preview.runtime.spellSlotCount}
+            </dd>
+          </div>
+          <div>
+            <dt>Формат</dt>
+            <dd>
+              SRD {preview.rulesetVersion} ·{' '}
+              {preview.creationMode === 'AUTOMATIC'
+                ? 'автоматический'
+                : preview.creationMode === 'GUIDED'
+                  ? 'пошаговый'
+                  : 'ручной'}{' '}
+              · {preview.status === 'READY' ? 'готов' : 'черновик'}
+            </dd>
+          </div>
+          <div>
+            <dt>Файл</dt>
+            <dd>
+              {file.name} · {(file.size / 1024).toFixed(1)} КиБ · экспорт{' '}
+              {new Date(preview.exportedAt).toLocaleString('ru-RU')}
+            </dd>
+          </div>
+        </dl>
+        {preview.issues.length ? (
+          <div
+            className={
+              blockingIssues.length ? 'folchar-preview-warning is-error' : 'folchar-preview-warning'
+            }
+          >
+            <strong>
+              {blockingIssues.length
+                ? 'Лист содержит ошибки правил и будет импортирован только как черновик.'
+                : 'В листе есть предупреждения правил.'}
+            </strong>
+            <ul>
+              {preview.issues.map((issue) => (
+                <li key={`${issue.code}:${issue.path}`}>{issue.message}</li>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          <p className="folchar-preview-ok">Проверка правил пройдена без замечаний.</p>
+        )}
+        {canAssign ? (
+          <Field label="Владелец импортированного листа">
+            <select value={ownerUserId} onChange={(event) => setOwnerUserId(event.target.value)}>
+              <option value="">Я</option>
+              {members.map((member) => (
+                <option key={member.userId} value={member.userId}>
+                  {member.displayName} · {member.role}
+                </option>
+              ))}
+            </select>
+          </Field>
+        ) : null}
+        {error ? <p className="form-error">{readableError(error)}</p> : null}
+        <footer className="wizard-footer">
+          <Button tone="quiet" onClick={onCancel} disabled={pending}>
+            Отмена
+          </Button>
+          <Button onClick={() => onConfirm(ownerUserId || undefined)} disabled={pending}>
+            {pending ? 'Импортируем…' : 'Подтвердить импорт'}
+          </Button>
+        </footer>
+      </section>
+    </div>
   );
 }
 

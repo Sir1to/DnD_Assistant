@@ -27,6 +27,7 @@ import {
   type CampaignCharacterSheetsResponse,
   type CharacterDocumentRevisionListResponse,
   type CharacterDocumentResponse,
+  type CharacterFolcharImportPreview,
   type CharacterOptionsResponse,
   type CharacterRuntimeState,
   type CharacterSheet,
@@ -210,6 +211,16 @@ export class CharactersController {
     @Body('ownerUserId') ownerUserId?: string,
   ): Promise<CharacterSheet> {
     return this.characters.importFolchar(user.id, campaignId, file, ownerUserId);
+  }
+
+  @Post('campaigns/:campaignId/characters/import/preview')
+  @UseInterceptors(FileInterceptor('file', { limits: { files: 1, fileSize: 6 * 1024 * 1024 } }))
+  public previewFolchar(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('campaignId', new ParseUUIDPipe({ version: '4' })) campaignId: string,
+    @UploadedFile() file: UploadedAttachment | undefined,
+  ): Promise<CharacterFolcharImportPreview> {
+    return this.characters.previewFolchar(user.id, campaignId, file);
   }
 
   @Delete('characters/:sheetId')

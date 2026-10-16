@@ -1,10 +1,12 @@
 import { createHash } from 'node:crypto';
 
 import {
+  type CharacterFolcharImportPreview,
   characterDocumentV2Schema,
   characterRuntimeStateSchema,
   characterSheetStatusSchema,
 } from '@fog-of-lore/contracts';
+import { deriveCharacterDocumentV2, validateCharacterDocumentV2 } from '@fog-of-lore/domain';
 import { z } from 'zod';
 
 const MAX_ARCHIVE_BYTES = 6 * 1024 * 1024;
@@ -52,6 +54,34 @@ export interface ParsedFolchar {
   character: FolcharCharacter;
   portrait?: Buffer;
   exportedAt: string;
+}
+
+export function buildFolcharImportPreview(parsed: ParsedFolchar): CharacterFolcharImportPreview {
+  const { document, runtime } = parsed.character;
+  const issues = validateCharacterDocumentV2(document);
+  return {
+    exportedAt: parsed.exportedAt,
+    ruleset: document.ruleset.id,
+    rulesetVersion: document.ruleset.version,
+    name: parsed.character.name,
+    status:
+      parsed.character.status === 'READY' && issues.some(({ severity }) => severity === 'ERROR')
+        ? 'DRAFT'
+        : parsed.character.status,
+    creationMode: document.creation.mode,
+    identity: document.identity,
+    derived: deriveCharacterDocumentV2(document),
+    issues,
+    runtime: {
+      currentHitPoints: runtime.currentHitPoints,
+      temporaryHitPoints: runtime.temporaryHitPoints,
+      resourceCount: Object.keys(runtime.resources).length,
+      spellSlotCount: Object.values(runtime.spellSlots).reduce((sum, count) => sum + count, 0),
+      conditions: runtime.conditions,
+      inspiration: runtime.inspiration,
+    },
+    hasPortrait: Boolean(parsed.portrait),
+  };
 }
 
 export function buildFolchar(input: BuildFolcharInput): Buffer {
