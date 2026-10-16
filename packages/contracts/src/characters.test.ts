@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  characterFolcharImportPreviewSchema,
   characterDocumentV2Schema,
   characterDocumentResponseSchema,
   characterDocumentRevisionListResponseSchema,
@@ -37,6 +38,52 @@ describe('character sheet contracts', () => {
       character: { name: 'Mira', data },
     });
     expect(importCharacterSheetRequestSchema.parse({ sheet }).sheet.character.name).toBe('Mira');
+  });
+
+  it('validates a safe .folchar import preview', () => {
+    const preview = characterFolcharImportPreviewSchema.parse({
+      exportedAt: '2026-10-16T18:00:00.000Z',
+      ruleset: 'dnd5e-srd-5.2.1',
+      rulesetVersion: '5.2.1',
+      name: 'Рада Серый Щит',
+      status: 'READY',
+      creationMode: 'GUIDED',
+      identity: {
+        level: 1,
+        speciesId: 'human',
+        classId: 'fighter',
+        backgroundId: 'soldier',
+      },
+      derived: {
+        abilityModifiers: {
+          strength: 2,
+          dexterity: 1,
+          constitution: 1,
+          intelligence: 0,
+          wisdom: 0,
+          charisma: -1,
+        },
+        proficiencyBonus: 2,
+        hitPointMaximum: 11,
+        armorClass: 11,
+        speed: 30,
+        initiative: 1,
+        passivePerception: 10,
+      },
+      issues: [],
+      runtime: {
+        currentHitPoints: 10,
+        temporaryHitPoints: 2,
+        resourceCount: 1,
+        spellSlotCount: 0,
+        conditions: [],
+        inspiration: false,
+      },
+      hasPortrait: true,
+    });
+
+    expect(preview.name).toBe('Рада Серый Щит');
+    expect(preview.hasPortrait).toBe(true);
   });
 
   it('rejects a future or foreign sheet format', () => {

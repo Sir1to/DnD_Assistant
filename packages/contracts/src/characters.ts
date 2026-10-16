@@ -313,6 +313,32 @@ export const importCharacterSheetRequestSchema = z.object({
   sheet: portableCharacterSheetSchema,
 });
 
+export const characterFolcharImportPreviewSchema = z.object({
+  exportedAt: z.string().datetime(),
+  ruleset: characterRulesetSchema,
+  rulesetVersion: z.literal('5.2.1'),
+  name: z.string().trim().min(1).max(160),
+  status: z.enum(['DRAFT', 'READY']),
+  creationMode: characterCreationModeSchema,
+  identity: z.object({
+    level: z.int().min(1).max(20),
+    speciesId: z.string().trim().max(100),
+    classId: z.string().trim().max(100),
+    backgroundId: z.string().trim().max(100),
+  }),
+  derived: characterDerivedValuesSchema,
+  issues: z.array(characterRuleIssueSchema),
+  runtime: z.object({
+    currentHitPoints: z.int().min(0).max(999_999),
+    temporaryHitPoints: z.int().min(0).max(999_999),
+    resourceCount: z.int().nonnegative(),
+    spellSlotCount: z.int().nonnegative(),
+    conditions: z.array(z.string().trim().min(1).max(100)).max(100),
+    inspiration: z.boolean(),
+  }),
+  hasPortrait: z.boolean(),
+});
+
 const optionSchema = z.object({ id: z.string(), name: z.string(), description: z.string() });
 export const characterClassOptionSchema = optionSchema.extend({
   hitDie: z.int(),
@@ -400,5 +426,6 @@ export type CharacterSheet = z.infer<typeof characterSheetSchema>;
 export type CampaignCharacterSheetsResponse = z.infer<typeof campaignCharacterSheetsResponseSchema>;
 export type PortableCharacterSheet = z.infer<typeof portableCharacterSheetSchema>;
 export type ImportCharacterSheetRequest = z.infer<typeof importCharacterSheetRequestSchema>;
+export type CharacterFolcharImportPreview = z.infer<typeof characterFolcharImportPreviewSchema>;
 export type CharacterOptionsResponse = z.infer<typeof characterOptionsResponseSchema>;
 export type CharacterBuildTemplate = z.infer<typeof characterBuildTemplateSchema>;
