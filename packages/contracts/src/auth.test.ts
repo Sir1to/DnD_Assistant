@@ -17,12 +17,18 @@ describe('auth contracts', () => {
     });
   });
 
-  it('rejects short passwords', () => {
+  it('keeps registration passwords strong while allowing provisioned local logins', () => {
     expect(() =>
-      loginRequestSchema.parse({
+      registerRequestSchema.parse({
         email: 'keeper@example.test',
         password: 'too-short',
+        displayName: 'Keeper',
       }),
     ).toThrow();
+
+    expect(loginRequestSchema.parse({ email: ' Master ', password: '1' })).toEqual({
+      email: 'master@fog.local',
+      password: '1',
+    });
   });
 });

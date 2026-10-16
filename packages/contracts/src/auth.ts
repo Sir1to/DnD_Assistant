@@ -10,6 +10,19 @@ export const emailSchema = z
 
 export const passwordSchema = z.string().min(12).max(128);
 
+export const loginIdentifierSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(320)
+  .transform((value) => {
+    const normalized = value.toLowerCase();
+    return normalized.includes('@') ? normalized : `${normalized}@fog.local`;
+  })
+  .pipe(z.string().email());
+
+export const loginPasswordSchema = z.string().min(1).max(128);
+
 export const registerRequestSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
@@ -17,8 +30,8 @@ export const registerRequestSchema = z.object({
 });
 
 export const loginRequestSchema = z.object({
-  email: emailSchema,
-  password: passwordSchema,
+  email: loginIdentifierSchema,
+  password: loginPasswordSchema,
 });
 
 export const userSchema = z.object({

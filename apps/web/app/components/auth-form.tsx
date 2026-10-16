@@ -77,14 +77,14 @@ export function AuthForm({ mode, nextPath = '/dashboard' }: AuthFormProps) {
           ) : null}
 
           <label>
-            Электронная почта
+            {isRegister ? 'Электронная почта' : 'Логин или электронная почта'}
             <input
-              autoComplete="email"
-              inputMode="email"
+              autoComplete={isRegister ? 'email' : 'username'}
+              inputMode={isRegister ? 'email' : 'text'}
               maxLength={320}
               onChange={(event) => setEmail(event.target.value)}
               required
-              type="email"
+              type={isRegister ? 'email' : 'text'}
               value={email}
             />
           </label>
@@ -94,13 +94,13 @@ export function AuthForm({ mode, nextPath = '/dashboard' }: AuthFormProps) {
             <input
               autoComplete={isRegister ? 'new-password' : 'current-password'}
               maxLength={128}
-              minLength={12}
+              minLength={isRegister ? 12 : 1}
               onChange={(event) => setPassword(event.target.value)}
               required
               type="password"
               value={password}
             />
-            <span className="field-hint">Не менее 12 символов</span>
+            {isRegister ? <span className="field-hint">Не менее 12 символов</span> : null}
           </label>
 
           {mutation.isError ? (
