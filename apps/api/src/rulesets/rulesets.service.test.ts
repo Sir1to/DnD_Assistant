@@ -20,7 +20,12 @@ describe('RulesetsService', () => {
   it('serves normalized stat blocks and rejects unknown ids', () => {
     const goblin = dnd5eMonsterStatBlockSchema.parse(service.dnd5eMonster('srd:goblin'));
 
-    expect(goblin).toMatchObject({ name: 'Goblin', challengeRating: '1/4', experiencePoints: 50 });
+    expect(goblin).toMatchObject({
+      name: 'Гоблин',
+      englishName: 'Goblin',
+      challengeRating: '1/4',
+      experiencePoints: 50,
+    });
     expect(() => service.dnd5eMonster('srd:not-a-monster')).toThrow('Monster not found');
   });
 });

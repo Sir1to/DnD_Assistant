@@ -1,4 +1,5 @@
 import bestiaryData from './data/dnd5e-srd-5.2.1-bestiary.json';
+import bestiaryRussianNames from './data/dnd5e-srd-5.2.1-bestiary-ru.json';
 import {
   dnd5eChallengeRatings,
   dnd5eExperienceForChallengeRating,
@@ -37,6 +38,8 @@ export type Dnd5eMonsterType = (typeof dnd5eMonsterTypes)[number];
 export type Dnd5eMonsterSummary = {
   id: string;
   name: string;
+  englishName: string;
+  referenceUrl: string;
   size: Dnd5eMonsterSize;
   type: Dnd5eMonsterType;
   challengeRating: Dnd5eChallengeRating;
@@ -83,7 +86,10 @@ export type Dnd5eMonsterSearch = {
   type?: Dnd5eMonsterType;
 };
 
-type StoredMonster = Omit<Dnd5eMonsterStatBlock, 'experiencePoints' | 'source' | 'license'>;
+type StoredMonster = Omit<
+  Dnd5eMonsterStatBlock,
+  'experiencePoints' | 'source' | 'license' | 'englishName' | 'referenceUrl'
+>;
 type StoredBestiary = {
   schemaVersion: number;
   ruleset: string;
@@ -95,16 +101,63 @@ type StoredBestiary = {
 
 const storedBestiary = bestiaryData as unknown as StoredBestiary;
 
+type StoredRussianNames = {
+  schemaVersion: number;
+  ruleset: string;
+  source: string;
+  monsters: Array<{
+    id: string;
+    name: string;
+    englishName: string;
+    referenceUrl: string;
+    traits?: Dnd5eNamedRule[];
+    actions?: Dnd5eNamedRule[];
+    reactions?: Dnd5eNamedRule[];
+    legendaryActions?: { description: string; actions: Dnd5eNamedRule[] };
+  }>;
+};
+const storedRussianNames = bestiaryRussianNames as StoredRussianNames;
+
 validateBestiary(storedBestiary);
+if (
+  storedRussianNames.schemaVersion !== 1 ||
+  storedRussianNames.ruleset !== storedBestiary.ruleset
+) {
+  throw new Error('Unsupported D&D 5e bestiary localization dataset');
+}
 
-export const dnd5eBestiaryAttribution = storedBestiary.attribution;
+const russianNameById = new Map(
+  storedRussianNames.monsters.map((monster) => [monster.id, monster]),
+);
 
-export const dnd5eBestiary: Dnd5eMonsterStatBlock[] = storedBestiary.monsters.map((monster) => ({
-  ...monster,
-  experiencePoints: dnd5eExperienceForChallengeRating(monster.challengeRating),
-  source: 'SRD 5.2.1',
-  license: 'CC-BY-4.0',
-}));
+export const dnd5eBestiaryAttribution = `${storedBestiary.attribution} Русские названия и совместимые тексты статблоков сверены с dnd.su; ссылка на соответствующую русскую карточку приводится в каждом статблоке.`;
+
+export const dnd5eBestiary: Dnd5eMonsterStatBlock[] = storedBestiary.monsters.map((monster) => {
+  const localized = russianNameById.get(monster.id);
+  return {
+    ...monster,
+    name: localized?.name ?? monster.name,
+    englishName: localized?.englishName ?? monster.name,
+    referenceUrl: localized?.referenceUrl ?? 'https://dnd.su/bestiary/',
+    traits: mergeLocalizedRules(monster.traits, localized?.traits),
+    actions: mergeLocalizedRules(monster.actions, localized?.actions),
+    reactions: mergeLocalizedRules(monster.reactions, localized?.reactions),
+    legendaryActions: monster.legendaryActions
+      ? {
+          ...monster.legendaryActions,
+          description:
+            localized?.legendaryActions?.description ?? monster.legendaryActions.description,
+          actions: mergeLocalizedRules(
+            monster.legendaryActions.actions,
+            localized?.legendaryActions?.actions,
+          ),
+        }
+      : null,
+    experiencePoints: dnd5eExperienceForChallengeRating(monster.challengeRating),
+    source: 'SRD 5.2.1',
+    license: 'CC-BY-4.0',
+  };
+});
 
 const monsterById = new Map(dnd5eBestiary.map((monster) => [monster.id, monster]));
 
@@ -117,11 +170,13 @@ export function dnd5eMonsterById(id: string): Dnd5eMonsterStatBlock | undefined 
 }
 
 export function searchDnd5eMonsters(input: Dnd5eMonsterSearch = {}): Dnd5eMonsterSummary[] {
-  const query = input.query?.trim().toLocaleLowerCase('en-US') ?? '';
+  const query = input.query?.trim().toLocaleLowerCase('ru-RU') ?? '';
   return dnd5eBestiary
     .filter(
       (monster) =>
-        (!query || monster.name.toLocaleLowerCase('en-US').includes(query)) &&
+        (!query ||
+          monster.name.toLocaleLowerCase('ru-RU').includes(query) ||
+          monster.englishName.toLocaleLowerCase('en-US').includes(query)) &&
         (!input.challengeRating || monster.challengeRating === input.challengeRating) &&
         (!input.type || monster.type === input.type),
     )
@@ -132,6 +187,8 @@ function toSummary(monster: Dnd5eMonsterStatBlock): Dnd5eMonsterSummary {
   const {
     id,
     name,
+    englishName,
+    referenceUrl,
     size,
     type,
     challengeRating,
@@ -144,6 +201,8 @@ function toSummary(monster: Dnd5eMonsterStatBlock): Dnd5eMonsterSummary {
   return {
     id,
     name,
+    englishName,
+    referenceUrl,
     size,
     type,
     challengeRating,
@@ -153,6 +212,14 @@ function toSummary(monster: Dnd5eMonsterStatBlock): Dnd5eMonsterSummary {
     hitPointFormula,
     initiativeModifier,
   };
+}
+
+function mergeLocalizedRules<T extends Dnd5eNamedRule>(
+  original: T[],
+  localized: Dnd5eNamedRule[] | undefined,
+): T[] {
+  if (!localized || localized.length !== original.length) return original;
+  return original.map((rule, index) => ({ ...rule, ...localized[index]! }));
 }
 
 function validateBestiary(data: StoredBestiary): void {

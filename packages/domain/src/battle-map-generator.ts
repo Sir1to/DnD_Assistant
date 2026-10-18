@@ -302,20 +302,24 @@ export function generateRandomBattleMap(
     occupied.push({ ...position, width: enemy.size, height: enemy.size });
   }
 
+  const boundaryCells = cells.filter((cell) => isBoundaryCell(scene, cell));
   for (let index = 0; index < input.entrances; index += 1) {
     const preferred = index % 2 === 0 ? starts.players : starts.enemies;
     const position = findPlacement({
       random,
-      cells,
+      cells: boundaryCells,
       scene,
       occupied,
       width: 1,
       height: 1,
       preferred,
-      minDistance: 1,
-      maxDistance: 3,
+      selection: 'NEAREST',
     });
-    if (position) reserveObject(index === input.entrances - 1 ? 'Выход' : 'Вход', position);
+    if (position) {
+      const name = index === 0 ? 'Вход' : index === 1 ? 'Выход' : `Дополнительный вход ${index}`;
+      reserveObject(name, position);
+      addNeighborhood(protectedCells, position, scene, 1);
+    }
   }
 
   const objectiveName = objectiveObjectName(input.objective);
@@ -697,6 +701,15 @@ function allInsideCells(scene: GeneratedRandomBattleMap['scene']): Cell[] {
     }
   }
   return result;
+}
+
+function isBoundaryCell(scene: GeneratedRandomBattleMap['scene'], cell: Cell): boolean {
+  return [
+    { x: cell.x - 1, y: cell.y },
+    { x: cell.x + 1, y: cell.y },
+    { x: cell.x, y: cell.y - 1 },
+    { x: cell.x, y: cell.y + 1 },
+  ].some(({ x, y }) => !isBattlePositionInsideShape(scene, x, y));
 }
 
 function lineBetween(from: Cell, to: Cell): Cell[] {

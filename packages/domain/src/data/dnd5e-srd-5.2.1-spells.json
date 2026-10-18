@@ -1,0 +1,3060 @@
+{
+  "schemaVersion": 1,
+  "ruleset": "dnd5e-srd-5.2.1",
+  "source": "SRD 5.2.1",
+  "license": "CC-BY-4.0",
+  "attribution": "Rules data: D&D System Reference Document 5.2.1 by Wizards of the Coast LLC, CC BY 4.0. Russian names and reference links are matched against dnd.su.",
+  "spells": [
+    {
+      "id": "acid-splash",
+      "name": "Брызги кислоты",
+      "englishName": "Acid Splash",
+      "level": 0,
+      "classIds": ["sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10419-acid-splash"
+    },
+    {
+      "id": "mage-hand",
+      "name": "Волшебная рука",
+      "englishName": "Mage Hand",
+      "level": 0,
+      "classIds": ["bard", "sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10564-mage-hand"
+    },
+    {
+      "id": "starry-wisp",
+      "name": "Звёздный светлячок",
+      "englishName": "Starry Wisp",
+      "level": 0,
+      "classIds": ["bard", "druid"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10654-starry-wisp"
+    },
+    {
+      "id": "vicious-mockery",
+      "name": "Злая насмешка",
+      "englishName": "Vicious Mockery",
+      "level": 0,
+      "classIds": ["bard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10692-vicious-mockery"
+    },
+    {
+      "id": "druidcraft",
+      "name": "Искусство друидов",
+      "englishName": "Druidcraft",
+      "level": 0,
+      "classIds": ["druid"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10492-druidcraft"
+    },
+    {
+      "id": "chill-touch",
+      "name": "Леденящее прикосновение",
+      "englishName": "Chill Touch",
+      "level": 0,
+      "classIds": ["sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10457-chill-touch"
+    },
+    {
+      "id": "ray-of-frost",
+      "name": "Луч холода",
+      "englishName": "Ray of Frost",
+      "level": 0,
+      "classIds": ["sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10620-ray-of-frost"
+    },
+    {
+      "id": "minor-illusion",
+      "name": "Малая иллюзия",
+      "englishName": "Minor Illusion",
+      "level": 0,
+      "classIds": ["bard", "sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10582-minor-illusion"
+    },
+    {
+      "id": "true-strike",
+      "name": "Меткий удар",
+      "englishName": "True Strike",
+      "level": 0,
+      "classIds": ["bard", "sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10688-true-strike"
+    },
+    {
+      "id": "eldritch-blast",
+      "name": "Мистический заряд",
+      "englishName": "Eldritch Blast",
+      "level": 0,
+      "classIds": ["warlock"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10494-eldritch-blast"
+    },
+    {
+      "id": "guidance",
+      "name": "Наставление",
+      "englishName": "Guidance",
+      "level": 0,
+      "classIds": ["cleric", "druid"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10235-guidance"
+    },
+    {
+      "id": "fire-bolt",
+      "name": "Огненный снаряд",
+      "englishName": "Fire Bolt",
+      "level": 0,
+      "classIds": ["sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10511-fire-bolt"
+    },
+    {
+      "id": "dancing-lights",
+      "name": "Пляшущие огоньки",
+      "englishName": "Dancing Lights",
+      "level": 0,
+      "classIds": ["bard", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10472-dancing-lights"
+    },
+    {
+      "id": "mending",
+      "name": "Починка",
+      "englishName": "Mending",
+      "level": 0,
+      "classIds": ["bard", "cleric", "druid", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10576-mending"
+    },
+    {
+      "id": "light",
+      "name": "Свет",
+      "englishName": "Light",
+      "level": 0,
+      "classIds": ["bard", "cleric", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10561-light"
+    },
+    {
+      "id": "sacred-flame",
+      "name": "Священное пламя",
+      "englishName": "Sacred Flame",
+      "level": 0,
+      "classIds": ["cleric"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10248-sacred-flame"
+    },
+    {
+      "id": "message",
+      "name": "Сообщение",
+      "englishName": "Message",
+      "level": 0,
+      "classIds": ["bard", "druid", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10577-message"
+    },
+    {
+      "id": "resistance",
+      "name": "Сопротивление",
+      "englishName": "Resistance",
+      "level": 0,
+      "classIds": ["cleric", "druid"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10625-resistance"
+    },
+    {
+      "id": "produce-flame",
+      "name": "Сотворение пламени",
+      "englishName": "Produce Flame",
+      "level": 0,
+      "classIds": ["druid"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10613-produce-flame"
+    },
+    {
+      "id": "spare-the-dying",
+      "name": "Уход за умирающим",
+      "englishName": "Spare the Dying",
+      "level": 0,
+      "classIds": ["cleric", "druid"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10648-spare-the-dying"
+    },
+    {
+      "id": "prestidigitation",
+      "name": "Фокусы",
+      "englishName": "Prestidigitation",
+      "level": 0,
+      "classIds": ["bard", "sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10610-prestidigitation"
+    },
+    {
+      "id": "sorcerous-burst",
+      "name": "Чародейский выброс",
+      "englishName": "Sorcerous Burst",
+      "level": 0,
+      "classIds": ["sorcerer"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10647-sorcerous-burst"
+    },
+    {
+      "id": "thaumaturgy",
+      "name": "Чудотворство",
+      "englishName": "Thaumaturgy",
+      "level": 0,
+      "classIds": ["cleric"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10676-thaumaturgy"
+    },
+    {
+      "id": "shillelagh",
+      "name": "Шилейла",
+      "englishName": "Shillelagh",
+      "level": 0,
+      "classIds": ["druid"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10639-shillelagh"
+    },
+    {
+      "id": "shocking-grasp",
+      "name": "Электрошок",
+      "englishName": "Shocking Grasp",
+      "level": 0,
+      "classIds": ["sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10641-shocking-grasp"
+    },
+    {
+      "id": "elementalism",
+      "name": "Элементализм",
+      "englishName": "Elementalism",
+      "level": 0,
+      "classIds": ["druid", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10495-elementalism"
+    },
+    {
+      "id": "poison-spray",
+      "name": "Ядовитые брызги",
+      "englishName": "Poison Spray",
+      "level": 0,
+      "classIds": ["druid", "sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10603-poison-spray"
+    },
+    {
+      "id": "hellish-rebuke",
+      "name": "Адское возмездие",
+      "englishName": "Hellish Rebuke",
+      "level": 1,
+      "classIds": ["warlock"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10541-hellish-rebuke"
+    },
+    {
+      "id": "silent-image",
+      "name": "Безмолвный образ",
+      "englishName": "Silent Image",
+      "level": 1,
+      "classIds": ["bard", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10642-silent-image"
+    },
+    {
+      "id": "bless",
+      "name": "Благословение",
+      "englishName": "Bless",
+      "level": 1,
+      "classIds": ["cleric", "paladin"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10445-bless"
+    },
+    {
+      "id": "divine-smite",
+      "name": "Божественная кара",
+      "englishName": "Divine Smite",
+      "level": 1,
+      "classIds": ["paladin"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10221-divine-smite"
+    },
+    {
+      "id": "divine-favor",
+      "name": "Божественное благоволение",
+      "englishName": "Divine Favor",
+      "level": 1,
+      "classIds": ["paladin"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10485-divine-favor"
+    },
+    {
+      "id": "thunderwave",
+      "name": "Волна грома",
+      "englishName": "Thunderwave",
+      "level": 1,
+      "classIds": ["bard", "druid", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10680-thunderwave"
+    },
+    {
+      "id": "magic-missile",
+      "name": "Волшебная стрела",
+      "englishName": "Magic Missile",
+      "level": 1,
+      "classIds": ["sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10567-magic-missile"
+    },
+    {
+      "id": "heroism",
+      "name": "Героизм",
+      "englishName": "Heroism",
+      "level": 1,
+      "classIds": ["bard", "paladin"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10222-heroism"
+    },
+    {
+      "id": "dissonant-whispers",
+      "name": "Диссонирующий шёпот",
+      "englishName": "Dissonant Whispers",
+      "level": 1,
+      "classIds": ["bard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10483-dissonant-whispers"
+    },
+    {
+      "id": "goodberry",
+      "name": "Добряника",
+      "englishName": "Goodberry",
+      "level": 1,
+      "classIds": ["druid", "ranger"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10284-goodberry"
+    },
+    {
+      "id": "mage-armor",
+      "name": "Доспехи мага",
+      "englishName": "Mage Armor",
+      "level": 1,
+      "classIds": ["sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10563-mage-armor"
+    },
+    {
+      "id": "animal-friendship",
+      "name": "Дружба с животными",
+      "englishName": "Animal Friendship",
+      "level": 1,
+      "classIds": ["bard", "druid", "ranger"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10264-animal-friendship"
+    },
+    {
+      "id": "protection-from-evil-and-good",
+      "name": "Защита от зла и добра",
+      "englishName": "Protection from Evil and Good",
+      "level": 1,
+      "classIds": ["cleric", "druid", "paladin", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10226-protection-from-evil-and-good"
+    },
+    {
+      "id": "illusory-script",
+      "name": "Иллюзорные письмена",
+      "englishName": "Illusory Script",
+      "level": 1,
+      "classIds": ["bard", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10550-illusory-script"
+    },
+    {
+      "id": "ice-knife",
+      "name": "Ледяной кинжал",
+      "englishName": "Ice Knife",
+      "level": 1,
+      "classIds": ["druid", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10548-ice-knife"
+    },
+    {
+      "id": "healing-word",
+      "name": "Лечащее слово",
+      "englishName": "Healing Word",
+      "level": 1,
+      "classIds": ["bard", "cleric", "druid"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10539-healing-word"
+    },
+    {
+      "id": "cure-wounds",
+      "name": "Лечение ран",
+      "englishName": "Cure Wounds",
+      "level": 1,
+      "classIds": ["bard", "cleric", "druid", "paladin", "ranger"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10270-cure-wounds"
+    },
+    {
+      "id": "ray-of-sickness",
+      "name": "Луч болезни",
+      "englishName": "Ray of Sickness",
+      "level": 1,
+      "classIds": ["sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10621-ray-of-sickness"
+    },
+    {
+      "id": "disguise-self",
+      "name": "Маскировка",
+      "englishName": "Disguise Self",
+      "level": 1,
+      "classIds": ["bard", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10480-disguise-self"
+    },
+    {
+      "id": "hunters-mark",
+      "name": "Метка охотника",
+      "englishName": "Hunter’s Mark",
+      "level": 1,
+      "classIds": ["ranger"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10195-hunters-mark"
+    },
+    {
+      "id": "grease",
+      "name": "Намасливание",
+      "englishName": "Grease",
+      "level": 1,
+      "classIds": ["sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10532-grease"
+    },
+    {
+      "id": "inflict-wounds",
+      "name": "Нанесение ран",
+      "englishName": "Inflict Wounds",
+      "level": 1,
+      "classIds": ["cleric"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10553-inflict-wounds"
+    },
+    {
+      "id": "guiding-bolt",
+      "name": "Направляющий снаряд",
+      "englishName": "Guiding Bolt",
+      "level": 1,
+      "classIds": ["cleric"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10237-guiding-bolt"
+    },
+    {
+      "id": "unseen-servant",
+      "name": "Невидимый слуга",
+      "englishName": "Unseen Servant",
+      "level": 1,
+      "classIds": ["bard", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10690-unseen-servant"
+    },
+    {
+      "id": "detect-poison-and-disease",
+      "name": "Обнаружение болезней и ядов",
+      "englishName": "Detect Poison and Disease",
+      "level": 1,
+      "classIds": ["cleric", "druid", "paladin", "ranger"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10275-detect-poison-and-disease"
+    },
+    {
+      "id": "detect-evil-and-good",
+      "name": "Обнаружение добра и зла",
+      "englishName": "Detect Evil and Good",
+      "level": 1,
+      "classIds": ["cleric", "paladin"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10478-detect-evil-and-good"
+    },
+    {
+      "id": "detect-magic",
+      "name": "Обнаружение магии",
+      "englishName": "Detect Magic",
+      "level": 1,
+      "classIds": ["bard", "cleric", "druid", "paladin", "ranger", "sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10274-detect-magic"
+    },
+    {
+      "id": "find-familiar",
+      "name": "Обретение фамильяра",
+      "englishName": "Find Familiar",
+      "level": 1,
+      "classIds": ["wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10508-find-familiar"
+    },
+    {
+      "id": "burning-hands",
+      "name": "Огненные ладони",
+      "englishName": "Burning Hands",
+      "level": 1,
+      "classIds": ["sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10451-burning-hands"
+    },
+    {
+      "id": "faerie-fire",
+      "name": "Огонь фей",
+      "englishName": "Faerie Fire",
+      "level": 1,
+      "classIds": ["bard", "druid"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10503-faerie-fire"
+    },
+    {
+      "id": "identify",
+      "name": "Опознание",
+      "englishName": "Identify",
+      "level": 1,
+      "classIds": ["bard", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10549-identify"
+    },
+    {
+      "id": "entangle",
+      "name": "Опутывание",
+      "englishName": "Entangle",
+      "level": 1,
+      "classIds": ["druid", "ranger"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10281-entangle"
+    },
+    {
+      "id": "ensnaring-strike",
+      "name": "Опутывающий удар",
+      "englishName": "Ensnaring Strike",
+      "level": 1,
+      "classIds": ["ranger"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10241-ensnaring-strike"
+    },
+    {
+      "id": "charm-person",
+      "name": "Очарование личности",
+      "englishName": "Charm Person",
+      "level": 1,
+      "classIds": ["bard", "druid", "sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10456-charm-person"
+    },
+    {
+      "id": "purify-food-and-drink",
+      "name": "Очищение пищи и питья",
+      "englishName": "Purify Food and Drink",
+      "level": 1,
+      "classIds": ["cleric", "druid", "paladin"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10616-purify-food-and-drink"
+    },
+    {
+      "id": "feather-fall",
+      "name": "Падение пёрышком",
+      "englishName": "Feather Fall",
+      "level": 1,
+      "classIds": ["bard", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10506-feather-fall"
+    },
+    {
+      "id": "searing-smite",
+      "name": "Палящая кара",
+      "englishName": "Searing Smite",
+      "level": 1,
+      "classIds": ["paladin"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10631-searing-smite"
+    },
+    {
+      "id": "comprehend-languages",
+      "name": "Понимание языков",
+      "englishName": "Comprehend Languages",
+      "level": 1,
+      "classIds": ["bard", "sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10200-comprehend-languages"
+    },
+    {
+      "id": "bane",
+      "name": "Порча",
+      "englishName": "Bane",
+      "level": 1,
+      "classIds": ["bard", "cleric", "warlock"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10243-bane"
+    },
+    {
+      "id": "expeditious-retreat",
+      "name": "Поспешное отступление",
+      "englishName": "Expeditious Retreat",
+      "level": 1,
+      "classIds": ["sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10500-expeditious-retreat"
+    },
+    {
+      "id": "command",
+      "name": "Приказ",
+      "englishName": "Command",
+      "level": 1,
+      "classIds": ["bard", "cleric", "paladin"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10196-command"
+    },
+    {
+      "id": "jump",
+      "name": "Прыжок",
+      "englishName": "Jump",
+      "level": 1,
+      "classIds": ["druid", "ranger", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10288-jump"
+    },
+    {
+      "id": "false-life",
+      "name": "Псевдожизнь",
+      "englishName": "False Life",
+      "level": 1,
+      "classIds": ["sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10504-false-life"
+    },
+    {
+      "id": "speak-with-animals",
+      "name": "Разговор с животными",
+      "englishName": "Speak with Animals",
+      "level": 1,
+      "classIds": ["bard", "druid", "ranger", "warlock"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10246-speak-with-animals"
+    },
+    {
+      "id": "color-spray",
+      "name": "Сверкающие брызги",
+      "englishName": "Color Spray",
+      "level": 1,
+      "classIds": ["bard", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10465-color-spray"
+    },
+    {
+      "id": "hex",
+      "name": "Сглаз",
+      "englishName": "Hex",
+      "level": 1,
+      "classIds": ["warlock"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10543-hex"
+    },
+    {
+      "id": "alarm",
+      "name": "Сигнал тревоги",
+      "englishName": "Alarm",
+      "level": 1,
+      "classIds": ["ranger", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10263-alarm"
+    },
+    {
+      "id": "longstrider",
+      "name": "Скороход",
+      "englishName": "Longstrider",
+      "level": 1,
+      "classIds": ["bard", "druid", "ranger", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10294-longstrider"
+    },
+    {
+      "id": "create-or-destroy-water",
+      "name": "Сотворение или уничтожение воды",
+      "englishName": "Create or Destroy Water",
+      "level": 1,
+      "classIds": ["cleric", "druid"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10468-create-or-destroy-water"
+    },
+    {
+      "id": "fog-cloud",
+      "name": "Туманное облако",
+      "englishName": "Fog Cloud",
+      "level": 1,
+      "classIds": ["druid", "ranger", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10283-fog-cloud"
+    },
+    {
+      "id": "sanctuary",
+      "name": "Убежище",
+      "englishName": "Sanctuary",
+      "level": 1,
+      "classIds": ["cleric"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10629-sanctuary"
+    },
+    {
+      "id": "sleep",
+      "name": "Усыпление",
+      "englishName": "Sleep",
+      "level": 1,
+      "classIds": ["bard", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10644-sleep"
+    },
+    {
+      "id": "chromatic-orb",
+      "name": "Хроматический шар",
+      "englishName": "Chromatic Orb",
+      "level": 1,
+      "classIds": ["sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10458-chromatic-orb"
+    },
+    {
+      "id": "shield-spell",
+      "name": "Щит",
+      "englishName": "Shield",
+      "level": 1,
+      "classIds": ["sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10638-shield"
+    },
+    {
+      "id": "shield-of-faith",
+      "name": "Щит веры",
+      "englishName": "Shield of Faith",
+      "level": 1,
+      "classIds": ["cleric", "paladin"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10256-shield-of-faith"
+    },
+    {
+      "id": "floating-disk",
+      "name": "Floating Disk",
+      "englishName": "Floating Disk",
+      "level": 1,
+      "classIds": ["wizard"],
+      "description": "Официальное заклинание SRD 5.2.1; русское название пока не сопоставлено.",
+      "referenceUrl": "https://www.dndbeyond.com/srd"
+    },
+    {
+      "id": "hideous-laughter",
+      "name": "Hideous Laughter",
+      "englishName": "Hideous Laughter",
+      "level": 1,
+      "classIds": ["bard", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1; русское название пока не сопоставлено.",
+      "referenceUrl": "https://www.dndbeyond.com/srd"
+    },
+    {
+      "id": "pass-without-trace",
+      "name": "Бесследное передвижение",
+      "englishName": "Pass without Trace",
+      "level": 2,
+      "classIds": ["druid", "ranger"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10297-pass-without-trace"
+    },
+    {
+      "id": "continual-flame",
+      "name": "Вечный огонь",
+      "englishName": "Continual Flame",
+      "level": 2,
+      "classIds": ["cleric", "druid", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10216-continual-flame"
+    },
+    {
+      "id": "see-invisibility",
+      "name": "Видение невидимого",
+      "englishName": "See Invisibility",
+      "level": 2,
+      "classIds": ["bard", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10632-see-invisibility"
+    },
+    {
+      "id": "suggestion",
+      "name": "Внушение",
+      "englishName": "Suggestion",
+      "level": 2,
+      "classIds": ["bard", "sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10658-suggestion"
+    },
+    {
+      "id": "magic-mouth",
+      "name": "Волшебные уста",
+      "englishName": "Magic Mouth",
+      "level": 2,
+      "classIds": ["bard", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10568-magic-mouth"
+    },
+    {
+      "id": "arcane-lock",
+      "name": "Волшебный замок",
+      "englishName": "Arcane Lock",
+      "level": 2,
+      "classIds": ["wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10429-arcane-lock"
+    },
+    {
+      "id": "phantasmal-force",
+      "name": "Воображаемая сила",
+      "englishName": "Phantasmal Force",
+      "level": 2,
+      "classIds": ["bard", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10597-phantasmal-force"
+    },
+    {
+      "id": "augury",
+      "name": "Гадание",
+      "englishName": "Augury",
+      "level": 2,
+      "classIds": ["cleric", "druid", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10434-augury"
+    },
+    {
+      "id": "blindness-deafness",
+      "name": "Глухота/слепота",
+      "englishName": "Blindness/Deafness",
+      "level": 2,
+      "classIds": ["bard", "cleric", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10448-blindness-deafness"
+    },
+    {
+      "id": "flame-blade",
+      "name": "Горящий клинок",
+      "englishName": "Flame Blade",
+      "level": 2,
+      "classIds": ["druid", "sorcerer"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10515-flame-blade"
+    },
+    {
+      "id": "shatter",
+      "name": "Дребезги",
+      "englishName": "Shatter",
+      "level": 2,
+      "classIds": ["bard", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10637-shatter"
+    },
+    {
+      "id": "barkskin",
+      "name": "Дубовая кожа",
+      "englishName": "Barkskin",
+      "level": 2,
+      "classIds": ["druid", "ranger"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10266-barkskin"
+    },
+    {
+      "id": "spiritual-weapon",
+      "name": "Духовное оружие",
+      "englishName": "Spiritual Weapon",
+      "level": 2,
+      "classIds": ["cleric"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10652-spiritual-weapon"
+    },
+    {
+      "id": "dragon-s-breath",
+      "name": "Дыхание дракона",
+      "englishName": "Dragon’s Breath",
+      "level": 2,
+      "classIds": ["sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10489-dragons-breath"
+    },
+    {
+      "id": "protection-from-poison",
+      "name": "Защита от яда",
+      "englishName": "Protection from Poison",
+      "level": 2,
+      "classIds": ["cleric", "druid", "paladin", "ranger"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10298-protection-from-poison"
+    },
+    {
+      "id": "levitate",
+      "name": "Левитация",
+      "englishName": "Levitate",
+      "level": 2,
+      "classIds": ["sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10560-levitate"
+    },
+    {
+      "id": "moonbeam",
+      "name": "Лунный луч",
+      "englishName": "Moonbeam",
+      "level": 2,
+      "classIds": ["druid"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10232-moonbeam"
+    },
+    {
+      "id": "ray-of-enfeeblement",
+      "name": "Луч слабости",
+      "englishName": "Ray of Enfeeblement",
+      "level": 2,
+      "classIds": ["warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10619-ray-of-enfeeblement"
+    },
+    {
+      "id": "magic-weapon",
+      "name": "Магическое оружие",
+      "englishName": "Magic Weapon",
+      "level": 2,
+      "classIds": ["paladin", "ranger", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10234-magic-weapon"
+    },
+    {
+      "id": "lesser-restoration",
+      "name": "Малое восстановление",
+      "englishName": "Lesser Restoration",
+      "level": 2,
+      "classIds": ["bard", "cleric", "druid", "paladin", "ranger"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10289-lesser-restoration"
+    },
+    {
+      "id": "prayer-of-healing",
+      "name": "Молебен лечения",
+      "englishName": "Prayer of Healing",
+      "level": 2,
+      "classIds": ["cleric", "paladin"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10609-prayer-of-healing"
+    },
+    {
+      "id": "heat-metal",
+      "name": "Нагрев металла",
+      "englishName": "Heat Metal",
+      "level": 2,
+      "classIds": ["bard", "druid"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10540-heat-metal"
+    },
+    {
+      "id": "invisibility",
+      "name": "Невидимость",
+      "englishName": "Invisibility",
+      "level": 2,
+      "classIds": ["bard", "sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10555-invisibility"
+    },
+    {
+      "id": "gentle-repose",
+      "name": "Нетленные останки",
+      "englishName": "Gentle Repose",
+      "level": 2,
+      "classIds": ["cleric", "paladin", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10527-gentle-repose"
+    },
+    {
+      "id": "zone-of-truth",
+      "name": "Область истины",
+      "englishName": "Zone of Truth",
+      "level": 2,
+      "classIds": ["bard", "cleric", "paladin"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10240-zone-of-truth"
+    },
+    {
+      "id": "detect-thoughts",
+      "name": "Обнаружение мыслей",
+      "englishName": "Detect Thoughts",
+      "level": 2,
+      "classIds": ["bard", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10479-detect-thoughts"
+    },
+    {
+      "id": "find-steed",
+      "name": "Обретение скакуна",
+      "englishName": "Find Steed",
+      "level": 2,
+      "classIds": ["paladin"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10239-find-steed"
+    },
+    {
+      "id": "mirror-image",
+      "name": "Отражения",
+      "englishName": "Mirror Image",
+      "level": 2,
+      "classIds": ["bard", "sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10584-mirror-image"
+    },
+    {
+      "id": "warding-bond",
+      "name": "Охраняющая связь",
+      "englishName": "Warding Bond",
+      "level": 2,
+      "classIds": ["cleric", "paladin"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10699-warding-bond"
+    },
+    {
+      "id": "scorching-ray",
+      "name": "Палящий луч",
+      "englishName": "Scorching Ray",
+      "level": 2,
+      "classIds": ["sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10630-scorching-ray"
+    },
+    {
+      "id": "web",
+      "name": "Паутина",
+      "englishName": "Web",
+      "level": 2,
+      "classIds": ["sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10700-web"
+    },
+    {
+      "id": "spider-climb",
+      "name": "Паучье лазанье",
+      "englishName": "Spider Climb",
+      "level": 2,
+      "classIds": ["sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10650-spider-climb"
+    },
+    {
+      "id": "aid",
+      "name": "Подмога",
+      "englishName": "Aid",
+      "level": 2,
+      "classIds": ["bard", "cleric", "druid", "paladin", "ranger"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10242-aid"
+    },
+    {
+      "id": "locate-animals-or-plants",
+      "name": "Поиск животных или растений",
+      "englishName": "Locate Animals or Plants",
+      "level": 2,
+      "classIds": ["bard", "druid", "ranger"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10291-locate-animals-or-plants"
+    },
+    {
+      "id": "find-traps",
+      "name": "Поиск ловушек",
+      "englishName": "Find Traps",
+      "level": 2,
+      "classIds": ["cleric", "druid", "ranger"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10282-find-traps"
+    },
+    {
+      "id": "locate-object",
+      "name": "Поиск объекта",
+      "englishName": "Locate Object",
+      "level": 2,
+      "classIds": ["bard", "cleric", "druid", "paladin", "ranger", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10293-locate-object"
+    },
+    {
+      "id": "spike-growth",
+      "name": "Поросль шипов",
+      "englishName": "Spike Growth",
+      "level": 2,
+      "classIds": ["druid", "ranger"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10302-spike-growth"
+    },
+    {
+      "id": "gust-of-wind",
+      "name": "Порыв ветра",
+      "englishName": "Gust of Wind",
+      "level": 2,
+      "classIds": ["druid", "ranger", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10286-gust-of-wind"
+    },
+    {
+      "id": "animal-messenger",
+      "name": "Почтовое животное",
+      "englishName": "Animal Messenger",
+      "level": 2,
+      "classIds": ["bard", "druid", "ranger"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10265-animal-messenger"
+    },
+    {
+      "id": "mind-spike",
+      "name": "Пронзание разума",
+      "englishName": "Mind Spike",
+      "level": 2,
+      "classIds": ["sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10581-mind-spike"
+    },
+    {
+      "id": "flaming-sphere",
+      "name": "Пылающий шар",
+      "englishName": "Flaming Sphere",
+      "level": 2,
+      "classIds": ["druid", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10516-flaming-sphere"
+    },
+    {
+      "id": "blur",
+      "name": "Размытый образ",
+      "englishName": "Blur",
+      "level": 2,
+      "classIds": ["sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10450-blur"
+    },
+    {
+      "id": "enthrall",
+      "name": "Речь златоуста",
+      "englishName": "Enthrall",
+      "level": 2,
+      "classIds": ["bard", "warlock"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10497-enthrall"
+    },
+    {
+      "id": "shining-smite",
+      "name": "Сияющая кара",
+      "englishName": "Shining Smite",
+      "level": 2,
+      "classIds": ["paladin"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10640-shining-smite"
+    },
+    {
+      "id": "alter-self",
+      "name": "Смена обличья",
+      "englishName": "Alter Self",
+      "level": 2,
+      "classIds": ["sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10420-alter-self"
+    },
+    {
+      "id": "knock",
+      "name": "Стук",
+      "englishName": "Knock",
+      "level": 2,
+      "classIds": ["bard", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10557-knock"
+    },
+    {
+      "id": "darkvision",
+      "name": "Тёмное зрение",
+      "englishName": "Darkvision",
+      "level": 2,
+      "classIds": ["druid", "ranger", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10271-darkvision"
+    },
+    {
+      "id": "silence",
+      "name": "Тишина",
+      "englishName": "Silence",
+      "level": 2,
+      "classIds": ["bard", "cleric", "ranger"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10300-silence"
+    },
+    {
+      "id": "rope-trick",
+      "name": "Трюк с верёвкой",
+      "englishName": "Rope Trick",
+      "level": 2,
+      "classIds": ["wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10628-rope-trick"
+    },
+    {
+      "id": "misty-step",
+      "name": "Туманный шаг",
+      "englishName": "Misty Step",
+      "level": 2,
+      "classIds": ["sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10251-misty-step"
+    },
+    {
+      "id": "darkness",
+      "name": "Тьма",
+      "englishName": "Darkness",
+      "level": 2,
+      "classIds": ["sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10473-darkness"
+    },
+    {
+      "id": "enlarge-reduce",
+      "name": "Увеличение/уменьшение",
+      "englishName": "Enlarge/Reduce",
+      "level": 2,
+      "classIds": ["bard", "druid", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10496-enlarge-reduce"
+    },
+    {
+      "id": "hold-person",
+      "name": "Удержание личности",
+      "englishName": "Hold Person",
+      "level": 2,
+      "classIds": ["bard", "cleric", "druid", "sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10254-hold-person"
+    },
+    {
+      "id": "enhance-ability",
+      "name": "Улучшение характеристики",
+      "englishName": "Enhance Ability",
+      "level": 2,
+      "classIds": ["bard", "cleric", "druid", "ranger", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10252-enhance-ability"
+    },
+    {
+      "id": "calm-emotions",
+      "name": "Умиротворение",
+      "englishName": "Calm Emotions",
+      "level": 2,
+      "classIds": ["bard", "cleric"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10453-calm-emotions"
+    },
+    {
+      "id": "acid-arrow",
+      "name": "Acid Arrow",
+      "englishName": "Acid Arrow",
+      "level": 2,
+      "classIds": ["wizard"],
+      "description": "Официальное заклинание SRD 5.2.1; русское название пока не сопоставлено.",
+      "referenceUrl": "https://www.dndbeyond.com/srd"
+    },
+    {
+      "id": "arcanist-s-magic-aura",
+      "name": "Arcanist’s Magic Aura",
+      "englishName": "Arcanist’s Magic Aura",
+      "level": 2,
+      "classIds": ["wizard"],
+      "description": "Официальное заклинание SRD 5.2.1; русское название пока не сопоставлено.",
+      "referenceUrl": "https://www.dndbeyond.com/srd"
+    },
+    {
+      "id": "gaseous-form",
+      "name": "Газообразная форма",
+      "englishName": "Gaseous Form",
+      "level": 3,
+      "classIds": ["sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10524-gaseous-form"
+    },
+    {
+      "id": "hypnotic-pattern",
+      "name": "Гипнотический узор",
+      "englishName": "Hypnotic Pattern",
+      "level": 3,
+      "classIds": ["bard", "sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10547-hypnotic-pattern"
+    },
+    {
+      "id": "daylight",
+      "name": "Дневной свет",
+      "englishName": "Daylight",
+      "level": 3,
+      "classIds": ["cleric", "druid", "paladin", "ranger", "sorcerer"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10272-daylight"
+    },
+    {
+      "id": "spirit-guardians",
+      "name": "Духовные стражи",
+      "englishName": "Spirit Guardians",
+      "level": 3,
+      "classIds": ["cleric"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10651-spirit-guardians"
+    },
+    {
+      "id": "slow",
+      "name": "Замедление",
+      "englishName": "Slow",
+      "level": 3,
+      "classIds": ["bard", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10646-slow"
+    },
+    {
+      "id": "protection-from-energy",
+      "name": "Защита от энергии",
+      "englishName": "Protection from Energy",
+      "level": 3,
+      "classIds": ["cleric", "druid", "ranger", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10227-protection-from-energy"
+    },
+    {
+      "id": "stinking-cloud",
+      "name": "Зловонное облако",
+      "englishName": "Stinking Cloud",
+      "level": 3,
+      "classIds": ["bard", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10655-stinking-cloud"
+    },
+    {
+      "id": "counterspell",
+      "name": "Контрзаклинание",
+      "englishName": "Counterspell",
+      "level": 3,
+      "classIds": ["sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10219-counterspell"
+    },
+    {
+      "id": "magic-circle",
+      "name": "Магический круг",
+      "englishName": "Magic Circle",
+      "level": 3,
+      "classIds": ["cleric", "paladin", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10565-magic-circle"
+    },
+    {
+      "id": "beacon-of-hope",
+      "name": "Маяк надежды",
+      "englishName": "Beacon of Hope",
+      "level": 3,
+      "classIds": ["cleric"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10233-beacon-of-hope"
+    },
+    {
+      "id": "blink",
+      "name": "Мерцание",
+      "englishName": "Blink",
+      "level": 3,
+      "classIds": ["sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10449-blink"
+    },
+    {
+      "id": "sleet-storm",
+      "name": "Метель",
+      "englishName": "Sleet Storm",
+      "level": 3,
+      "classIds": ["druid", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10645-sleet-storm"
+    },
+    {
+      "id": "mass-healing-word",
+      "name": "Множественное лечащее слово",
+      "englishName": "Mass Healing Word",
+      "level": 3,
+      "classIds": ["bard", "cleric"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10572-mass-healing-word"
+    },
+    {
+      "id": "lightning-bolt",
+      "name": "Молния",
+      "englishName": "Lightning Bolt",
+      "level": 3,
+      "classIds": ["sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10562-lightning-bolt"
+    },
+    {
+      "id": "bestow-curse",
+      "name": "Наложение проклятия",
+      "englishName": "Bestow Curse",
+      "level": 3,
+      "classIds": ["bard", "cleric", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10441-bestow-curse"
+    },
+    {
+      "id": "nondetection",
+      "name": "Необнаружимость",
+      "englishName": "Nondetection",
+      "level": 3,
+      "classIds": ["bard", "ranger", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10296-nondetection"
+    },
+    {
+      "id": "major-image",
+      "name": "Образ",
+      "englishName": "Major Image",
+      "level": 3,
+      "classIds": ["bard", "sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10569-major-image"
+    },
+    {
+      "id": "fireball",
+      "name": "Огненный шар",
+      "englishName": "Fireball",
+      "level": 3,
+      "classIds": ["sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10514-fireball"
+    },
+    {
+      "id": "revivify",
+      "name": "Оживление",
+      "englishName": "Revivify",
+      "level": 3,
+      "classIds": ["cleric", "druid", "paladin", "ranger"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10299-revivify"
+    },
+    {
+      "id": "glyph-of-warding",
+      "name": "Охранная руна",
+      "englishName": "Glyph of Warding",
+      "level": 3,
+      "classIds": ["bard", "cleric", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10531-glyph-of-warding"
+    },
+    {
+      "id": "water-breathing",
+      "name": "Подводное дыхание",
+      "englishName": "Water Breathing",
+      "level": 3,
+      "classIds": ["druid", "ranger", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10310-water-breathing"
+    },
+    {
+      "id": "animate-dead",
+      "name": "Поднятие мертвеца",
+      "englishName": "Animate Dead",
+      "level": 3,
+      "classIds": ["cleric", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10422-animate-dead"
+    },
+    {
+      "id": "clairvoyance",
+      "name": "Подсматривание",
+      "englishName": "Clairvoyance",
+      "level": 3,
+      "classIds": ["bard", "cleric", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10461-clairvoyance"
+    },
+    {
+      "id": "fly",
+      "name": "Полёт",
+      "englishName": "Fly",
+      "level": 3,
+      "classIds": ["sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10518-fly"
+    },
+    {
+      "id": "sending",
+      "name": "Послание",
+      "englishName": "Sending",
+      "level": 3,
+      "classIds": ["bard", "cleric", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10634-sending"
+    },
+    {
+      "id": "phantom-steed",
+      "name": "Призрачный скакун",
+      "englishName": "Phantom Steed",
+      "level": 3,
+      "classIds": ["wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10599-phantom-steed"
+    },
+    {
+      "id": "conjure-animals",
+      "name": "Призыв животных",
+      "englishName": "Conjure Animals",
+      "level": 3,
+      "classIds": ["druid", "ranger"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10204-conjure-animals"
+    },
+    {
+      "id": "call-lightning",
+      "name": "Призыв молнии",
+      "englishName": "Call Lightning",
+      "level": 3,
+      "classIds": ["druid"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10452-call-lightning"
+    },
+    {
+      "id": "vampiric-touch",
+      "name": "Прикосновение вампира",
+      "englishName": "Vampiric Touch",
+      "level": 3,
+      "classIds": ["sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10691-vampiric-touch"
+    },
+    {
+      "id": "speak-with-dead",
+      "name": "Разговор с мёртвыми",
+      "englishName": "Speak with Dead",
+      "level": 3,
+      "classIds": ["bard", "cleric", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10649-speak-with-dead"
+    },
+    {
+      "id": "speak-with-plants",
+      "name": "Разговор с растениями",
+      "englishName": "Speak with Plants",
+      "level": 3,
+      "classIds": ["bard", "druid", "ranger"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10301-speak-with-plants"
+    },
+    {
+      "id": "dispel-magic",
+      "name": "Рассеивание магии",
+      "englishName": "Dispel Magic",
+      "level": 3,
+      "classIds": ["bard", "cleric", "druid", "paladin", "ranger", "sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10245-dispel-magic"
+    },
+    {
+      "id": "plant-growth",
+      "name": "Рост растений",
+      "englishName": "Plant Growth",
+      "level": 3,
+      "classIds": ["bard", "druid", "ranger"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10247-plant-growth"
+    },
+    {
+      "id": "meld-into-stone",
+      "name": "Слияние с камнем",
+      "englishName": "Meld into Stone",
+      "level": 3,
+      "classIds": ["cleric", "druid", "ranger"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10295-meld-into-stone"
+    },
+    {
+      "id": "remove-curse",
+      "name": "Снятие проклятия",
+      "englishName": "Remove Curse",
+      "level": 3,
+      "classIds": ["cleric", "paladin", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10624-remove-curse"
+    },
+    {
+      "id": "create-food-and-water",
+      "name": "Сотворение пищи и воды",
+      "englishName": "Create Food and Water",
+      "level": 3,
+      "classIds": ["cleric", "paladin"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10220-create-food-and-water"
+    },
+    {
+      "id": "wind-wall",
+      "name": "Стена ветров",
+      "englishName": "Wind Wall",
+      "level": 3,
+      "classIds": ["druid", "ranger"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10312-wind-wall"
+    },
+    {
+      "id": "fear",
+      "name": "Ужас",
+      "englishName": "Fear",
+      "level": 3,
+      "classIds": ["bard", "sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10505-fear"
+    },
+    {
+      "id": "haste",
+      "name": "Ускорение",
+      "englishName": "Haste",
+      "level": 3,
+      "classIds": ["sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10255-haste"
+    },
+    {
+      "id": "water-walk",
+      "name": "Хождение по воде",
+      "englishName": "Water Walk",
+      "level": 3,
+      "classIds": ["cleric", "druid", "ranger", "sorcerer"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10311-water-walk"
+    },
+    {
+      "id": "tongues",
+      "name": "Языки",
+      "englishName": "Tongues",
+      "level": 3,
+      "classIds": ["bard", "cleric", "sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10683-tongues"
+    },
+    {
+      "id": "tiny-hut",
+      "name": "Tiny Hut",
+      "englishName": "Tiny Hut",
+      "level": 3,
+      "classIds": ["bard", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1; русское название пока не сопоставлено.",
+      "referenceUrl": "https://www.dndbeyond.com/srd"
+    },
+    {
+      "id": "aura-of-life",
+      "name": "Аура жизни",
+      "englishName": "Aura of Life",
+      "level": 4,
+      "classIds": ["cleric", "paladin"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10435-aura-of-life"
+    },
+    {
+      "id": "control-water",
+      "name": "Власть над водами",
+      "englishName": "Control Water",
+      "level": 4,
+      "classIds": ["cleric", "druid", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10217-control-water"
+    },
+    {
+      "id": "phantasmal-killer",
+      "name": "Воображаемый убийца",
+      "englishName": "Phantasmal Killer",
+      "level": 4,
+      "classIds": ["bard", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10598-phantasmal-killer"
+    },
+    {
+      "id": "greater-invisibility",
+      "name": "Высшая невидимость",
+      "englishName": "Greater Invisibility",
+      "level": 4,
+      "classIds": ["bard", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10533-greater-invisibility"
+    },
+    {
+      "id": "giant-insect",
+      "name": "Гигантское насекомое",
+      "englishName": "Giant Insect",
+      "level": 4,
+      "classIds": ["druid"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10528-giant-insect"
+    },
+    {
+      "id": "ice-storm",
+      "name": "Град",
+      "englishName": "Ice Storm",
+      "level": 4,
+      "classIds": ["druid", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10224-ice-storm"
+    },
+    {
+      "id": "vitriolic-sphere",
+      "name": "Едкий шар",
+      "englishName": "Vitriolic Sphere",
+      "level": 4,
+      "classIds": ["sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10693-vitriolic-sphere"
+    },
+    {
+      "id": "death-ward",
+      "name": "Защита от смерти",
+      "englishName": "Death Ward",
+      "level": 4,
+      "classIds": ["cleric", "paladin"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10474-death-ward"
+    },
+    {
+      "id": "banishment",
+      "name": "Изгнание",
+      "englishName": "Banishment",
+      "level": 4,
+      "classIds": ["cleric", "paladin", "sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10230-banishment"
+    },
+    {
+      "id": "fabricate",
+      "name": "Изготовление",
+      "englishName": "Fabricate",
+      "level": 4,
+      "classIds": ["wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10502-fabricate"
+    },
+    {
+      "id": "stone-shape",
+      "name": "Изменение формы камня",
+      "englishName": "Stone Shape",
+      "level": 4,
+      "classIds": ["cleric", "druid", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10656-stone-shape"
+    },
+    {
+      "id": "stoneskin",
+      "name": "Каменная кожа",
+      "englishName": "Stoneskin",
+      "level": 4,
+      "classIds": ["druid", "ranger", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10231-stoneskin"
+    },
+    {
+      "id": "arcane-eye",
+      "name": "Магический глаз",
+      "englishName": "Arcane Eye",
+      "level": 4,
+      "classIds": ["wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10427-arcane-eye"
+    },
+    {
+      "id": "hallucinatory-terrain",
+      "name": "Мираж",
+      "englishName": "Hallucinatory Terrain",
+      "level": 4,
+      "classIds": ["bard", "druid", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10536-hallucinatory-terrain"
+    },
+    {
+      "id": "wall-of-fire",
+      "name": "Огненная стена",
+      "englishName": "Wall of Fire",
+      "level": 4,
+      "classIds": ["druid", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10694-wall-of-fire"
+    },
+    {
+      "id": "fire-shield",
+      "name": "Огненный щит",
+      "englishName": "Fire Shield",
+      "level": 4,
+      "classIds": ["druid", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10512-fire-shield"
+    },
+    {
+      "id": "charm-monster",
+      "name": "Очарование монстра",
+      "englishName": "Charm Monster",
+      "level": 4,
+      "classIds": ["bard", "druid", "sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10455-charm-monster"
+    },
+    {
+      "id": "dimension-door",
+      "name": "Переносящая дверь",
+      "englishName": "Dimension Door",
+      "level": 4,
+      "classIds": ["bard", "sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10244-dimension-door"
+    },
+    {
+      "id": "dominate-beast",
+      "name": "Подчинение зверя",
+      "englishName": "Dominate Beast",
+      "level": 4,
+      "classIds": ["druid", "ranger", "sorcerer"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10279-dominate-beast"
+    },
+    {
+      "id": "locate-creature",
+      "name": "Поиск существа",
+      "englishName": "Locate Creature",
+      "level": 4,
+      "classIds": ["bard", "cleric", "druid", "paladin", "ranger", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10292-locate-creature"
+    },
+    {
+      "id": "polymorph",
+      "name": "Превращение",
+      "englishName": "Polymorph",
+      "level": 4,
+      "classIds": ["bard", "druid", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10604-polymorph"
+    },
+    {
+      "id": "divination",
+      "name": "Предсказание",
+      "englishName": "Divination",
+      "level": 4,
+      "classIds": ["cleric", "druid", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10484-divination"
+    },
+    {
+      "id": "conjure-woodland-beings",
+      "name": "Призыв лесных обитателей",
+      "englishName": "Conjure Woodland Beings",
+      "level": 4,
+      "classIds": ["druid", "ranger"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10211-conjure-woodland-beings"
+    },
+    {
+      "id": "conjure-minor-elementals",
+      "name": "Призыв малых элементалей",
+      "englishName": "Conjure Minor Elementals",
+      "level": 4,
+      "classIds": ["druid", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10209-conjure-minor-elementals"
+    },
+    {
+      "id": "compulsion",
+      "name": "Принуждение",
+      "englishName": "Compulsion",
+      "level": 4,
+      "classIds": ["bard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10201-compulsion"
+    },
+    {
+      "id": "freedom-of-movement",
+      "name": "Свобода перемещения",
+      "englishName": "Freedom of Movement",
+      "level": 4,
+      "classIds": ["bard", "cleric", "druid", "ranger"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10249-freedom-of-movement"
+    },
+    {
+      "id": "confusion",
+      "name": "Смятение",
+      "englishName": "Confusion",
+      "level": 4,
+      "classIds": ["bard", "druid", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10203-confusion"
+    },
+    {
+      "id": "guardian-of-faith",
+      "name": "Страж веры",
+      "englishName": "Guardian of Faith",
+      "level": 4,
+      "classIds": ["cleric"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10250-guardian-of-faith"
+    },
+    {
+      "id": "blight",
+      "name": "Усыхание",
+      "englishName": "Blight",
+      "level": 4,
+      "classIds": ["druid", "sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10446-blight"
+    },
+    {
+      "id": "black-tentacles",
+      "name": "Black Tentacles",
+      "englishName": "Black Tentacles",
+      "level": 4,
+      "classIds": ["wizard"],
+      "description": "Официальное заклинание SRD 5.2.1; русское название пока не сопоставлено.",
+      "referenceUrl": "https://www.dndbeyond.com/srd"
+    },
+    {
+      "id": "faithful-hound",
+      "name": "Faithful Hound",
+      "englishName": "Faithful Hound",
+      "level": 4,
+      "classIds": ["wizard"],
+      "description": "Официальное заклинание SRD 5.2.1; русское название пока не сопоставлено.",
+      "referenceUrl": "https://www.dndbeyond.com/srd"
+    },
+    {
+      "id": "private-sanctum",
+      "name": "Private Sanctum",
+      "englishName": "Private Sanctum",
+      "level": 4,
+      "classIds": ["wizard"],
+      "description": "Официальное заклинание SRD 5.2.1; русское название пока не сопоставлено.",
+      "referenceUrl": "https://www.dndbeyond.com/srd"
+    },
+    {
+      "id": "resilient-sphere",
+      "name": "Resilient Sphere",
+      "englishName": "Resilient Sphere",
+      "level": 4,
+      "classIds": ["wizard"],
+      "description": "Официальное заклинание SRD 5.2.1; русское название пока не сопоставлено.",
+      "referenceUrl": "https://www.dndbeyond.com/srd"
+    },
+    {
+      "id": "secret-chest",
+      "name": "Secret Chest",
+      "englishName": "Secret Chest",
+      "level": 4,
+      "classIds": ["wizard"],
+      "description": "Официальное заклинание SRD 5.2.1; русское название пока не сопоставлено.",
+      "referenceUrl": "https://www.dndbeyond.com/srd"
+    },
+    {
+      "id": "raise-dead",
+      "name": "Возвращение к жизни",
+      "englishName": "Raise Dead",
+      "level": 5,
+      "classIds": ["bard", "cleric", "paladin"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10617-raise-dead"
+    },
+    {
+      "id": "summon-dragon",
+      "name": "Вызов дракона",
+      "englishName": "Summon Dragon",
+      "level": 5,
+      "classIds": ["wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10662-summon-dragon"
+    },
+    {
+      "id": "greater-restoration",
+      "name": "Высшее восстановление",
+      "englishName": "Greater Restoration",
+      "level": 5,
+      "classIds": ["bard", "cleric", "druid", "paladin", "ranger"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10212-greater-restoration"
+    },
+    {
+      "id": "geas",
+      "name": "Гейс",
+      "englishName": "Geas",
+      "level": 5,
+      "classIds": ["bard", "cleric", "druid", "paladin", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10526-geas"
+    },
+    {
+      "id": "dream",
+      "name": "Грёзы",
+      "englishName": "Dream",
+      "level": 5,
+      "classIds": ["bard", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10491-dream"
+    },
+    {
+      "id": "tree-stride",
+      "name": "Древесный путь",
+      "englishName": "Tree Stride",
+      "level": 5,
+      "classIds": ["druid", "ranger"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10225-tree-stride"
+    },
+    {
+      "id": "contagion",
+      "name": "Заражение",
+      "englishName": "Contagion",
+      "level": 5,
+      "classIds": ["cleric", "druid"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10214-contagion"
+    },
+    {
+      "id": "legend-lore",
+      "name": "Знание легенд",
+      "englishName": "Legend Lore",
+      "level": 5,
+      "classIds": ["bard", "cleric", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10228-legend-lore"
+    },
+    {
+      "id": "modify-memory",
+      "name": "Изменение памяти",
+      "englishName": "Modify Memory",
+      "level": 5,
+      "classIds": ["bard", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10586-modify-memory"
+    },
+    {
+      "id": "wall-of-stone",
+      "name": "Каменная стена",
+      "englishName": "Wall of Stone",
+      "level": 5,
+      "classIds": ["druid", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10697-wall-of-stone"
+    },
+    {
+      "id": "cone-of-cold",
+      "name": "Конус холода",
+      "englishName": "Cone of Cold",
+      "level": 5,
+      "classIds": ["druid", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10202-cone-of-cold"
+    },
+    {
+      "id": "teleportation-circle",
+      "name": "Круг телепортации",
+      "englishName": "Teleportation Circle",
+      "level": 5,
+      "classIds": ["bard", "sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10674-teleportation-circle"
+    },
+    {
+      "id": "mass-cure-wounds",
+      "name": "Множественное лечение ран",
+      "englishName": "Mass Cure Wounds",
+      "level": 5,
+      "classIds": ["bard", "cleric", "druid"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10570-mass-cure-wounds"
+    },
+    {
+      "id": "scrying",
+      "name": "Наблюдение",
+      "englishName": "Scrying",
+      "level": 5,
+      "classIds": ["bard", "cleric", "druid", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10236-scrying"
+    },
+    {
+      "id": "insect-plague",
+      "name": "Нашествие насекомых",
+      "englishName": "Insect Plague",
+      "level": 5,
+      "classIds": ["cleric", "druid", "sorcerer"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10554-insect-plague"
+    },
+    {
+      "id": "flame-strike",
+      "name": "Небесный огонь",
+      "englishName": "Flame Strike",
+      "level": 5,
+      "classIds": ["cleric"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10238-flame-strike"
+    },
+    {
+      "id": "cloudkill",
+      "name": "Облако смерти",
+      "englishName": "Cloudkill",
+      "level": 5,
+      "classIds": ["sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10464-cloudkill"
+    },
+    {
+      "id": "commune",
+      "name": "Общение",
+      "englishName": "Commune",
+      "level": 5,
+      "classIds": ["cleric"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10197-commune"
+    },
+    {
+      "id": "commune-with-nature",
+      "name": "Общение с природой",
+      "englishName": "Commune with Nature",
+      "level": 5,
+      "classIds": ["druid", "ranger"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10198-commune-with-nature"
+    },
+    {
+      "id": "animate-objects",
+      "name": "Оживление вещей",
+      "englishName": "Animate Objects",
+      "level": 5,
+      "classIds": ["bard", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10423-animate-objects"
+    },
+    {
+      "id": "planar-binding",
+      "name": "Планарные узы",
+      "englishName": "Planar Binding",
+      "level": 5,
+      "classIds": ["bard", "cleric", "druid", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10601-planar-binding"
+    },
+    {
+      "id": "dominate-person",
+      "name": "Подчинение личности",
+      "englishName": "Dominate Person",
+      "level": 5,
+      "classIds": ["bard", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10488-dominate-person"
+    },
+    {
+      "id": "antilife-shell",
+      "name": "Преграда жизни",
+      "englishName": "Antilife Shell",
+      "level": 5,
+      "classIds": ["druid"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10424-antilife-shell"
+    },
+    {
+      "id": "conjure-elemental",
+      "name": "Призыв элементаля",
+      "englishName": "Conjure Elemental",
+      "level": 5,
+      "classIds": ["druid", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10207-conjure-elemental"
+    },
+    {
+      "id": "seeming",
+      "name": "Притворство",
+      "englishName": "Seeming",
+      "level": 5,
+      "classIds": ["bard", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10633-seeming"
+    },
+    {
+      "id": "awaken",
+      "name": "Пробуждение разума",
+      "englishName": "Awaken",
+      "level": 5,
+      "classIds": ["bard", "druid"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10438-awaken"
+    },
+    {
+      "id": "dispel-evil-and-good",
+      "name": "Рассеивание добра и зла",
+      "englishName": "Dispel Evil and Good",
+      "level": 5,
+      "classIds": ["cleric", "paladin"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10482-dispel-evil-and-good"
+    },
+    {
+      "id": "reincarnate",
+      "name": "Реинкарнация",
+      "englishName": "Reincarnate",
+      "level": 5,
+      "classIds": ["druid"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10623-reincarnate"
+    },
+    {
+      "id": "contact-other-plane",
+      "name": "Связь с иным планом",
+      "englishName": "Contact Other Plane",
+      "level": 5,
+      "classIds": ["warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10213-contact-other-plane"
+    },
+    {
+      "id": "hallow",
+      "name": "Святилище",
+      "englishName": "Hallow",
+      "level": 5,
+      "classIds": ["cleric"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10535-hallow"
+    },
+    {
+      "id": "wall-of-force",
+      "name": "Силовая стена",
+      "englishName": "Wall of Force",
+      "level": 5,
+      "classIds": ["wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10695-wall-of-force"
+    },
+    {
+      "id": "passwall",
+      "name": "Создание прохода",
+      "englishName": "Passwall",
+      "level": 5,
+      "classIds": ["wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10596-passwall"
+    },
+    {
+      "id": "creation",
+      "name": "Сотворение",
+      "englishName": "Creation",
+      "level": 5,
+      "classIds": ["sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10469-creation"
+    },
+    {
+      "id": "telekinesis",
+      "name": "Телекинез",
+      "englishName": "Telekinesis",
+      "level": 5,
+      "classIds": ["sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10671-telekinesis"
+    },
+    {
+      "id": "hold-monster",
+      "name": "Удержание монстра",
+      "englishName": "Hold Monster",
+      "level": 5,
+      "classIds": ["bard", "sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10253-hold-monster"
+    },
+    {
+      "id": "mislead",
+      "name": "Фальшивый двойник",
+      "englishName": "Mislead",
+      "level": 5,
+      "classIds": ["bard", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10585-mislead"
+    },
+    {
+      "id": "arcane-hand",
+      "name": "Arcane Hand",
+      "englishName": "Arcane Hand",
+      "level": 5,
+      "classIds": ["sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1; русское название пока не сопоставлено.",
+      "referenceUrl": "https://www.dndbeyond.com/srd"
+    },
+    {
+      "id": "telepathic-bond",
+      "name": "Telepathic Bond",
+      "englishName": "Telepathic Bond",
+      "level": 5,
+      "classIds": ["bard", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1; русское название пока не сопоставлено.",
+      "referenceUrl": "https://www.dndbeyond.com/srd"
+    },
+    {
+      "id": "magic-jar",
+      "name": "Волшебный сосуд",
+      "englishName": "Magic Jar",
+      "level": 6,
+      "classIds": ["wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10566-magic-jar"
+    },
+    {
+      "id": "move-earth",
+      "name": "Движение почвы",
+      "englishName": "Move Earth",
+      "level": 6,
+      "classIds": ["druid", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10591-move-earth"
+    },
+    {
+      "id": "disintegrate",
+      "name": "Дезинтеграция",
+      "englishName": "Disintegrate",
+      "level": 6,
+      "classIds": ["sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10481-disintegrate"
+    },
+    {
+      "id": "programmed-illusion",
+      "name": "Заданная иллюзия",
+      "englishName": "Programmed Illusion",
+      "level": 6,
+      "classIds": ["bard", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10614-programmed-illusion"
+    },
+    {
+      "id": "forbiddance",
+      "name": "Запрет",
+      "englishName": "Forbiddance",
+      "level": 6,
+      "classIds": ["cleric"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10519-forbiddance"
+    },
+    {
+      "id": "true-seeing",
+      "name": "Истинный взор",
+      "englishName": "True Seeing",
+      "level": 6,
+      "classIds": ["bard", "cleric", "sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10687-true-seeing"
+    },
+    {
+      "id": "heal",
+      "name": "Исцеление",
+      "englishName": "Heal",
+      "level": 6,
+      "classIds": ["cleric", "druid"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10538-heal"
+    },
+    {
+      "id": "circle-of-death",
+      "name": "Круг смерти",
+      "englishName": "Circle of Death",
+      "level": 6,
+      "classIds": ["sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10459-circle-of-death"
+    },
+    {
+      "id": "wall-of-ice",
+      "name": "Ледяная стена",
+      "englishName": "Wall of Ice",
+      "level": 6,
+      "classIds": ["wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10696-wall-of-ice"
+    },
+    {
+      "id": "mass-suggestion",
+      "name": "Множественное внушение",
+      "englishName": "Mass Suggestion",
+      "level": 6,
+      "classIds": ["bard", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10573-mass-suggestion"
+    },
+    {
+      "id": "flesh-to-stone",
+      "name": "Окаменение",
+      "englishName": "Flesh to Stone",
+      "level": 6,
+      "classIds": ["druid", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10517-flesh-to-stone"
+    },
+    {
+      "id": "heroes-feast",
+      "name": "Пир героев",
+      "englishName": "Heroes’ Feast",
+      "level": 6,
+      "classIds": ["bard", "cleric", "druid"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10542-heroes-feast"
+    },
+    {
+      "id": "planar-ally",
+      "name": "Планарный союзник",
+      "englishName": "Planar Ally",
+      "level": 6,
+      "classIds": ["cleric"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10600-planar-ally"
+    },
+    {
+      "id": "find-the-path",
+      "name": "Поиск пути",
+      "englishName": "Find the Path",
+      "level": 6,
+      "classIds": ["bard", "cleric", "druid"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10509-find-the-path"
+    },
+    {
+      "id": "harm",
+      "name": "Поражение",
+      "englishName": "Harm",
+      "level": 6,
+      "classIds": ["cleric"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10537-harm"
+    },
+    {
+      "id": "contingency",
+      "name": "Предосторожность",
+      "englishName": "Contingency",
+      "level": 6,
+      "classIds": ["wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10215-contingency"
+    },
+    {
+      "id": "conjure-fey",
+      "name": "Призыв феи",
+      "englishName": "Conjure Fey",
+      "level": 6,
+      "classIds": ["druid"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10208-conjure-fey"
+    },
+    {
+      "id": "transport-via-plants",
+      "name": "Путешествие через растения",
+      "englishName": "Transport via Plants",
+      "level": 6,
+      "classIds": ["druid"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10684-transport-via-plants"
+    },
+    {
+      "id": "eyebite",
+      "name": "Разящее око",
+      "englishName": "Eyebite",
+      "level": 6,
+      "classIds": ["bard", "sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10501-eyebite"
+    },
+    {
+      "id": "word-of-recall",
+      "name": "Слово возврата",
+      "englishName": "Word of Recall",
+      "level": 6,
+      "classIds": ["cleric"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10706-word-of-recall"
+    },
+    {
+      "id": "sunbeam",
+      "name": "Солнечный луч",
+      "englishName": "Sunbeam",
+      "level": 6,
+      "classIds": ["cleric", "druid", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10665-sunbeam"
+    },
+    {
+      "id": "create-undead",
+      "name": "Сотворение нежити",
+      "englishName": "Create Undead",
+      "level": 6,
+      "classIds": ["cleric", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10467-create-undead"
+    },
+    {
+      "id": "blade-barrier",
+      "name": "Стена клинков",
+      "englishName": "Blade Barrier",
+      "level": 6,
+      "classIds": ["cleric"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10443-blade-barrier"
+    },
+    {
+      "id": "guards-and-wards",
+      "name": "Стражи и обереги",
+      "englishName": "Guards and Wards",
+      "level": 6,
+      "classIds": ["bard", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10534-guards-and-wards"
+    },
+    {
+      "id": "globe-of-invulnerability",
+      "name": "Сфера неуязвимости",
+      "englishName": "Globe of Invulnerability",
+      "level": 6,
+      "classIds": ["sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10530-globe-of-invulnerability"
+    },
+    {
+      "id": "wall-of-thorns",
+      "name": "Терновая стена",
+      "englishName": "Wall of Thorns",
+      "level": 6,
+      "classIds": ["druid"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10698-wall-of-thorns"
+    },
+    {
+      "id": "wind-walk",
+      "name": "Хождение по ветру",
+      "englishName": "Wind Walk",
+      "level": 6,
+      "classIds": ["druid"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10702-wind-walk"
+    },
+    {
+      "id": "chain-lightning",
+      "name": "Цепная молния",
+      "englishName": "Chain Lightning",
+      "level": 6,
+      "classIds": ["sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10454-chain-lightning"
+    },
+    {
+      "id": "freezing-sphere",
+      "name": "Freezing Sphere",
+      "englishName": "Freezing Sphere",
+      "level": 6,
+      "classIds": ["sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1; русское название пока не сопоставлено.",
+      "referenceUrl": "https://www.dndbeyond.com/srd"
+    },
+    {
+      "id": "instant-summons",
+      "name": "Instant Summons",
+      "englishName": "Instant Summons",
+      "level": 6,
+      "classIds": ["wizard"],
+      "description": "Официальное заклинание SRD 5.2.1; русское название пока не сопоставлено.",
+      "referenceUrl": "https://www.dndbeyond.com/srd"
+    },
+    {
+      "id": "irresistible-dance",
+      "name": "Irresistible Dance",
+      "englishName": "Irresistible Dance",
+      "level": 6,
+      "classIds": ["bard", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1; русское название пока не сопоставлено.",
+      "referenceUrl": "https://www.dndbeyond.com/srd"
+    },
+    {
+      "id": "divine-word",
+      "name": "Божественное слово",
+      "englishName": "Divine Word",
+      "level": 7,
+      "classIds": ["cleric"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10486-divine-word"
+    },
+    {
+      "id": "resurrection",
+      "name": "Воскрешение",
+      "englishName": "Resurrection",
+      "level": 7,
+      "classIds": ["bard", "cleric"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10626-resurrection"
+    },
+    {
+      "id": "delayed-blast-fireball",
+      "name": "Замедленный огненный шар",
+      "englishName": "Delayed Blast Fireball",
+      "level": 7,
+      "classIds": ["sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10475-delayed-blast-fireball"
+    },
+    {
+      "id": "symbol",
+      "name": "Знак",
+      "englishName": "Symbol",
+      "level": 7,
+      "classIds": ["bard", "cleric", "druid", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10667-symbol"
+    },
+    {
+      "id": "reverse-gravity",
+      "name": "Изменение тяготения",
+      "englishName": "Reverse Gravity",
+      "level": 7,
+      "classIds": ["druid", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10627-reverse-gravity"
+    },
+    {
+      "id": "sequester",
+      "name": "Изоляция",
+      "englishName": "Sequester",
+      "level": 7,
+      "classIds": ["wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10635-sequester"
+    },
+    {
+      "id": "fire-storm",
+      "name": "Огненная буря",
+      "englishName": "Fire Storm",
+      "level": 7,
+      "classIds": ["cleric", "druid", "sorcerer"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10513-fire-storm"
+    },
+    {
+      "id": "finger-of-death",
+      "name": "Перст смерти",
+      "englishName": "Finger of Death",
+      "level": 7,
+      "classIds": ["sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10510-finger-of-death"
+    },
+    {
+      "id": "plane-shift",
+      "name": "Планарный переход",
+      "englishName": "Plane Shift",
+      "level": 7,
+      "classIds": ["cleric", "druid", "sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10602-plane-shift"
+    },
+    {
+      "id": "conjure-celestial",
+      "name": "Призыв небожителя",
+      "englishName": "Conjure Celestial",
+      "level": 7,
+      "classIds": ["cleric"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10206-conjure-celestial"
+    },
+    {
+      "id": "project-image",
+      "name": "Проекция",
+      "englishName": "Project Image",
+      "level": 7,
+      "classIds": ["bard", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10615-project-image"
+    },
+    {
+      "id": "prismatic-spray",
+      "name": "Радужные брызги",
+      "englishName": "Prismatic Spray",
+      "level": 7,
+      "classIds": ["bard", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10611-prismatic-spray"
+    },
+    {
+      "id": "regenerate",
+      "name": "Регенерация",
+      "englishName": "Regenerate",
+      "level": 7,
+      "classIds": ["bard", "cleric", "druid"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10622-regenerate"
+    },
+    {
+      "id": "simulacrum",
+      "name": "Симулякр",
+      "englishName": "Simulacrum",
+      "level": 7,
+      "classIds": ["wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10643-simulacrum"
+    },
+    {
+      "id": "mirage-arcane",
+      "name": "Таинственный мираж",
+      "englishName": "Mirage Arcane",
+      "level": 7,
+      "classIds": ["bard", "druid", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10583-mirage-arcane"
+    },
+    {
+      "id": "teleport",
+      "name": "Телепортация",
+      "englishName": "Teleport",
+      "level": 7,
+      "classIds": ["bard", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10673-teleport"
+    },
+    {
+      "id": "forcecage",
+      "name": "Узилище",
+      "englishName": "Forcecage",
+      "level": 7,
+      "classIds": ["bard", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10520-forcecage"
+    },
+    {
+      "id": "etherealness",
+      "name": "Эфирность",
+      "englishName": "Etherealness",
+      "level": 7,
+      "classIds": ["bard", "cleric", "sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10498-etherealness"
+    },
+    {
+      "id": "arcane-sword",
+      "name": "Arcane Sword",
+      "englishName": "Arcane Sword",
+      "level": 7,
+      "classIds": ["bard", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1; русское название пока не сопоставлено.",
+      "referenceUrl": "https://www.dndbeyond.com/srd"
+    },
+    {
+      "id": "magnificent-mansion",
+      "name": "Magnificent Mansion",
+      "englishName": "Magnificent Mansion",
+      "level": 7,
+      "classIds": ["bard", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1; русское название пока не сопоставлено.",
+      "referenceUrl": "https://www.dndbeyond.com/srd"
+    },
+    {
+      "id": "antipathy-sympathy",
+      "name": "Антипатия/симпатия",
+      "englishName": "Antipathy/Sympathy",
+      "level": 8,
+      "classIds": ["bard", "druid", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10426-antipathy-sympathy"
+    },
+    {
+      "id": "holy-aura",
+      "name": "Аура святости",
+      "englishName": "Holy Aura",
+      "level": 8,
+      "classIds": ["cleric"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10544-holy-aura"
+    },
+    {
+      "id": "control-weather",
+      "name": "Власть над погодой",
+      "englishName": "Control Weather",
+      "level": 8,
+      "classIds": ["cleric", "druid", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10218-control-weather"
+    },
+    {
+      "id": "incendiary-cloud",
+      "name": "Воспламеняющаяся туча",
+      "englishName": "Incendiary Cloud",
+      "level": 8,
+      "classIds": ["druid", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10552-incendiary-cloud"
+    },
+    {
+      "id": "demiplane",
+      "name": "Демиплан",
+      "englishName": "Demiplane",
+      "level": 8,
+      "classIds": ["sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10476-demiplane"
+    },
+    {
+      "id": "earthquake",
+      "name": "Землетрясение",
+      "englishName": "Earthquake",
+      "level": 8,
+      "classIds": ["cleric", "druid", "sorcerer"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10493-earthquake"
+    },
+    {
+      "id": "clone",
+      "name": "Клон",
+      "englishName": "Clone",
+      "level": 8,
+      "classIds": ["wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10462-clone"
+    },
+    {
+      "id": "maze",
+      "name": "Лабиринт",
+      "englishName": "Maze",
+      "level": 8,
+      "classIds": ["wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10574-maze"
+    },
+    {
+      "id": "glibness",
+      "name": "Находчивость",
+      "englishName": "Glibness",
+      "level": 8,
+      "classIds": ["bard", "warlock"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10529-glibness"
+    },
+    {
+      "id": "dominate-monster",
+      "name": "Подчинение монстра",
+      "englishName": "Dominate Monster",
+      "level": 8,
+      "classIds": ["bard", "sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10487-dominate-monster"
+    },
+    {
+      "id": "antimagic-field",
+      "name": "Поле антимагии",
+      "englishName": "Antimagic Field",
+      "level": 8,
+      "classIds": ["cleric", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10425-antimagic-field"
+    },
+    {
+      "id": "befuddlement",
+      "name": "Помутнение разума",
+      "englishName": "Befuddlement",
+      "level": 8,
+      "classIds": ["bard", "druid", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10440-befuddlement"
+    },
+    {
+      "id": "animal-shapes",
+      "name": "Превращение в животных",
+      "englishName": "Animal Shapes",
+      "level": 8,
+      "classIds": ["druid"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10421-animal-shapes"
+    },
+    {
+      "id": "power-word-stun",
+      "name": "Слово силы: ошеломление",
+      "englishName": "Power Word Stun",
+      "level": 8,
+      "classIds": ["bard", "sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10608-power-word-stun"
+    },
+    {
+      "id": "mind-blank",
+      "name": "Сокрытие разума",
+      "englishName": "Mind Blank",
+      "level": 8,
+      "classIds": ["bard", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10579-mind-blank"
+    },
+    {
+      "id": "sunburst",
+      "name": "Солнечный ожог",
+      "englishName": "Sunburst",
+      "level": 8,
+      "classIds": ["cleric", "druid", "sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10666-sunburst"
+    },
+    {
+      "id": "tsunami",
+      "name": "Цунами",
+      "englishName": "Tsunami",
+      "level": 8,
+      "classIds": ["druid"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10689-tsunami"
+    },
+    {
+      "id": "gate",
+      "name": "Врата",
+      "englishName": "Gate",
+      "level": 9,
+      "classIds": ["cleric", "sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10525-gate"
+    },
+    {
+      "id": "storm-of-vengeance",
+      "name": "Гроза гнева",
+      "englishName": "Storm of Vengeance",
+      "level": 9,
+      "classIds": ["druid"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10657-storm-of-vengeance"
+    },
+    {
+      "id": "wish",
+      "name": "Желание",
+      "englishName": "Wish",
+      "level": 9,
+      "classIds": ["sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10703-wish"
+    },
+    {
+      "id": "weird",
+      "name": "Жуть",
+      "englishName": "Weird",
+      "level": 9,
+      "classIds": ["warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10701-weird"
+    },
+    {
+      "id": "imprisonment",
+      "name": "Заточение",
+      "englishName": "Imprisonment",
+      "level": 9,
+      "classIds": ["warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10551-imprisonment"
+    },
+    {
+      "id": "true-resurrection",
+      "name": "Истинное воскрешение",
+      "englishName": "True Resurrection",
+      "level": 9,
+      "classIds": ["cleric", "druid"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10686-true-resurrection"
+    },
+    {
+      "id": "true-polymorph",
+      "name": "Истинное превращение",
+      "englishName": "True Polymorph",
+      "level": 9,
+      "classIds": ["bard", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10685-true-polymorph"
+    },
+    {
+      "id": "meteor-swarm",
+      "name": "Метеоритный дождь",
+      "englishName": "Meteor Swarm",
+      "level": 9,
+      "classIds": ["sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10578-meteor-swarm"
+    },
+    {
+      "id": "mass-heal",
+      "name": "Множественное исцеление",
+      "englishName": "Mass Heal",
+      "level": 9,
+      "classIds": ["cleric"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10571-mass-heal"
+    },
+    {
+      "id": "time-stop",
+      "name": "Остановка времени",
+      "englishName": "Time Stop",
+      "level": 9,
+      "classIds": ["sorcerer", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10681-time-stop"
+    },
+    {
+      "id": "foresight",
+      "name": "Предвидение",
+      "englishName": "Foresight",
+      "level": 9,
+      "classIds": ["bard", "druid", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10521-foresight"
+    },
+    {
+      "id": "shapechange",
+      "name": "Преображение",
+      "englishName": "Shapechange",
+      "level": 9,
+      "classIds": ["druid", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10636-shapechange"
+    },
+    {
+      "id": "astral-projection",
+      "name": "Проекция в астрал",
+      "englishName": "Astral Projection",
+      "level": 9,
+      "classIds": ["cleric", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10433-astral-projection"
+    },
+    {
+      "id": "prismatic-wall",
+      "name": "Радужная стена",
+      "englishName": "Prismatic Wall",
+      "level": 9,
+      "classIds": ["bard", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10612-prismatic-wall"
+    },
+    {
+      "id": "power-word-heal",
+      "name": "Слово силы: исцеление",
+      "englishName": "Power Word Heal",
+      "level": 9,
+      "classIds": ["bard", "cleric"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10606-power-word-heal"
+    },
+    {
+      "id": "power-word-kill",
+      "name": "Слово силы: смерть",
+      "englishName": "Power Word Kill",
+      "level": 9,
+      "classIds": ["bard", "sorcerer", "warlock", "wizard"],
+      "description": "Официальное заклинание SRD 5.2.1. Полное русское описание доступно в справочнике dnd.su.",
+      "referenceUrl": "https://next.dnd.su/spells/10607-power-word-kill"
+    }
+  ]
+}

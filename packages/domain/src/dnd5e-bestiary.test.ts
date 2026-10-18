@@ -20,7 +20,9 @@ describe('D&D 5e SRD 5.2.1 bestiary', () => {
     const goblin = dnd5eMonsterById('srd:goblin');
 
     expect(goblin).toMatchObject({
-      name: 'Goblin',
+      name: 'Гоблин',
+      englishName: 'Goblin',
+      referenceUrl: expect.stringContaining('dnd.su/bestiary/'),
       challengeRating: '1/4',
       experiencePoints: 50,
       armorClass: 15,
@@ -29,12 +31,19 @@ describe('D&D 5e SRD 5.2.1 bestiary', () => {
       license: 'CC-BY-4.0',
     });
     expect(goblin?.actions.length).toBeGreaterThan(0);
+    expect(goblin?.actions[0]).toMatchObject({
+      name: 'Скимитар',
+      description: expect.stringContaining('Рукопашная атака оружием'),
+    });
   });
 
   it('filters summaries by name, type, and challenge rating', () => {
-    expect(searchDnd5eMonsters({ query: 'goblin' }).map(({ name }) => name)).toContain('Goblin');
+    expect(searchDnd5eMonsters({ query: 'goblin' }).map(({ name }) => name)).toContain('Гоблин');
+    expect(
+      searchDnd5eMonsters({ query: 'гоблин' }).map(({ englishName }) => englishName),
+    ).toContain('Goblin');
     expect(searchDnd5eMonsters({ type: 'dragon', challengeRating: '17' })).toEqual(
-      expect.arrayContaining([expect.objectContaining({ name: 'Adult Red Dragon' })]),
+      expect.arrayContaining([expect.objectContaining({ name: 'Взрослый красный дракон' })]),
     );
   });
 

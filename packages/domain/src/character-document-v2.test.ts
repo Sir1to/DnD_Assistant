@@ -145,4 +145,36 @@ describe('character document v2', () => {
     ).toBe(true);
     expect(dnd5eCharacterRuleCoverage.some(({ status }) => status === 'PLANNED')).toBe(true);
   });
+
+  it('rejects equipment outside the guided starting package', () => {
+    const { document } = migrateCharacterSheetDataV1(legacyFighter, 'GUIDED');
+    document.inventory.equipment.push({
+      optionId: 'spellbook',
+      name: 'Книга заклинаний',
+      quantity: 1,
+      notes: '',
+    });
+
+    expect(validateCharacterDocumentV2(document)).toContainEqual(
+      expect.objectContaining({
+        code: 'equipment.not-starting-option',
+        path: '/inventory/equipment/2/optionId',
+        severity: 'ERROR',
+      }),
+    );
+  });
+
+  it('rejects a class spell above the character spell level', () => {
+    const { document } = migrateCharacterSheetDataV1(legacyFighter, 'GUIDED');
+    document.identity.classId = 'wizard';
+    document.choices.spellIds = ['wish'];
+
+    expect(validateCharacterDocumentV2(document)).toContainEqual(
+      expect.objectContaining({
+        code: 'spell.level-too-high',
+        path: '/choices/spellIds',
+        severity: 'ERROR',
+      }),
+    );
+  });
 });

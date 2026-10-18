@@ -68,6 +68,8 @@ export const dnd5eChallengeRatingSchema = z.enum([
 export const dnd5eMonsterSummarySchema = z.object({
   id: z.string().regex(/^srd:[a-z0-9-]+$/),
   name: z.string().min(1),
+  englishName: z.string().min(1),
+  referenceUrl: z.string().url(),
   size: dnd5eMonsterSizeSchema,
   type: dnd5eMonsterTypeSchema,
   challengeRating: dnd5eChallengeRatingSchema,

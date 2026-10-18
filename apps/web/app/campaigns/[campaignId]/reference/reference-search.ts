@@ -93,9 +93,10 @@ function buildCandidates(source: ReferenceSearchSource): SearchCandidate[] {
       id: monster.id,
       title: monster.name,
       eyebrow: `Существо · CR ${monster.challengeRating}`,
-      description: `${monster.size} ${monster.type} · КД ${monster.armorClass} · ${monster.hitPoints} HP`,
+      description: `${monster.englishName} · ${monster.size} ${monster.type} · КД ${monster.armorClass} · ${monster.hitPoints} HP`,
       searchable: searchableText(
         monster.name,
+        monster.englishName,
         monster.size,
         monster.type,
         `CR ${monster.challengeRating}`,
@@ -110,6 +111,7 @@ function buildCandidates(source: ReferenceSearchSource): SearchCandidate[] {
       description: spell.description,
       searchable: searchableText(
         spell.name,
+        spell.englishName,
         spell.description,
         spell.level === 0 ? 'заговор' : `${spell.level} уровень`,
         ...spell.classIds,

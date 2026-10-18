@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { findBattleReachableCells } from './battle';
+import { findBattleReachableCells, isBattlePositionInsideShape } from './battle';
 import { battleSystemAssetById } from './battle-assets';
 import { generateRandomBattleMap, type GenerateRandomBattleMapInput } from './battle-map-generator';
 
@@ -81,6 +81,26 @@ describe('random battle map generation', () => {
     for (let left = 0; left < rectangles.length; left += 1) {
       for (let right = left + 1; right < rectangles.length; right += 1) {
         expect(intersects(rectangles[left]!, rectangles[right]!)).toBe(false);
+      }
+    }
+  });
+
+  it('places visible entrances on the actual map boundary', () => {
+    for (const shape of ['RECTANGLE', 'CIRCLE', 'HEXAGON', 'OCTAGON'] as const) {
+      const map = generateRandomBattleMap({ ...input, shape, seed: `entrances-${shape}` });
+      const entrances = map.objects.filter(
+        ({ name }) => name === 'Вход' || name === 'Выход' || name.startsWith('Дополнительный вход'),
+      );
+      expect(entrances.map(({ name }) => name)).toEqual(['Вход', 'Выход']);
+      for (const entrance of entrances) {
+        expect(
+          [
+            { x: entrance.x - 1, y: entrance.y },
+            { x: entrance.x + 1, y: entrance.y },
+            { x: entrance.x, y: entrance.y - 1 },
+            { x: entrance.x, y: entrance.y + 1 },
+          ].some(({ x, y }) => !isBattlePositionInsideShape(map.scene, x, y)),
+        ).toBe(true);
       }
     }
   });

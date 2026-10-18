@@ -6,6 +6,7 @@ import {
   dnd5eEquipment,
   dnd5eSpecies,
   dnd5eSpells,
+  maximumDnd5eSpellLevel,
   pointBuySpent,
   type AbilityKey,
   type AbilityScores,
@@ -499,10 +500,26 @@ export function validateCharacterDocumentV2(document: CharacterDocumentV2): Char
           `Заклинание «${spellId}» недоступно выбранному классу.`,
         ),
       );
+    } else if (
+      characterClass &&
+      spell.level > maximumDnd5eSpellLevel(characterClass.id, document.identity.level)
+    ) {
+      issues.push(
+        issue(
+          'spell.level-too-high',
+          '/choices/spellIds',
+          'ERROR',
+          `Заклинание «${spell.name}» недоступно на ${document.identity.level} уровне класса.`,
+        ),
+      );
     }
   }
 
   const equipmentIds = new Set(dnd5eEquipment.map(({ id }) => id));
+  const guidedEquipmentIds = new Set([
+    ...(characterClass?.starterEquipmentIds ?? []),
+    ...(background?.equipmentIds ?? []),
+  ]);
   for (const [index, item] of document.inventory.equipment.entries()) {
     if (item.optionId && !equipmentIds.has(item.optionId)) {
       issues.push(
@@ -511,6 +528,21 @@ export function validateCharacterDocumentV2(document: CharacterDocumentV2): Char
           `/inventory/equipment/${index}/optionId`,
           'ERROR',
           `Предмет «${item.optionId}» отсутствует в rule pack.`,
+        ),
+      );
+    }
+    if (
+      document.creation.mode !== 'MANUAL' &&
+      item.optionId &&
+      equipmentIds.has(item.optionId) &&
+      !guidedEquipmentIds.has(item.optionId)
+    ) {
+      issues.push(
+        issue(
+          'equipment.not-starting-option',
+          `/inventory/equipment/${index}/optionId`,
+          'ERROR',
+          `Предмет «${item.name}» не входит в стартовый комплект выбранных класса и предыстории.`,
         ),
       );
     }
