@@ -26,6 +26,9 @@ type CharacterMasterCorrectionRecord = {
   revision: number;
 };
 
+type CharacterShareSectionRecord =
+  'ABILITIES' | 'COMBAT' | 'SKILLS' | 'SPELLS' | 'INVENTORY' | 'PROFILE' | 'NOTES' | 'RUNTIME';
+
 export const campaignRole = pgEnum('campaign_role', ['OWNER', 'GM', 'PLAYER']);
 export const boardViewAudience = pgEnum('board_view_audience', ['MASTER', 'PLAYERS']);
 export const loreCategory = pgEnum('lore_category', [
@@ -527,6 +530,38 @@ export const characterDocumentRevisions = pgTable(
     check(
       'character_document_revisions_summary_length',
       sql`${table.summary} is null or char_length(${table.summary}) between 1 and 500`,
+    ),
+  ],
+);
+
+export const characterShareGrants = pgTable(
+  'character_share_grants',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    sheetId: uuid('sheet_id')
+      .notNull()
+      .references(() => characterSheets.id, { onDelete: 'cascade' }),
+    createdByUserId: uuid('created_by_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    tokenHash: text('token_hash').notNull(),
+    sections: jsonb('sections').$type<CharacterShareSectionRecord[]>().notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('character_share_grants_token_hash_unique').on(table.tokenHash),
+    index('character_share_grants_sheet_created_index').on(table.sheetId, table.createdAt),
+    check('character_share_grants_token_hash_format', sql`${table.tokenHash} ~ '^[0-9a-f]{64}$'`),
+    check('character_share_grants_sections_array', sql`jsonb_typeof(${table.sections}) = 'array'`),
+    check(
+      'character_share_grants_sections_nonempty',
+      sql`jsonb_array_length(${table.sections}) between 1 and 8`,
+    ),
+    check(
+      'character_share_grants_expiry_after_creation',
+      sql`${table.expiresAt} > ${table.createdAt}`,
     ),
   ],
 );

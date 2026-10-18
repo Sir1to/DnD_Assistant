@@ -14,12 +14,16 @@ import type {
   CharacterFolcharImportPreview,
   CharacterOptionsResponse,
   CharacterSheet,
+  CharacterShareGrantsResponse,
+  CharacterShareSection,
   CharacterSheetData,
   CreateCharacterSheetRequest,
+  CreatedCharacterShareGrant,
   ImportCharacterSheetRequest,
   PortableCharacterSheet,
   UpdateCharacterSheetRequest,
 } from '@fog-of-lore/contracts';
+import { defaultCharacterShareSections } from '@fog-of-lore/contracts';
 import {
   applyDnd5eGuidedIdentity,
   abilityModifier,
@@ -1011,6 +1015,7 @@ function CharacterV2Summary({
 }) {
   const queryClient = useQueryClient();
   const portraitRef = useRef<HTMLInputElement>(null);
+  const [shareOpen, setShareOpen] = useState(false);
   const documentQuery = useQuery({
     queryKey: ['character-document', sheet.id, sheet.revision],
     queryFn: () => apiRequest<CharacterDocumentResponse>(`/characters/${sheet.id}/document`),
@@ -1087,6 +1092,9 @@ function CharacterV2Summary({
           <Button tone="quiet" onClick={() => window.print()}>
             Печать A4
           </Button>
+          <Button tone="quiet" onClick={() => setShareOpen((open) => !open)}>
+            Публичная ссылка
+          </Button>
           <Button
             tone="quiet"
             disabled={portraitMutation.isPending}
@@ -1116,6 +1124,7 @@ function CharacterV2Summary({
           </Button>
         </div>
       </div>
+      {shareOpen ? <CharacterSharePanel sheetId={sheet.id} /> : null}
       <div className="character-v2-metrics">
         <span>
           <strong>{speciesName ?? 'Не выбран'}</strong>
@@ -1220,6 +1229,144 @@ function CharacterV2Summary({
   );
 }
 
+const characterShareSectionOptions: Array<{
+  id: CharacterShareSection;
+  label: string;
+  description: string;
+}> = [
+  { id: 'ABILITIES', label: 'Характеристики', description: 'Значения и модификаторы.' },
+  { id: 'COMBAT', label: 'Боевые параметры', description: 'Максимум HP, КД, скорость.' },
+  { id: 'SKILLS', label: 'Навыки', description: 'Выбранные владения навыками.' },
+  { id: 'SPELLS', label: 'Заклинания', description: 'Известные заклинания и их круг.' },
+  { id: 'INVENTORY', label: 'Инвентарь', description: 'Предметы, количество и заметки к ним.' },
+  { id: 'PROFILE', label: 'История героя', description: 'Характер, внешность и предыстория.' },
+  { id: 'NOTES', label: 'Личные заметки', description: 'Может содержать закрытые сведения.' },
+  { id: 'RUNTIME', label: 'Текущее состояние', description: 'HP, ресурсы, ячейки и состояния.' },
+];
+
+function CharacterSharePanel({ sheetId }: { sheetId: string }) {
+  const queryClient = useQueryClient();
+  const [expiresInDays, setExpiresInDays] = useState(7);
+  const [sections, setSections] = useState<CharacterShareSection[]>([
+    ...defaultCharacterShareSections,
+  ]);
+  const [createdUrl, setCreatedUrl] = useState('');
+  const grantsQuery = useQuery({
+    queryKey: ['character-share-grants', sheetId],
+    queryFn: () => apiRequest<CharacterShareGrantsResponse>(`/characters/${sheetId}/share-grants`),
+  });
+  const createMutation = useMutation({
+    mutationFn: () =>
+      apiRequest<CreatedCharacterShareGrant>(`/characters/${sheetId}/share-grants`, {
+        method: 'POST',
+        body: JSON.stringify({ expiresInDays, sections }),
+      }),
+    onSuccess: async (grant) => {
+      setCreatedUrl(`${window.location.origin}/share/characters/${grant.token}`);
+      await queryClient.invalidateQueries({ queryKey: ['character-share-grants', sheetId] });
+    },
+  });
+  const revokeMutation = useMutation({
+    mutationFn: (grantId: string) =>
+      apiRequest<void>(`/character-share-grants/${grantId}`, { method: 'DELETE' }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['character-share-grants', sheetId] });
+    },
+  });
+  const now = Date.now();
+  const toggleSection = (section: CharacterShareSection) =>
+    setSections((current) =>
+      current.includes(section)
+        ? current.filter((item) => item !== section)
+        : [...current, section],
+    );
+
+  return (
+    <section className="character-share-panel" aria-label="Публичные ссылки персонажа">
+      <div className="section-title">
+        <div>
+          <h3>Read-only карточка</h3>
+          <p>Ссылка не требует входа и открывает только отмеченные ниже разделы.</p>
+        </div>
+        <Field label="Срок действия">
+          <select
+            value={expiresInDays}
+            onChange={(event) => setExpiresInDays(Number(event.target.value))}
+          >
+            <option value={1}>1 день</option>
+            <option value={7}>7 дней</option>
+            <option value={14}>14 дней</option>
+            <option value={30}>30 дней</option>
+          </select>
+        </Field>
+      </div>
+      <div className="character-share-policy">
+        {characterShareSectionOptions.map((option) => (
+          <label key={option.id}>
+            <input
+              type="checkbox"
+              checked={sections.includes(option.id)}
+              onChange={() => toggleSection(option.id)}
+            />
+            <span>
+              <strong>{option.label}</strong>
+              <small>{option.description}</small>
+            </span>
+          </label>
+        ))}
+      </div>
+      <div className="character-share-actions">
+        <Button
+          disabled={createMutation.isPending || sections.length === 0}
+          onClick={() => createMutation.mutate()}
+        >
+          {createMutation.isPending ? 'Создаём…' : 'Создать ссылку'}
+        </Button>
+        <span>Токен хранится на сервере только в виде хэша.</span>
+      </div>
+      {createdUrl ? (
+        <div className="character-share-created">
+          <input aria-label="Новая публичная ссылка" readOnly value={createdUrl} />
+          <Button tone="quiet" onClick={() => void navigator.clipboard.writeText(createdUrl)}>
+            Копировать
+          </Button>
+        </div>
+      ) : null}
+      {createMutation.error || revokeMutation.error || grantsQuery.error ? (
+        <p className="form-error">
+          {readableError(createMutation.error ?? revokeMutation.error ?? grantsQuery.error)}
+        </p>
+      ) : null}
+      <div className="character-share-grants">
+        {grantsQuery.data?.grants.map((grant) => {
+          const expired = new Date(grant.expiresAt).getTime() <= now;
+          const inactive = Boolean(grant.revokedAt) || expired;
+          return (
+            <article key={grant.id}>
+              <div>
+                <strong>{inactive ? 'Недействующая ссылка' : 'Активная ссылка'}</strong>
+                <span>
+                  до {new Date(grant.expiresAt).toLocaleString('ru-RU')} · разделов{' '}
+                  {grant.sections.length}
+                </span>
+              </div>
+              {!inactive ? (
+                <Button
+                  tone="quiet"
+                  disabled={revokeMutation.isPending}
+                  onClick={() => revokeMutation.mutate(grant.id)}
+                >
+                  Отозвать
+                </Button>
+              ) : null}
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function GuidedCharacterBuilder({
   existingSheet,
   initialMode,
@@ -1273,6 +1420,20 @@ function GuidedCharacterBuilder({
   const guidedSteps = options.guided.steps;
   const currentStep = guidedSteps[step] ?? guidedSteps[guidedSteps.length - 1]!;
   const stepId = currentStep.id;
+  const currentStepIssues = issues.filter(
+    (issue) => stepId === 'review' || characterIssueStep(issue.path) === stepId,
+  );
+  const currentStepBlockingIssues = currentStepIssues.filter(
+    (issue) =>
+      issue.severity === 'ERROR' &&
+      !(
+        document.creation.mode === 'MANUAL' &&
+        ['species.unknown', 'class.unknown', 'background.unknown'].includes(issue.code)
+      ),
+  );
+  const currentStepComplete =
+    (stepId !== 'concept' || document.creation.mode === 'MANUAL' || Boolean(name.trim())) &&
+    currentStepBlockingIssues.length === 0;
   const saveMutation = useMutation({
     mutationFn: async () => {
       const status = blockingIssues.length ? 'DRAFT' : 'READY';
@@ -1396,7 +1557,7 @@ function GuidedCharacterBuilder({
                   <option value="">Выберите вид</option>
                   {options.species.map((item) => (
                     <option key={item.id} value={item.id}>
-                      {item.name} · {item.description}
+                      {item.name} · {item.source} · {item.description}
                     </option>
                   ))}
                 </select>
@@ -1589,6 +1750,7 @@ function GuidedCharacterBuilder({
                         {spell.level === 0 ? 'заговор' : `${spell.level} уровень`} ·{' '}
                         {spell.description}
                       </small>
+                      {spell.englishName !== spell.name ? <small>{spell.englishName}</small> : null}
                     </label>
                   ))}
                 </div>
@@ -1602,38 +1764,51 @@ function GuidedCharacterBuilder({
           {stepId === 'equipment' ? (
             <>
               {masterCorrectionPaths.has('/inventory/equipment') ? <MasterCorrectionBadge /> : null}
+              {document.creation.mode !== 'MANUAL' ? (
+                <p className="choice-help">
+                  Стартовый комплект определяется выбранными классом и предысторией. Произвольные
+                  предметы можно добавить позже в ручном режиме по согласованию с мастером.
+                </p>
+              ) : null}
               <div className="guided-checkbox-grid">
-                {options.equipment.map((item) => (
-                  <label key={item.id}>
-                    <input
-                      checked={document.inventory.equipment.some(
-                        ({ optionId }) => optionId === item.id,
-                      )}
-                      type="checkbox"
-                      onChange={() =>
-                        patch((current) => ({
-                          ...current,
-                          inventory: {
-                            equipment: current.inventory.equipment.some(
-                              ({ optionId }) => optionId === item.id,
-                            )
-                              ? current.inventory.equipment.filter(
-                                  ({ optionId }) => optionId !== item.id,
-                                )
-                              : [
-                                  ...current.inventory.equipment,
-                                  { optionId: item.id, name: item.name, quantity: 1, notes: '' },
-                                ],
-                          },
-                        }))
-                      }
-                    />{' '}
-                    <strong>{item.name}</strong>
-                    <small>
-                      {item.category.toLowerCase()} · {item.cost} · {item.description}
-                    </small>
-                  </label>
-                ))}
+                {options.equipment
+                  .filter(
+                    (item) =>
+                      document.creation.mode === 'MANUAL' ||
+                      guidedChoices.availableEquipmentIds.includes(item.id),
+                  )
+                  .map((item) => (
+                    <label key={item.id}>
+                      <input
+                        checked={document.inventory.equipment.some(
+                          ({ optionId }) => optionId === item.id,
+                        )}
+                        disabled={document.creation.mode !== 'MANUAL'}
+                        type="checkbox"
+                        onChange={() =>
+                          patch((current) => ({
+                            ...current,
+                            inventory: {
+                              equipment: current.inventory.equipment.some(
+                                ({ optionId }) => optionId === item.id,
+                              )
+                                ? current.inventory.equipment.filter(
+                                    ({ optionId }) => optionId !== item.id,
+                                  )
+                                : [
+                                    ...current.inventory.equipment,
+                                    { optionId: item.id, name: item.name, quantity: 1, notes: '' },
+                                  ],
+                            },
+                          }))
+                        }
+                      />{' '}
+                      <strong>{item.name}</strong>
+                      <small>
+                        {item.category.toLowerCase()} · {item.cost} · {item.description}
+                      </small>
+                    </label>
+                  ))}
               </div>
             </>
           ) : null}
@@ -1741,6 +1916,19 @@ function GuidedCharacterBuilder({
               ) : null}
             </>
           ) : null}
+          {stepId !== 'review' && currentStepIssues.length > 0 ? (
+            <div className="character-v2-issues" aria-live="polite">
+              {currentStepIssues.map((issue) => (
+                <p
+                  key={`${issue.code}:${issue.path}`}
+                  className={issue.severity === 'ERROR' ? 'form-error' : ''}
+                >
+                  {issue.severity === 'ERROR' ? 'Исправьте сейчас: ' : 'Совет: '}
+                  {issue.message}
+                </p>
+              ))}
+            </div>
+          ) : null}
         </div>
         {saveMutation.error ? (
           <p className="form-error">{readableError(saveMutation.error)}</p>
@@ -1753,7 +1941,12 @@ function GuidedCharacterBuilder({
             {step === 0 ? 'Отмена' : 'Назад'}
           </Button>
           {step < guidedSteps.length - 1 ? (
-            <Button onClick={() => setStep((current) => current + 1)}>Дальше</Button>
+            <Button
+              disabled={!currentStepComplete}
+              onClick={() => setStep((current) => current + 1)}
+            >
+              Дальше
+            </Button>
           ) : (
             <Button
               disabled={
@@ -1947,6 +2140,19 @@ function PrintableCharacterSheet({
       <footer>Сформировано Fog of Lore · светлая печатная версия A4</footer>
     </article>
   );
+}
+
+function characterIssueStep(path: string): string {
+  if (path.startsWith('/identity/speciesId') || path.startsWith('/identity/backgroundId')) {
+    return 'origin';
+  }
+  if (path.startsWith('/identity/')) return 'class';
+  if (path.startsWith('/abilities/')) return 'abilities';
+  if (path.startsWith('/choices/skillIds')) return 'skills';
+  if (path.startsWith('/choices/spellIds')) return 'spells';
+  if (path.startsWith('/inventory/equipment')) return 'equipment';
+  if (path.startsWith('/profile/')) return 'story';
+  return 'review';
 }
 
 function formatCounters(counters: Record<string, number>): string {

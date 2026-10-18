@@ -339,6 +339,82 @@ export const characterFolcharImportPreviewSchema = z.object({
   hasPortrait: z.boolean(),
 });
 
+export const characterShareSectionSchema = z.enum([
+  'ABILITIES',
+  'COMBAT',
+  'SKILLS',
+  'SPELLS',
+  'INVENTORY',
+  'PROFILE',
+  'NOTES',
+  'RUNTIME',
+]);
+
+export const defaultCharacterShareSections = characterShareSectionSchema.options.filter(
+  (section) => section !== 'NOTES' && section !== 'RUNTIME',
+);
+
+export const createCharacterShareGrantRequestSchema = z.object({
+  expiresInDays: z.int().min(1).max(30).default(7),
+  sections: z
+    .array(characterShareSectionSchema)
+    .min(1)
+    .max(characterShareSectionSchema.options.length)
+    .default(defaultCharacterShareSections)
+    .refine((sections) => new Set(sections).size === sections.length, {
+      message: 'Shared sections must be unique',
+    }),
+});
+
+export const characterShareGrantSchema = z.object({
+  id: z.string().uuid(),
+  sections: z.array(characterShareSectionSchema).min(1),
+  expiresAt: z.string().datetime(),
+  revokedAt: z.string().datetime().nullable(),
+  createdAt: z.string().datetime(),
+});
+
+export const characterShareGrantsResponseSchema = z.object({
+  grants: z.array(characterShareGrantSchema),
+});
+
+export const createdCharacterShareGrantSchema = characterShareGrantSchema.extend({
+  token: z.string().regex(/^[A-Za-z0-9_-]{43}$/),
+});
+
+export const publicCharacterCardSchema = z.object({
+  name: z.string().trim().min(1).max(160),
+  ruleset: characterRulesetSchema,
+  rulesetVersion: z.literal('5.2.1'),
+  status: z.enum(['DRAFT', 'READY']),
+  expiresAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+  sections: z.array(characterShareSectionSchema).min(1),
+  hasPortrait: z.boolean(),
+  identity: z.object({
+    level: z.int().min(1).max(20),
+    species: z.string(),
+    characterClass: z.string(),
+    background: z.string(),
+  }),
+  abilities: z
+    .object({ scores: abilityScoresSchema, modifiers: z.record(abilityKeySchema, z.int()) })
+    .nullable(),
+  combat: characterDerivedValuesSchema.nullable(),
+  skills: z.array(z.string()).nullable(),
+  spells: z.array(z.object({ name: z.string(), level: z.int().min(0).max(9) })).nullable(),
+  inventory: z.array(characterEquipmentItemSchema).nullable(),
+  profile: z
+    .object({
+      personality: z.string(),
+      appearance: z.string(),
+      backstory: z.string(),
+    })
+    .nullable(),
+  notes: z.string().nullable(),
+  runtime: characterRuntimeStateSchema.omit({ revision: true, updatedAt: true }).nullable(),
+});
+
 const optionSchema = z.object({ id: z.string(), name: z.string(), description: z.string() });
 export const characterClassOptionSchema = optionSchema.extend({
   hitDie: z.int(),
@@ -348,14 +424,19 @@ export const characterClassOptionSchema = optionSchema.extend({
   starterSpellIds: z.array(z.string()),
   starterEquipmentIds: z.array(z.string()),
 });
-export const characterSpeciesOptionSchema = optionSchema.extend({ speed: z.int() });
+export const characterSpeciesOptionSchema = optionSchema.extend({
+  speed: z.int(),
+  source: z.string().trim().min(1),
+});
 export const characterBackgroundOptionSchema = optionSchema.extend({
   skillIds: z.array(z.string()),
   equipmentIds: z.array(z.string()),
 });
 export const spellOptionSchema = optionSchema.extend({
+  englishName: z.string().trim().min(1),
   level: z.int().min(0).max(9),
   classIds: z.array(z.string()),
+  referenceUrl: z.string().url(),
 });
 export const equipmentOptionSchema = optionSchema.extend({
   category: z.enum(['WEAPON', 'ARMOR', 'GEAR', 'FOCUS']),
@@ -427,5 +508,13 @@ export type CampaignCharacterSheetsResponse = z.infer<typeof campaignCharacterSh
 export type PortableCharacterSheet = z.infer<typeof portableCharacterSheetSchema>;
 export type ImportCharacterSheetRequest = z.infer<typeof importCharacterSheetRequestSchema>;
 export type CharacterFolcharImportPreview = z.infer<typeof characterFolcharImportPreviewSchema>;
+export type CharacterShareSection = z.infer<typeof characterShareSectionSchema>;
+export type CreateCharacterShareGrantRequest = z.infer<
+  typeof createCharacterShareGrantRequestSchema
+>;
+export type CharacterShareGrant = z.infer<typeof characterShareGrantSchema>;
+export type CharacterShareGrantsResponse = z.infer<typeof characterShareGrantsResponseSchema>;
+export type CreatedCharacterShareGrant = z.infer<typeof createdCharacterShareGrantSchema>;
+export type PublicCharacterCard = z.infer<typeof publicCharacterCardSchema>;
 export type CharacterOptionsResponse = z.infer<typeof characterOptionsResponseSchema>;
 export type CharacterBuildTemplate = z.infer<typeof characterBuildTemplateSchema>;

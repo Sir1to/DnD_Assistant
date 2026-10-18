@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  createCharacterShareGrantRequestSchema,
   characterFolcharImportPreviewSchema,
   characterDocumentV2Schema,
   characterDocumentResponseSchema,
@@ -88,6 +89,17 @@ describe('character sheet contracts', () => {
 
   it('rejects a future or foreign sheet format', () => {
     expect(() => portableCharacterSheetSchema.parse({ format: 'unknown', version: 99 })).toThrow();
+  });
+
+  it('defaults public links to a seven-day safe field policy', () => {
+    const input = createCharacterShareGrantRequestSchema.parse({});
+    expect(input.expiresInDays).toBe(7);
+    expect(input.sections).toContain('PROFILE');
+    expect(input.sections).not.toContain('NOTES');
+    expect(input.sections).not.toContain('RUNTIME');
+    expect(() =>
+      createCharacterShareGrantRequestSchema.parse({ sections: ['PROFILE', 'PROFILE'] }),
+    ).toThrow();
   });
 
   it('validates versioned documents and isolated runtime state', () => {
