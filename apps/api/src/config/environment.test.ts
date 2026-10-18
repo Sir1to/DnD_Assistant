@@ -12,8 +12,24 @@ describe('environment validation', () => {
 
     expect(result.API_PORT).toBe(4000);
     expect(result.COOKIE_SECURE).toBe(false);
+    expect(result.TRUST_PROXY_HOPS).toBe(0);
     expect(result.APP_VERSION).toBe('0.1.0');
     expect(result.APP_COMMIT).toBe('development');
+  });
+
+  it('accepts a bounded reverse-proxy hop count', () => {
+    const result = validateEnvironment({
+      DATABASE_URL: 'postgresql://user:password@localhost:5432/fog_of_lore',
+      TRUST_PROXY_HOPS: '1',
+    });
+
+    expect(result.TRUST_PROXY_HOPS).toBe(1);
+    expect(() =>
+      validateEnvironment({
+        DATABASE_URL: 'postgresql://user:password@localhost:5432/fog_of_lore',
+        TRUST_PROXY_HOPS: '4',
+      }),
+    ).toThrow();
   });
 
   it('accepts release build metadata', () => {

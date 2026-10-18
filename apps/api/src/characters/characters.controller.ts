@@ -20,6 +20,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
   createCharacterSheetRequestSchema,
+  createCharacterShareGrantRequestSchema,
   importCharacterSheetRequestSchema,
   updateCharacterDocumentRequestSchema,
   updateCharacterRuntimeRequestSchema,
@@ -31,7 +32,10 @@ import {
   type CharacterOptionsResponse,
   type CharacterRuntimeState,
   type CharacterSheet,
+  type CharacterShareGrantsResponse,
   type CreateCharacterSheetRequest,
+  type CreateCharacterShareGrantRequest,
+  type CreatedCharacterShareGrant,
   type ImportCharacterSheetRequest,
   type PortableCharacterSheet,
   restoreCharacterDocumentRevisionRequestSchema,
@@ -221,6 +225,33 @@ export class CharactersController {
     @UploadedFile() file: UploadedAttachment | undefined,
   ): Promise<CharacterFolcharImportPreview> {
     return this.characters.previewFolchar(user.id, campaignId, file);
+  }
+
+  @Get('characters/:sheetId/share-grants')
+  public listShareGrants(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('sheetId', new ParseUUIDPipe({ version: '4' })) sheetId: string,
+  ): Promise<CharacterShareGrantsResponse> {
+    return this.characters.listShareGrants(user.id, sheetId);
+  }
+
+  @Post('characters/:sheetId/share-grants')
+  public createShareGrant(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('sheetId', new ParseUUIDPipe({ version: '4' })) sheetId: string,
+    @Body(new ZodValidationPipe(createCharacterShareGrantRequestSchema))
+    input: CreateCharacterShareGrantRequest,
+  ): Promise<CreatedCharacterShareGrant> {
+    return this.characters.createShareGrant(user.id, sheetId, input);
+  }
+
+  @Delete('character-share-grants/:grantId')
+  @HttpCode(204)
+  public revokeShareGrant(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('grantId', new ParseUUIDPipe({ version: '4' })) grantId: string,
+  ): Promise<void> {
+    return this.characters.revokeShareGrant(user.id, grantId);
   }
 
   @Delete('characters/:sheetId')

@@ -14,11 +14,17 @@ import type {
   CharacterFolcharImportPreview,
   CharacterMasterCorrection,
   CharacterOptionsResponse,
+  CharacterShareGrant,
+  CharacterShareGrantsResponse,
+  CharacterShareSection,
   CharacterRuntimeState,
   CharacterSheet,
   CreateCharacterSheetRequest,
+  CreateCharacterShareGrantRequest,
+  CreatedCharacterShareGrant,
   ImportCharacterSheetRequest,
   PortableCharacterSheet,
+  PublicCharacterCard,
   RestoreCharacterDocumentRevisionRequest,
   UpdateCharacterRuntimeRequest,
   UpdateCharacterDocumentRequest,
@@ -28,13 +34,15 @@ import {
   characterDocumentV2Schema,
   characterMasterCorrectionSchema,
   characterRuntimeStateSchema,
+  characterShareSectionSchema,
 } from '@fog-of-lore/contracts';
 import {
   deriveCharacterDocumentV2,
   dnd5eCharacterOptions,
   validateCharacterDocumentV2,
 } from '@fog-of-lore/domain';
-import { and, desc, eq, gt, sql } from 'drizzle-orm';
+import { and, desc, eq, gt, isNull, sql } from 'drizzle-orm';
+import { createHash, randomBytes } from 'node:crypto';
 import { z } from 'zod';
 
 import { CampaignAccessService } from '../campaigns/campaign-access.service';
@@ -49,6 +57,7 @@ import {
   campaignMembers,
   characterDocumentRevisions,
   characterRuntimeStates,
+  characterShareGrants,
   characterSheets,
   users,
 } from '../database/schema';
@@ -750,6 +759,150 @@ export class CharactersService {
     return buildFolcharImportPreview(this.parseFolcharUpload(file));
   }
 
+  public async createShareGrant(
+    userId: string,
+    sheetId: string,
+    input: CreateCharacterShareGrantRequest,
+  ): Promise<CreatedCharacterShareGrant> {
+    const record = await this.load(sheetId);
+    if (!record) throw new NotFoundException('Character sheet not found');
+    await this.requireView(userId, record);
+    if (
+      !readStoredCharacterDocument(
+        record.sheet.data,
+        record.sheet.documentVersion,
+        record.sheet.creationMode,
+      )
+    ) {
+      throw new BadRequestException('Stored character sheet has an unsupported format');
+    }
+
+    const token = randomBytes(32).toString('base64url');
+    const [grant] = await this.database
+      .insert(characterShareGrants)
+      .values({
+        sheetId,
+        createdByUserId: userId,
+        tokenHash: hashShareToken(token),
+        sections: input.sections,
+        expiresAt: new Date(Date.now() + input.expiresInDays * 24 * 60 * 60 * 1000),
+      })
+      .returning();
+    if (!grant) throw new Error('Character share grant insert did not return a row');
+    return { ...this.toShareGrant(grant), token };
+  }
+
+  public async listShareGrants(
+    userId: string,
+    sheetId: string,
+  ): Promise<CharacterShareGrantsResponse> {
+    const record = await this.load(sheetId);
+    if (!record) throw new NotFoundException('Character sheet not found');
+    await this.requireView(userId, record);
+    const grants = await this.database
+      .select()
+      .from(characterShareGrants)
+      .where(eq(characterShareGrants.sheetId, sheetId))
+      .orderBy(desc(characterShareGrants.createdAt))
+      .limit(50);
+    return { grants: grants.map((grant) => this.toShareGrant(grant)) };
+  }
+
+  public async revokeShareGrant(userId: string, grantId: string): Promise<void> {
+    const [grant] = await this.database
+      .select({ sheetId: characterShareGrants.sheetId })
+      .from(characterShareGrants)
+      .where(eq(characterShareGrants.id, grantId))
+      .limit(1);
+    if (!grant) throw new NotFoundException('Character share link not found');
+    const record = await this.load(grant.sheetId);
+    if (!record) throw new NotFoundException('Character share link not found');
+    await this.requireView(userId, record);
+    await this.database
+      .update(characterShareGrants)
+      .set({ revokedAt: new Date() })
+      .where(and(eq(characterShareGrants.id, grantId), isNull(characterShareGrants.revokedAt)));
+  }
+
+  public async publicCard(token: string): Promise<PublicCharacterCard> {
+    const { grant, record } = await this.loadActiveShare(token);
+    const document = readStoredCharacterDocument(
+      record.sheet.data,
+      record.sheet.documentVersion,
+      record.sheet.creationMode,
+    );
+    if (!document) throw new NotFoundException('Character share link not found');
+    const sections = characterShareSectionSchema.array().parse(grant.sections);
+    const visible = new Set<CharacterShareSection>(sections);
+    const options = dnd5eCharacterOptions();
+    const derived = deriveCharacterDocumentV2(document);
+    const runtime = this.toRuntime(record.runtime, derived.hitPointMaximum);
+    const optionName = (items: Array<{ id: string; name: string }>, id: string) =>
+      items.find((item) => item.id === id)?.name ?? id;
+
+    return {
+      name: record.sheet.name,
+      ruleset: 'dnd5e-srd-5.2.1',
+      rulesetVersion: '5.2.1',
+      status: record.sheet.status === 'READY' ? 'READY' : 'DRAFT',
+      expiresAt: grant.expiresAt.toISOString(),
+      updatedAt: record.sheet.updatedAt.toISOString(),
+      sections,
+      hasPortrait: Boolean(record.sheet.portraitAssetId),
+      identity: {
+        level: document.identity.level,
+        species: optionName(options.species, document.identity.speciesId),
+        characterClass: optionName(options.classes, document.identity.classId),
+        background: optionName(options.backgrounds, document.identity.backgroundId),
+      },
+      abilities: visible.has('ABILITIES')
+        ? { scores: document.abilities.scores, modifiers: derived.abilityModifiers }
+        : null,
+      combat: visible.has('COMBAT') ? derived : null,
+      skills: visible.has('SKILLS')
+        ? document.choices.skillIds.map((id) => optionName(options.skills, id))
+        : null,
+      spells: visible.has('SPELLS')
+        ? document.choices.spellIds.map((id) => {
+            const spell = options.spells.find((item) => item.id === id);
+            return { name: spell?.name ?? id, level: spell?.level ?? 0 };
+          })
+        : null,
+      inventory: visible.has('INVENTORY') ? document.inventory.equipment : null,
+      profile: visible.has('PROFILE')
+        ? {
+            personality: document.profile.personality,
+            appearance: document.profile.appearance,
+            backstory: document.profile.backstory,
+          }
+        : null,
+      notes: visible.has('NOTES') ? document.profile.notes : null,
+      runtime: visible.has('RUNTIME')
+        ? {
+            currentHitPoints: runtime.currentHitPoints,
+            temporaryHitPoints: runtime.temporaryHitPoints,
+            resources: runtime.resources,
+            spellSlots: runtime.spellSlots,
+            conditions: runtime.conditions,
+            inspiration: runtime.inspiration,
+            deathSaveSuccesses: runtime.deathSaveSuccesses,
+            deathSaveFailures: runtime.deathSaveFailures,
+          }
+        : null,
+    };
+  }
+
+  public async publicPortraitReference(
+    token: string,
+  ): Promise<{ campaignId: string; attachmentId: string }> {
+    const { record } = await this.loadActiveShare(token);
+    if (!record.sheet.portraitAssetId) throw new NotFoundException('Character portrait not found');
+    return {
+      campaignId: record.sheet.campaignId,
+      attachmentId: record.sheet.portraitAssetId,
+    };
+  }
+
   public import(
     userId: string,
     campaignId: string,
@@ -776,6 +929,43 @@ export class CharactersService {
       .where(eq(characterSheets.id, sheetId))
       .limit(1);
     return record;
+  }
+
+  private async loadActiveShare(token: string): Promise<{
+    grant: typeof characterShareGrants.$inferSelect;
+    record: CharacterRecord;
+  }> {
+    if (!/^[A-Za-z0-9_-]{43}$/.test(token)) {
+      throw new NotFoundException('Character share link not found');
+    }
+    const [result] = await this.database
+      .select({
+        grant: characterShareGrants,
+        sheet: characterSheets,
+        runtime: characterRuntimeStates,
+        ownerDisplayName: users.displayName,
+      })
+      .from(characterShareGrants)
+      .innerJoin(characterSheets, eq(characterSheets.id, characterShareGrants.sheetId))
+      .innerJoin(users, eq(users.id, characterSheets.ownerUserId))
+      .leftJoin(characterRuntimeStates, eq(characterRuntimeStates.sheetId, characterSheets.id))
+      .where(
+        and(
+          eq(characterShareGrants.tokenHash, hashShareToken(token)),
+          isNull(characterShareGrants.revokedAt),
+          gt(characterShareGrants.expiresAt, new Date()),
+        ),
+      )
+      .limit(1);
+    if (!result) throw new NotFoundException('Character share link not found');
+    return {
+      grant: result.grant,
+      record: {
+        sheet: result.sheet,
+        runtime: result.runtime,
+        ownerDisplayName: result.ownerDisplayName,
+      },
+    };
   }
 
   private parseFolcharUpload(
@@ -890,10 +1080,24 @@ export class CharactersService {
       updatedAt: (runtime?.updatedAt ?? recordFallbackDate()).toISOString(),
     });
   }
+
+  private toShareGrant(grant: typeof characterShareGrants.$inferSelect): CharacterShareGrant {
+    return {
+      id: grant.id,
+      sections: characterShareSectionSchema.array().parse(grant.sections),
+      expiresAt: grant.expiresAt.toISOString(),
+      revokedAt: grant.revokedAt?.toISOString() ?? null,
+      createdAt: grant.createdAt.toISOString(),
+    };
+  }
 }
 
 function recordFallbackDate(): Date {
   return new Date(0);
+}
+
+function hashShareToken(token: string): string {
+  return createHash('sha256').update(token).digest('hex');
 }
 
 function overrideIdentity(override: {

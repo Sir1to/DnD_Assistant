@@ -206,7 +206,7 @@ FOG_OF_LORE_DOMAIN=fog.example.net
 
 ### Какие переменные действительно используются Compose
 
-Compose передаёт в production-контейнер API: `WEB_ORIGIN`, `COOKIE_SECURE`, PostgreSQL-параметры и принудительно задаёт `FILE_STORAGE_PATH=/app/data`. В web на этапе сборки передаётся `NEXT_PUBLIC_API_URL`. `APP_VERSION`, `APP_COMMIT` и `APP_BUILD_TIME` передаются обоим приложениям; штатный `pnpm release:build` вычисляет их сам. Значения `SESSION_TTL_DAYS`, `LOGIN_RATE_LIMIT_ATTEMPTS` и `LOGIN_RATE_LIMIT_WINDOW_SECONDS` из `.env.example` **сейчас не пробрасываются compose-файлом**; API применяет свои встроенные defaults: 30 дней, 5 попыток, 900 секунд. Не рассчитывайте на их изменение через `.env`, пока не добавите их в `compose.yaml`.
+Compose передаёт в production-контейнер API: `WEB_ORIGIN`, `COOKIE_SECURE`, PostgreSQL-параметры, задаёт `FILE_STORAGE_PATH=/app/data` и `TRUST_PROXY_HOPS=1` для единственного Caddy-hop. При прямом локальном запуске остаётся безопасный default `TRUST_PROXY_HOPS=0`. В web на этапе сборки передаётся `NEXT_PUBLIC_API_URL`. `APP_VERSION`, `APP_COMMIT` и `APP_BUILD_TIME` передаются обоим приложениям; штатный `pnpm release:build` вычисляет их сам. Значения `SESSION_TTL_DAYS`, `LOGIN_RATE_LIMIT_ATTEMPTS` и `LOGIN_RATE_LIMIT_WINDOW_SECONDS` из `.env.example` **сейчас не пробрасываются compose-файлом**; API применяет свои встроенные defaults: 30 дней, 5 попыток, 900 секунд. Не рассчитывайте на их изменение через `.env`, пока не добавите их в `compose.yaml`.
 
 ## Выбор сценария доступа
 

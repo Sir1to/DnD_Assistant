@@ -13,6 +13,7 @@ import type {
   DiceState,
   CampaignLoreResponse,
   CharacterSheet,
+  CreatedCharacterShareGrant,
   DirectConversation,
   DirectConversationsResponse,
   DirectMessage,
@@ -20,6 +21,7 @@ import type {
   LoreEntry,
   PortableBattleCombatantPreset,
   PortableCharacterSheet,
+  PublicCharacterCard,
   TimerState,
   WidgetInstance,
 } from '@fog-of-lore/contracts';
@@ -515,6 +517,76 @@ describeIntegration('auth and campaigns API integration', () => {
       .send({ sheet: exported })
       .expect(201);
     expect((importedResponse.body as CharacterSheet).name).toBe('Рада Серый Щит');
+  });
+
+  it('publishes only selected character sections and revokes public links', async () => {
+    const ownerCookie = await register('share-owner@example.test', 'Хозяйка героя');
+    const strangerCookie = await register('share-stranger@example.test', 'Посторонний');
+    const campaignResponse = await request(app.getHttpServer())
+      .post('/api/campaigns')
+      .set('Cookie', ownerCookie)
+      .send({ name: 'Публичная карточка', description: '' })
+      .expect(201);
+    const campaign = campaignResponse.body as CampaignDetail;
+    let document = createDnd5eGuidedCharacterDocument();
+    document = applyDnd5eGuidedIdentity(document, 'speciesId', 'human');
+    document = applyDnd5eGuidedIdentity(document, 'backgroundId', 'soldier');
+    document = applyDnd5eGuidedIdentity(document, 'classId', 'fighter');
+    document.profile.backstory = 'История, которую можно показать.';
+    document.profile.notes = 'Секрет мастера.';
+
+    const createdResponse = await request(app.getHttpServer())
+      .post(`/api/campaigns/${campaign.id}/characters`)
+      .set('Cookie', ownerCookie)
+      .send({ name: 'Лира', status: 'READY', document })
+      .expect(201);
+    const character = createdResponse.body as CharacterSheet;
+    await request(app.getHttpServer())
+      .post(`/api/characters/${character.id}/share-grants`)
+      .set('Cookie', ownerCookie)
+      .send({ expiresInDays: 7, sections: [] })
+      .expect(400);
+    const grantResponse = await request(app.getHttpServer())
+      .post(`/api/characters/${character.id}/share-grants`)
+      .set('Cookie', ownerCookie)
+      .send({ expiresInDays: 7, sections: ['COMBAT', 'PROFILE'] })
+      .expect(201);
+    const grant = grantResponse.body as CreatedCharacterShareGrant;
+    expect(grant.token).toMatch(/^[A-Za-z0-9_-]{43}$/);
+
+    const cardResponse = await request(app.getHttpServer())
+      .get(`/api/character-shares/${grant.token}`)
+      .expect(200);
+    const card = cardResponse.body as PublicCharacterCard;
+    expect(card).toMatchObject({
+      name: 'Лира',
+      identity: { species: 'Человек', characterClass: 'Воин', background: 'Солдат' },
+      profile: { backstory: 'История, которую можно показать.' },
+      notes: null,
+      abilities: null,
+      runtime: null,
+    });
+    expect(card.combat).not.toBeNull();
+    expect(card).not.toHaveProperty('campaignId');
+    expect(card).not.toHaveProperty('ownerUserId');
+    expect(card).not.toHaveProperty('document');
+
+    const grantsResponse = await request(app.getHttpServer())
+      .get(`/api/characters/${character.id}/share-grants`)
+      .set('Cookie', ownerCookie)
+      .expect(200);
+    expect(grantsResponse.body.grants).toHaveLength(1);
+    expect(grantsResponse.body.grants[0]).not.toHaveProperty('token');
+
+    await request(app.getHttpServer())
+      .delete(`/api/character-share-grants/${grant.id}`)
+      .set('Cookie', strangerCookie)
+      .expect(404);
+    await request(app.getHttpServer())
+      .delete(`/api/character-share-grants/${grant.id}`)
+      .set('Cookie', ownerCookie)
+      .expect(204);
+    await request(app.getHttpServer()).get(`/api/character-shares/${grant.token}`).expect(404);
   });
 
   afterAll(async () => {
@@ -1209,9 +1281,9 @@ describeIntegration('auth and campaigns API integration', () => {
     expect(imported.combatants).toHaveLength(3);
     expect(imported.tokens).toHaveLength(3);
     expect(
-      imported.combatants.filter(({ name }) => (name ?? '').startsWith('Goblin')),
+      imported.combatants.filter(({ name }) => (name ?? '').startsWith('Гоблин')),
     ).toHaveLength(2);
-    expect(imported.combatants.find(({ name }) => name === 'Goblin 1')).toMatchObject({
+    expect(imported.combatants.find(({ name }) => name === 'Гоблин 1')).toMatchObject({
       kind: 'MONSTER',
       initiative: 2,
       currentHp: 7,

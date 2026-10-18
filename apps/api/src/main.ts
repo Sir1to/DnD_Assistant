@@ -19,7 +19,10 @@ async function bootstrap(): Promise<void> {
   app.useLogger(app.get(Logger));
   app.useBodyParser('json', { limit: '1mb' });
   app.useBodyParser('urlencoded', { extended: true, limit: '1mb' });
-  app.getHttpAdapter().getInstance().disable('x-powered-by');
+  const express = app.getHttpAdapter().getInstance();
+  express.disable('x-powered-by');
+  const trustProxyHops = config.getOrThrow<number>('TRUST_PROXY_HOPS');
+  if (trustProxyHops > 0) express.set('trust proxy', trustProxyHops);
   app.use((_request: Request, response: Response, next: NextFunction) => {
     response.setHeader('Cache-Control', 'no-store');
     response.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');

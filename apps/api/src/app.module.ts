@@ -2,6 +2,7 @@ import { Module, type MiddlewareConsumer, type NestModule, RequestMethod } from 
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER } from '@nestjs/core';
 import { LoggerModule } from 'nestjs-pino';
+import { stdSerializers } from 'pino-http';
 
 import { AuthModule } from './auth/auth.module';
 import { BoardsModule } from './boards/boards.module';
@@ -10,6 +11,7 @@ import { CharactersModule } from './characters/characters.module';
 import { AllExceptionsFilter } from './common/all-exceptions.filter';
 import { OriginMiddleware } from './common/origin.middleware';
 import { RequestIdMiddleware } from './common/request-id.middleware';
+import { redactSensitiveRequestUrl } from './common/sensitive-request-url';
 import { validateEnvironment } from './config/environment';
 import { DatabaseModule } from './database/database.module';
 import { DirectMessagesModule } from './direct-messages/direct-messages.module';
@@ -42,6 +44,20 @@ import { RulesetsModule } from './rulesets/rulesets.module';
                 '*.token',
               ],
               censor: '[REDACTED]',
+            },
+            serializers: {
+              req: (request) => {
+                const serialized = stdSerializers.req(request);
+                return {
+                  ...serialized,
+                  url: redactSensitiveRequestUrl(serialized.url),
+                  headers: {
+                    ...serialized.headers,
+                    referer: redactSensitiveRequestUrl(serialized.headers.referer),
+                    referrer: redactSensitiveRequestUrl(serialized.headers.referrer),
+                  },
+                };
+              },
             },
             genReqId: (request, response) => {
               const requestId = request.headers['x-request-id']?.toString().slice(0, 128);

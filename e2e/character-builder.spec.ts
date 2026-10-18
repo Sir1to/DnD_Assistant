@@ -28,7 +28,13 @@ test('owner completes the guided character builder using the published decision 
   await builder.getByRole('button', { name: 'Дальше' }).click();
 
   await builder.getByLabel('Класс').selectOption('fighter');
-  for (let index = 0; index < 6; index += 1) {
+  await builder.getByRole('button', { name: 'Дальше' }).click();
+  const strength = builder.getByLabel(/^Сила/);
+  await strength.fill('3000');
+  await expect(builder.getByText(/Значение характеристики должно быть от 1 до 30/)).toBeVisible();
+  await expect(builder.getByRole('button', { name: 'Дальше' })).toBeDisabled();
+  await strength.fill('15');
+  for (let index = 0; index < 5; index += 1) {
     await builder.getByRole('button', { name: 'Дальше' }).click();
   }
 

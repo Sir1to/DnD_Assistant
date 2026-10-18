@@ -63,6 +63,7 @@ services:
       API_PORT: 4000
       WEB_ORIGIN: ${WEB_ORIGIN:?Set WEB_ORIGIN in .env}
       COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      TRUST_PROXY_HOPS: 1
       DATABASE_URL: postgresql://${POSTGRES_USER:-fog_of_lore}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-fog_of_lore}
       FILE_STORAGE_PATH: /app/data
       APP_VERSION: ${APP_VERSION:-0.1.0}

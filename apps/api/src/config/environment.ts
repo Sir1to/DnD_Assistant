@@ -16,6 +16,7 @@ export const environmentSchema = z.object({
   DATABASE_URL: z.url().startsWith('postgresql://'),
   WEB_ORIGIN: z.url().default('http://localhost:3000'),
   COOKIE_SECURE: booleanFromEnvironment,
+  TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(3).default(0),
   SESSION_TTL_DAYS: z.coerce.number().int().min(1).max(90).default(30),
   LOGIN_RATE_LIMIT_ATTEMPTS: z.coerce.number().int().min(1).max(100).default(5),
   LOGIN_RATE_LIMIT_WINDOW_SECONDS: z.coerce.number().int().min(10).max(86_400).default(900),
