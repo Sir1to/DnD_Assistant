@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { redactSensitiveRequestUrl } from './sensitive-request-url';
+import { redactSensitiveRequestParams, redactSensitiveRequestUrl } from './sensitive-request-url';
 
 describe('redactSensitiveRequestUrl', () => {
   it('removes public character tokens from card and portrait request logs', () => {
@@ -18,5 +18,17 @@ describe('redactSensitiveRequestUrl', () => {
 
   it('leaves unrelated request paths intact', () => {
     expect(redactSensitiveRequestUrl('/api/characters/123')).toBe('/api/characters/123');
+  });
+
+  it('redacts share tokens nested in serialized route params', () => {
+    const token = 'a'.repeat(43);
+
+    expect(
+      redactSensitiveRequestParams({ path: ['character-shares', token], token, page: '1' }),
+    ).toEqual({
+      path: ['character-shares', '[REDACTED]'],
+      token: '[REDACTED]',
+      page: '1',
+    });
   });
 });

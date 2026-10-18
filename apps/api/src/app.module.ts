@@ -11,7 +11,10 @@ import { CharactersModule } from './characters/characters.module';
 import { AllExceptionsFilter } from './common/all-exceptions.filter';
 import { OriginMiddleware } from './common/origin.middleware';
 import { RequestIdMiddleware } from './common/request-id.middleware';
-import { redactSensitiveRequestUrl } from './common/sensitive-request-url';
+import {
+  redactSensitiveRequestParams,
+  redactSensitiveRequestUrl,
+} from './common/sensitive-request-url';
 import { validateEnvironment } from './config/environment';
 import { DatabaseModule } from './database/database.module';
 import { DirectMessagesModule } from './direct-messages/direct-messages.module';
@@ -51,6 +54,7 @@ import { RulesetsModule } from './rulesets/rulesets.module';
                 return {
                   ...serialized,
                   url: redactSensitiveRequestUrl(serialized.url),
+                  params: redactSensitiveRequestParams(serialized.params),
                   headers: {
                     ...serialized.headers,
                     referer: redactSensitiveRequestUrl(serialized.headers.referer),
