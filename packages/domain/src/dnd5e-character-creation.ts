@@ -7,6 +7,7 @@ import {
   dnd5eSkills,
   dnd5eSpecies,
   dnd5eSpells,
+  maximumDnd5eSpellLevel,
   type AbilityScores,
 } from './dnd5e';
 import type { CharacterAbilityMethod, CharacterDocumentV2 } from './character-document-v2';
@@ -271,12 +272,33 @@ export function applyDnd5eGuidedIdentity(
       skillIds: [...new Set([...retained, ...(selected?.skillIds ?? [])])],
     };
   }
-  if (field === 'classId') {
+  if (field === 'classId' || field === 'level') {
     const choices = resolveDnd5eGuidedChoices(next);
     next.choices = {
       ...next.choices,
       skillIds: next.choices.skillIds.filter((id) => choices.allowedSkillIds.includes(id)),
       spellIds: next.choices.spellIds.filter((id) => choices.availableSpellIds.includes(id)),
+    };
+  }
+  if (field === 'classId' || field === 'backgroundId') {
+    const equipmentIds = guidedStartingEquipmentIds(next);
+    const previousById = new Map(
+      document.inventory.equipment.flatMap((item) =>
+        item.optionId ? [[item.optionId, item]] : [],
+      ),
+    );
+    next.inventory = {
+      equipment: equipmentIds.map((optionId) => {
+        const previous = previousById.get(optionId);
+        return (
+          previous ?? {
+            optionId,
+            name: dnd5eEquipment.find(({ id }) => id === optionId)?.name ?? optionId,
+            quantity: 1,
+            notes: '',
+          }
+        );
+      }),
     };
   }
   return next;
@@ -298,9 +320,25 @@ export function resolveDnd5eGuidedChoices(document: CharacterDocumentV2) {
     maxClassSkills: characterClass?.skillChoices ?? 0,
     selectedClassSkillIds,
     availableSpellIds: dnd5eSpells
-      .filter(({ classIds }) => classIds.includes(document.identity.classId))
+      .filter(
+        ({ classIds, level }) =>
+          classIds.includes(document.identity.classId) &&
+          level <= maximumDnd5eSpellLevel(document.identity.classId, document.identity.level),
+      )
       .map(({ id }) => id),
+    availableEquipmentIds: guidedStartingEquipmentIds(document),
   };
+}
+
+export function guidedStartingEquipmentIds(document: CharacterDocumentV2): string[] {
+  const characterClass = dnd5eClasses.find(({ id }) => id === document.identity.classId);
+  const background = dnd5eBackgrounds.find(({ id }) => id === document.identity.backgroundId);
+  return [
+    ...new Set([
+      ...(characterClass?.starterEquipmentIds ?? []),
+      ...(background?.equipmentIds ?? []),
+    ]),
+  ];
 }
 
 export function recordDnd5eGuidedDecisions(document: CharacterDocumentV2): CharacterDocumentV2 {

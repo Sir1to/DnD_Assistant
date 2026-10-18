@@ -178,4 +178,44 @@ describe('D&D 5e guided character creation', () => {
     expect(recordDnd5eGuidedDecisions(document!)).toBe(document);
     expect(document?.creation.mode).toBe('AUTOMATIC');
   });
+
+  it('publishes the complete SRD spell catalogue and expanded official species list', () => {
+    const options = dnd5eCharacterOptions();
+
+    expect(options.spells.length).toBeGreaterThanOrEqual(339);
+    expect(options.species.map(({ id }) => id)).toEqual(
+      expect.arrayContaining(['aasimar', 'tabaxi', 'tortle', 'half-elf', 'warforged']),
+    );
+    expect(options.species.every(({ source }) => source.length > 0)).toBe(true);
+  });
+
+  it('keeps guided equipment inside the selected class and background package', () => {
+    let document = createDnd5eGuidedCharacterDocument();
+    document = applyDnd5eGuidedIdentity(document, 'classId', 'fighter');
+    document = applyDnd5eGuidedIdentity(document, 'backgroundId', 'soldier');
+
+    expect(document.inventory.equipment.map(({ optionId }) => optionId)).toEqual(
+      expect.arrayContaining([
+        'longsword',
+        'chain-mail',
+        'shield',
+        'light-crossbow',
+        'healers-kit',
+        'gaming-set',
+      ]),
+    );
+    expect(resolveDnd5eGuidedChoices(document).availableEquipmentIds).toEqual(
+      document.inventory.equipment.map(({ optionId }) => optionId),
+    );
+  });
+
+  it('does not offer half-caster spells before the class gains spellcasting', () => {
+    let document = createDnd5eGuidedCharacterDocument();
+    document = applyDnd5eGuidedIdentity(document, 'classId', 'paladin');
+
+    expect(resolveDnd5eGuidedChoices(document).availableSpellIds).toEqual([]);
+
+    document = applyDnd5eGuidedIdentity(document, 'level', 2);
+    expect(resolveDnd5eGuidedChoices(document).availableSpellIds).toContain('bless');
+  });
 });

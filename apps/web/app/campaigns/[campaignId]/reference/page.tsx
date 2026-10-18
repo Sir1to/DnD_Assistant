@@ -256,6 +256,9 @@ export default function ReferencePage() {
                       >
                         <span>{spell.level === 0 ? 'Заговор' : `${spell.level} уровень`}</span>
                         <h3>{spell.name}</h3>
+                        {spell.englishName !== spell.name ? (
+                          <small>{spell.englishName}</small>
+                        ) : null}
                         <p>{spell.description}</p>
                         <small>
                           {spell.classIds
@@ -266,6 +269,9 @@ export default function ReferencePage() {
                             )
                             .join(', ')}
                         </small>
+                        <a href={spell.referenceUrl} rel="noreferrer" target="_blank">
+                          Русское описание ↗
+                        </a>
                       </article>
                     ))}
                   </div>
@@ -385,10 +391,12 @@ function EncounterLab({
     'ALL' | Dnd5eChallengeRating
   >('ALL');
   const matchingMonsters = useMemo(() => {
-    const query = monsterSearch.trim().toLocaleLowerCase('en-US');
+    const query = monsterSearch.trim().toLocaleLowerCase('ru-RU');
     return monsters.filter(
       (monster) =>
-        (!query || monster.name.toLocaleLowerCase('en-US').includes(query)) &&
+        (!query ||
+          monster.name.toLocaleLowerCase('ru-RU').includes(query) ||
+          monster.englishName.toLocaleLowerCase('en-US').includes(query)) &&
         (monsterType === 'ALL' || monster.type === monsterType) &&
         (monsterChallengeRating === 'ALL' || monster.challengeRating === monsterChallengeRating),
     );
@@ -594,6 +602,7 @@ function EncounterLab({
                   <button key={monster.id} onClick={() => addMonster(monster)} type="button">
                     <span>
                       <strong>{monster.name}</strong>
+                      <small>{monster.englishName}</small>
                       <small>
                         {monsterSizeLabel(monster.size)} · {monsterTypeLabel(monster.type)}
                       </small>
@@ -851,6 +860,7 @@ function BestiaryCatalogue({
             >
               <span>
                 <strong>{monster.name}</strong>
+                <small>{monster.englishName}</small>
                 <small>
                   {monsterSizeLabel(monster.size)} · {monsterTypeLabel(monster.type)}
                 </small>
@@ -891,10 +901,10 @@ function BestiaryCatalogue({
 
 function MonsterStatBlock({ monster }: { monster: Dnd5eMonsterStatBlock }) {
   const defenses = [
-    ['Уязвимости', monster.damageVulnerabilities],
-    ['Сопротивления', monster.damageResistances],
-    ['Иммунитеты к урону', monster.damageImmunities],
-    ['Иммунитеты к состояниям', monster.conditionImmunities],
+    ['Уязвимости', monster.damageVulnerabilities.map(translateMonsterDamage)],
+    ['Сопротивления', monster.damageResistances.map(translateMonsterDamage)],
+    ['Иммунитеты к урону', monster.damageImmunities.map(translateMonsterDamage)],
+    ['Иммунитеты к состояниям', monster.conditionImmunities.map(translateMonsterCondition)],
   ] as const;
 
   return (
@@ -905,6 +915,7 @@ function MonsterStatBlock({ monster }: { monster: Dnd5eMonsterStatBlock }) {
             {monsterSizeLabel(monster.size)} · {monsterTypeLabel(monster.type)}
           </span>
           <h3>{monster.name}</h3>
+          <small>{monster.englishName}</small>
         </div>
         <strong>CR {monster.challengeRating}</strong>
       </header>
@@ -950,13 +961,13 @@ function MonsterStatBlock({ monster }: { monster: Dnd5eMonsterStatBlock }) {
         {Object.keys(monster.savingThrows).length > 0 ? (
           <div>
             <dt>Спасброски</dt>
-            <dd>{formatBonusRecord(monster.savingThrows)}</dd>
+            <dd>{formatBonusRecord(monster.savingThrows, monsterAbilityLabel)}</dd>
           </div>
         ) : null}
         {Object.keys(monster.skills).length > 0 ? (
           <div>
             <dt>Навыки</dt>
-            <dd>{formatBonusRecord(monster.skills)}</dd>
+            <dd>{formatBonusRecord(monster.skills, monsterSkillLabel)}</dd>
           </div>
         ) : null}
         {defenses.map(([label, values]) =>
@@ -973,7 +984,11 @@ function MonsterStatBlock({ monster }: { monster: Dnd5eMonsterStatBlock }) {
         </div>
         <div>
           <dt>Языки</dt>
-          <dd>{monster.languages.length > 0 ? monster.languages.join(', ') : '—'}</dd>
+          <dd>
+            {monster.languages.length > 0
+              ? monster.languages.map(translateMonsterLanguage).join(', ')
+              : '—'}
+          </dd>
         </div>
         <div>
           <dt>Опыт</dt>
@@ -997,6 +1012,9 @@ function MonsterStatBlock({ monster }: { monster: Dnd5eMonsterStatBlock }) {
       <small className="monster-source">
         {monster.source} · {monster.license}
       </small>
+      <a href={monster.referenceUrl} rel="noreferrer" target="_blank">
+        Полное русское описание на dnd.su ↗
+      </a>
     </article>
   );
 }
@@ -1160,16 +1178,198 @@ function formatMovement(speed: Record<string, number | boolean>) {
     .join(', ');
 }
 
-function formatBonusRecord(values: Record<string, number>) {
+function formatBonusRecord(
+  values: Record<string, number>,
+  label: (key: string) => string = (key) => key,
+) {
   return Object.entries(values)
-    .map(([key, value]) => `${key} ${formatBonus(value)}`)
+    .map(([key, value]) => `${label(key)} ${formatBonus(value)}`)
     .join(', ');
 }
 
 function formatDistanceRecord(values: Record<string, number>) {
   return Object.entries(values)
-    .map(([key, value]) => `${key} ${value}${key === 'passive_perception' ? '' : ' фт.'}`)
+    .map(
+      ([key, value]) =>
+        `${monsterSenseLabel(key)} ${value}${key === 'passive_perception' ? '' : ' фт.'}`,
+    )
     .join(', ');
+}
+
+function monsterAbilityLabel(key: string): string {
+  return (
+    {
+      str: 'СИЛ',
+      dex: 'ЛОВ',
+      con: 'ТЕЛ',
+      int: 'ИНТ',
+      wis: 'МДР',
+      cha: 'ХАР',
+    }[key] ?? key
+  );
+}
+
+function monsterSkillLabel(key: string): string {
+  return (
+    {
+      acrobatics: 'Акробатика',
+      arcana: 'Магия',
+      athletics: 'Атлетика',
+      deception: 'Обман',
+      history: 'История',
+      insight: 'Проницательность',
+      intimidation: 'Запугивание',
+      investigation: 'Анализ',
+      medicine: 'Медицина',
+      nature: 'Природа',
+      perception: 'Внимательность',
+      performance: 'Выступление',
+      persuasion: 'Убеждение',
+      religion: 'Религия',
+      stealth: 'Скрытность',
+      survival: 'Выживание',
+    }[key] ?? key
+  );
+}
+
+function monsterSenseLabel(key: string): string {
+  return (
+    {
+      blindsight: 'слепое зрение',
+      darkvision: 'тёмное зрение',
+      passive_perception: 'пассивная Внимательность',
+      tremorsense: 'чувство вибрации',
+      truesight: 'истинное зрение',
+    }[key] ?? key
+  );
+}
+
+function translateMonsterCondition(value: string): string {
+  return (
+    {
+      blinded: 'ослепление',
+      charmed: 'очарование',
+      deafened: 'глухота',
+      exhaustion: 'истощение',
+      frightened: 'испуг',
+      grappled: 'схваченность',
+      paralyzed: 'паралич',
+      petrified: 'окаменение',
+      poisoned: 'отравление',
+      prone: 'сбит с ног',
+      restrained: 'опутанность',
+      stunned: 'ошеломление',
+      unconscious: 'бессознательность',
+    }[value] ?? value
+  );
+}
+
+function translateMonsterDamage(value: string): string {
+  const phrases: Array<[RegExp, string]> = [
+    [/damage from spells/giu, 'урон от заклинаний'],
+    [
+      /from nonmagical attacks not made with adamantine weapons/giu,
+      'от немагических атак не адамантиновым оружием',
+    ],
+    [
+      /from nonmagical attacks not made with silvered weapons/giu,
+      'от немагических атак не посеребрённым оружием',
+    ],
+    [/from nonmagical attacks/giu, 'от немагических атак'],
+    [/from magic weapons wielded by good creatures/giu, 'от магического оружия добрых существ'],
+    [/from nonmagical\/nonsilver weapons/giu, 'от немагического непосеребрённого оружия'],
+    [/from stoneskin/giu, 'от каменной кожи'],
+    [/non magical/giu, 'немагический'],
+    [/\bacid\b/giu, 'кислота'],
+    [/\bbludgeoning\b/giu, 'дробящий'],
+    [/\bcold\b/giu, 'холод'],
+    [/\bfire\b/giu, 'огонь'],
+    [/\blightning\b/giu, 'электричество'],
+    [/\bnecrotic\b/giu, 'некротический'],
+    [/\bpiercing\b/giu, 'колющий'],
+    [/\bpoison\b/giu, 'яд'],
+    [/\bpsychic\b/giu, 'психический'],
+    [/\bradiant\b/giu, 'излучение'],
+    [/\bslashing\b/giu, 'рубящий'],
+    [/\bthunder\b/giu, 'звук'],
+    [/\band\b/giu, 'и'],
+  ];
+  return phrases.reduce(
+    (result, [pattern, replacement]) => result.replace(pattern, replacement),
+    value,
+  );
+}
+
+function translateMonsterLanguage(value: string): string {
+  const exact: Record<string, string> = {
+    all: 'все языки',
+    'any four languages': 'любые четыре языка',
+    'any six languages': 'любые шесть языков',
+    'any two languages': 'любые два языка',
+    'any one language': 'любой один язык',
+    'any one language (usually Common)': 'любой один язык (обычно Общий)',
+    'any languages it knew in life': 'все языки, известные при жизни',
+    'the languages it knew in life': 'языки, известные при жизни',
+    'one language known by its creator': 'один язык, известный создателю',
+    'Blink Dog': 'язык мерцающих собак',
+    'Giant Eagle': 'язык гигантских орлов',
+    'Giant Elk': 'язык гигантских лосей',
+    'Giant Owl': 'язык гигантских сов',
+    Otyugh: 'язык отюгов',
+    Sahuagin: 'Сахуагинский',
+    Sphinx: 'язык сфинксов',
+    'Winter Wolf': 'язык зимних волков',
+    Worg: 'язык воргов',
+  };
+  if (exact[value]) return exact[value];
+  const phrases: Array<[RegExp, string]> = [
+    [/Thieves' cant/giu, 'воровской жаргон'],
+    [/Deep Speech/giu, 'Глубинная Речь'],
+    [/Common/giu, 'Общий'],
+    [/Abyssal/giu, 'Бездны'],
+    [/Aquan/giu, 'Акван'],
+    [/Auran/giu, 'Ауран'],
+    [/Celestial/giu, 'Небесный'],
+    [/Draconic/giu, 'Драконий'],
+    [/Druidic/giu, 'Друидический'],
+    [/Dwarvish/giu, 'Дварфский'],
+    [/Elvish/giu, 'Эльфийский'],
+    [/Giant/giu, 'Великаний'],
+    [/Gnoll/giu, 'Гнолльский'],
+    [/Gnomish/giu, 'Гномий'],
+    [/Goblin/giu, 'Гоблинский'],
+    [/Ignan/giu, 'Игнан'],
+    [/Infernal/giu, 'Инфернальный'],
+    [/Orc/giu, 'Орочий'],
+    [/Primordial/giu, 'Первичный'],
+    [/Sylvan/giu, 'Сильван'],
+    [/Terran/giu, 'Терран'],
+    [/Undercommon/giu, 'Подземный Общий'],
+    [/telepathy/giu, 'телепатия'],
+    [/understands/giu, 'понимает'],
+    [/all languages it knew in life/giu, 'все языки, известные при жизни'],
+    [/the languages it knew in life/giu, 'языки, известные при жизни'],
+    [/the languages of its creator/giu, 'языки своего создателя'],
+    [/commands given in any language/giu, 'команды на любом языке'],
+    [/any two languages/giu, 'любые два языка'],
+    [/but can(?:no|')t speak(?: it)?/giu, 'но не говорит'],
+    [/can(?:no|')t speak/giu, 'не говорит'],
+    [/doesn't speak it/giu, 'не говорит на нём'],
+    [/works only with creatures that understand/giu, 'работает только с существами, понимающими'],
+    [/plus up to five other languages/giu, 'и до пяти других языков'],
+    [/plus any two languages/giu, 'и любые два языка'],
+    [/in bear form/giu, 'в облике медведя'],
+    [/in boar form/giu, 'в облике кабана'],
+    [/in rat form/giu, 'в облике крысы'],
+    [/in tiger form/giu, 'в облике тигра'],
+    [/in wolf form/giu, 'в облике волка'],
+    [/\band\b/giu, 'и'],
+    [/ft\./giu, 'фт.'],
+  ];
+  return phrases.reduce(
+    (result, [pattern, replacement]) => result.replace(pattern, replacement),
+    value,
+  );
 }
 
 function equipmentCategory(category: string) {

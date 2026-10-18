@@ -5,6 +5,8 @@ const sceneId = '22222222-2222-4222-8222-222222222222';
 const combatantId = '33333333-3333-4333-8333-333333333333';
 const tokenId = '44444444-4444-4444-8444-444444444444';
 const objectId = '55555555-5555-4555-8555-555555555555';
+const entranceId = '77777777-7777-4777-8777-777777777777';
+const exitId = '88888888-8888-4888-8888-888888888888';
 const timestamp = '2026-09-27T09:00:00.000Z';
 
 test('owner reviews and creates a deterministic random map draft', async ({ page }) => {
@@ -79,6 +81,50 @@ test('owner reviews and creates a deterministic random map draft', async ({ page
     ],
     obstacles: [],
     objects: [
+      {
+        id: entranceId,
+        sceneId,
+        kind: 'PROP',
+        name: 'Вход',
+        x: 0,
+        y: 5,
+        width: 1,
+        height: 1,
+        blocksMovement: false,
+        visibleToPlayers: true,
+        showLabel: true,
+        imageAttachmentId: null,
+        systemAssetId: null,
+        hasImage: false,
+        imageAnimated: false,
+        currentHp: null,
+        maxHp: null,
+        hpPercent: null,
+        hpState: null,
+        revision: 0,
+      },
+      {
+        id: exitId,
+        sceneId,
+        kind: 'PROP',
+        name: 'Выход',
+        x: 15,
+        y: 5,
+        width: 1,
+        height: 1,
+        blocksMovement: false,
+        visibleToPlayers: true,
+        showLabel: true,
+        imageAttachmentId: null,
+        systemAssetId: null,
+        hasImage: false,
+        imageAnimated: false,
+        currentHp: null,
+        maxHp: null,
+        hpPercent: null,
+        hpState: null,
+        revision: 0,
+      },
       {
         id: objectId,
         sceneId,
@@ -229,6 +275,21 @@ test('owner reviews and creates a deterministic random map draft', async ({ page
     'background-image',
     /backgrounds\/forest-clearing\.webp/,
   );
+  await expect(page.getByLabel('Поле боя')).toHaveCSS(
+    'background-repeat',
+    'no-repeat, no-repeat, repeat',
+  );
+  await expect(page.getByLabel('Поле боя')).toHaveCSS(
+    'background-size',
+    'cover, cover, 314px 314px',
+  );
+  await expect(page.getByLabel('Вход', { exact: true })).toHaveClass(
+    /is-map-entrance.*is-edge-left/,
+  );
+  await expect(page.getByLabel('Выход', { exact: true })).toHaveClass(
+    /is-map-entrance.*is-exit.*is-edge-right/,
+  );
+  await expect(page.locator('.battle-map-entrance')).toHaveCount(2);
   await expect(page.locator('.battle-generated-enemy-portrait').first()).toHaveCSS(
     'background-image',
     /enemy-portraits-expanded-atlas\.png/,

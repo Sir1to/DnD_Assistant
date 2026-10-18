@@ -6,7 +6,9 @@ const source: ReferenceSearchSource = {
   monsters: [
     {
       id: 'srd:goblin',
-      name: 'Goblin',
+      name: 'Гоблин',
+      englishName: 'Goblin',
+      referenceUrl: 'https://dnd.su/bestiary/438-goblin/',
       size: 'Small',
       type: 'humanoid',
       challengeRating: '1/4',
@@ -21,9 +23,11 @@ const source: ReferenceSearchSource = {
     {
       id: 'fire-bolt',
       name: 'Огненный снаряд',
+      englishName: 'Fire Bolt',
       description: 'Дальнобойная атака огнём.',
       level: 0,
       classIds: ['wizard'],
+      referenceUrl: 'https://dnd.su/spells/204-fire-bolt/',
     },
   ],
   equipment: [

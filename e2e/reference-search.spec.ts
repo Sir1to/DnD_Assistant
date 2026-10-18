@@ -33,9 +33,11 @@ test('reference search finds every catalogue type and opens a result', async ({ 
             {
               id: 'fire-bolt',
               name: 'Огненный снаряд',
+              englishName: 'Fire Bolt',
               description: 'Дальнобойная атака огнём.',
               level: 0,
               classIds: ['wizard'],
+              referenceUrl: 'https://dnd.su/spells/204-fire-bolt/',
             },
           ],
           equipment: [
@@ -62,7 +64,9 @@ test('reference search finds every catalogue type and opens a result', async ({ 
           monsters: [
             {
               id: 'srd:goblin',
-              name: 'Goblin',
+              name: 'Гоблин',
+              englishName: 'Goblin',
+              referenceUrl: 'https://dnd.su/bestiary/438-goblin/',
               size: 'Small',
               type: 'humanoid',
               challengeRating: '1/4',
@@ -77,6 +81,41 @@ test('reference search finds every catalogue type and opens a result', async ({ 
       });
       return;
     }
+    if (pathname.startsWith('/api/rulesets/dnd5e/monsters/')) {
+      await route.fulfill({
+        json: {
+          id: 'srd:goblin',
+          name: 'Гоблин',
+          englishName: 'Goblin',
+          referenceUrl: 'https://dnd.su/bestiary/438-goblin/',
+          size: 'Small',
+          type: 'humanoid',
+          challengeRating: '1/4',
+          experiencePoints: 50,
+          armorClass: 15,
+          hitPoints: 7,
+          hitPointFormula: '2d6',
+          initiativeModifier: 2,
+          speed: { walk: 30 },
+          abilityScores: { str: 8, dex: 14, con: 10, int: 10, wis: 8, cha: 8 },
+          savingThrows: { dex: 4 },
+          skills: { stealth: 6 },
+          damageVulnerabilities: [],
+          damageResistances: [],
+          damageImmunities: ['fire'],
+          conditionImmunities: ['poisoned'],
+          senses: { darkvision: 60, passive_perception: 9 },
+          languages: ['Common', 'Goblin'],
+          traits: [],
+          actions: [],
+          reactions: [],
+          legendaryActions: null,
+          source: 'SRD 5.2.1',
+          license: 'CC-BY-4.0',
+        },
+      });
+      return;
+    }
     await route.abort();
   });
 
@@ -85,7 +124,12 @@ test('reference search finds every catalogue type and opens a result', async ({ 
 
   await search.fill('Goblin');
   await expect(page.getByRole('heading', { name: 'Существа' })).toBeVisible();
-  await expect(page.getByRole('button', { name: /Goblin/ })).toBeVisible();
+  await page.getByRole('button', { name: /Goblin/ }).click();
+  await expect(page.getByText('Скрытность +6')).toBeVisible();
+  await expect(page.getByText('тёмное зрение 60 фт.')).toBeVisible();
+  await expect(page.getByText('Общий, Гоблинский')).toBeVisible();
+  await expect(page.getByText('огонь')).toBeVisible();
+  await expect(page.getByText('отравление')).toBeVisible();
 
   await search.fill('огненный');
   await expect(page.getByRole('heading', { name: 'Заклинания' })).toBeVisible();

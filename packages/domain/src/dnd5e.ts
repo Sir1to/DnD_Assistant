@@ -1,3 +1,5 @@
+import spellData from './data/dnd5e-srd-5.2.1-spells.json';
+
 export const abilityKeys = [
   'strength',
   'dexterity',
@@ -266,41 +268,121 @@ export const dnd5eClasses: ClassOption[] = [
   }),
 ];
 
+export function maximumDnd5eSpellLevel(classId: string, characterLevel: number): number {
+  if (!Number.isInteger(characterLevel) || characterLevel < 1) return -1;
+  if (['bard', 'cleric', 'druid', 'sorcerer', 'wizard'].includes(classId)) {
+    return Math.min(9, Math.ceil(characterLevel / 2));
+  }
+  if (classId === 'warlock') return Math.min(5, Math.ceil(characterLevel / 2));
+  if (['paladin', 'ranger'].includes(classId)) {
+    return characterLevel < 2 ? -1 : Math.min(5, Math.ceil(characterLevel / 4));
+  }
+  return -1;
+}
+
 export const dnd5eSpecies = [
   {
     id: 'human',
     name: 'Человек',
     description: 'Разносторонний и приспособляемый герой.',
     speed: 30,
+    source: 'SRD 5.2.1',
   },
-  { id: 'dwarf', name: 'Дварф', description: 'Стойкий народ с тёмным зрением.', speed: 30 },
-  { id: 'elf', name: 'Эльф', description: 'Ловкий народ с острыми чувствами.', speed: 30 },
+  {
+    id: 'dwarf',
+    name: 'Дварф',
+    description: 'Стойкий народ с тёмным зрением.',
+    speed: 30,
+    source: 'SRD 5.2.1',
+  },
+  {
+    id: 'elf',
+    name: 'Эльф',
+    description: 'Ловкий народ с острыми чувствами.',
+    speed: 30,
+    source: 'SRD 5.2.1',
+  },
   {
     id: 'halfling',
     name: 'Полурослик',
     description: 'Маленький, отважный и удачливый герой.',
     speed: 30,
+    source: 'SRD 5.2.1',
   },
   {
     id: 'dragonborn',
     name: 'Драконорождённый',
     description: 'Наследник драконьей силы с дыхательным оружием.',
     speed: 30,
+    source: 'SRD 5.2.1',
   },
   {
     id: 'gnome',
     name: 'Гном',
     description: 'Изобретательный герой с магической стойкостью.',
     speed: 30,
+    source: 'SRD 5.2.1',
   },
-  { id: 'goliath', name: 'Голиаф', description: 'Могучий потомок великанов.', speed: 35 },
-  { id: 'orc', name: 'Орк', description: 'Крепкий и неутомимый воин.', speed: 30 },
+  {
+    id: 'goliath',
+    name: 'Голиаф',
+    description: 'Могучий потомок великанов.',
+    speed: 35,
+    source: 'SRD 5.2.1',
+  },
+  {
+    id: 'orc',
+    name: 'Орк',
+    description: 'Крепкий и неутомимый воин.',
+    speed: 30,
+    source: 'SRD 5.2.1',
+  },
   {
     id: 'tiefling',
     name: 'Тифлинг',
     description: 'Герой с потусторонним наследием и магией.',
     speed: 30,
+    source: 'SRD 5.2.1',
   },
+  ...[
+    ['aarakocra', 'Ааракокра', 'Крылатый народ со стихийным наследием.', 30, 'MPMM'],
+    ['aasimar', 'Аасимар', 'Герой, отмеченный силой Небесных планов.', 30, 'MPMM'],
+    ['bugbear', 'Багбир', 'Скрытный и сильный представитель гоблиноидов.', 30, 'MPMM'],
+    ['centaur', 'Кентавр', 'Быстрый фейский народ с телом коня.', 40, 'MPMM'],
+    ['changeling', 'Чейнджлинг', 'Меняет внешность благодаря природной способности.', 30, 'MPMM'],
+    ['deep-gnome', 'Глубинный гном', 'Подземный гном, стойкий к магии.', 30, 'MPMM'],
+    ['duergar', 'Дуэргар', 'Подземный дварф с псионическими дарами.', 30, 'MPMM'],
+    ['eladrin', 'Эладрин', 'Эльф Страны Фей, связанный с временами года.', 30, 'MPMM'],
+    ['fairy', 'Фэйри', 'Маленький летающий народ Страны Фей.', 30, 'MPMM'],
+    ['firbolg', 'Фирболг', 'Уединённый великанородный хранитель природы.', 30, 'MPMM'],
+    ['genasi', 'Дженази', 'Герой с наследием одного из стихийных планов.', 30, 'MPMM'],
+    ['githyanki', 'Гитъянки', 'Астральный воитель с псионическими дарами.', 30, 'MPMM'],
+    ['githzerai', 'Гитцерай', 'Дисциплинированный псионик из хаоса Лимбо.', 30, 'MPMM'],
+    ['goblin', 'Гоблин', 'Проворный и находчивый гоблиноид.', 30, 'MPMM'],
+    ['harengon', 'Зайцегон', 'Прыгучий фейский народ с быстрой реакцией.', 30, 'MPMM'],
+    ['kenku', 'Кенку', 'Птичий народ, искусный в подражании.', 30, 'MPMM'],
+    ['kobold', 'Кобольд', 'Маленький драконообразный герой.', 30, 'MPMM'],
+    ['lizardfolk', 'Людоящер', 'Выносливый рептилоид, приспособленный к воде.', 30, 'MPMM'],
+    ['minotaur', 'Минотавр', 'Могучий рогатый герой лабиринтов.', 30, 'MPMM'],
+    ['satyr', 'Сатир', 'Жизнерадостный фейский народ.', 35, 'MPMM'],
+    ['sea-elf', 'Морской эльф', 'Эльф, приспособленный к жизни под водой.', 30, 'MPMM'],
+    ['shadar-kai', 'Шадар-кай', 'Эльф, связанный с Царством Теней.', 30, 'MPMM'],
+    ['shifter', 'Шифтер', 'Герой с оборотническим наследием.', 30, 'MPMM'],
+    ['tabaxi', 'Табакси', 'Кошачий народ исследователей и странников.', 30, 'MPMM'],
+    ['tortle', 'Тортл', 'Черепахоподобный народ с природным панцирем.', 30, 'MPMM'],
+    ['triton', 'Тритон', 'Подводный народ защитников морских глубин.', 30, 'MPMM'],
+    ['yuan-ti', 'Юань-ти', 'Герой со змеиным наследием.', 30, 'MPMM'],
+    ['half-elf', 'Полуэльф', 'Наследник человеческой и эльфийской культур.', 30, 'PH14'],
+    ['half-orc', 'Полуорк', 'Стойкий герой с орочьим наследием.', 30, 'PH14'],
+    ['warforged', 'Кованый', 'Искусственно созданный живой конструкт.', 30, 'RLW'],
+    ['kalashtar', 'Калаштар', 'Герой, связанный с духом из мира снов.', 30, 'RLW'],
+  ].map(([id, name, description, speed, source]) => ({
+    id: id as string,
+    name: name as string,
+    description: description as string,
+    speed: speed as number,
+    source: source as string,
+  })),
 ];
 
 export const dnd5eBackgrounds = [
@@ -341,7 +423,7 @@ const spell = (
   classIds: string[],
   description: string,
 ) => ({ id, name, level, classIds, description });
-export const dnd5eSpells = [
+const curatedDnd5eSpells = [
   spell(
     'guidance',
     'Указание',
@@ -714,6 +796,52 @@ export const dnd5eSpells = [
     ['sorcerer', 'wizard'],
     'Самая могущественная магия: может воспроизвести или изменить эффект по воле заклинателя.',
   ),
+];
+
+type StoredSpellCatalogue = {
+  schemaVersion: number;
+  ruleset: string;
+  source: string;
+  license: string;
+  attribution: string;
+  spells: Array<{
+    id: string;
+    name: string;
+    englishName: string;
+    level: number;
+    classIds: string[];
+    description: string;
+    referenceUrl: string;
+  }>;
+};
+
+const storedSpellCatalogue = spellData as StoredSpellCatalogue;
+if (
+  storedSpellCatalogue.schemaVersion !== 1 ||
+  storedSpellCatalogue.ruleset !== 'dnd5e-srd-5.2.1' ||
+  storedSpellCatalogue.source !== 'SRD 5.2.1' ||
+  storedSpellCatalogue.license !== 'CC-BY-4.0'
+) {
+  throw new Error('Unsupported D&D 5e spell dataset');
+}
+
+const curatedSpellById = new Map(curatedDnd5eSpells.map((entry) => [entry.id, entry]));
+const officialSpellIds = new Set(storedSpellCatalogue.spells.map(({ id }) => id));
+
+export const dnd5eSpells = [
+  ...storedSpellCatalogue.spells.map((entry) => {
+    const curated = curatedSpellById.get(entry.id);
+    return curated
+      ? { ...entry, name: curated.name, description: curated.description }
+      : { ...entry };
+  }),
+  ...curatedDnd5eSpells
+    .filter(({ id }) => !officialSpellIds.has(id))
+    .map((entry) => ({
+      ...entry,
+      englishName: entry.name,
+      referenceUrl: 'https://dnd.su/spells/',
+    })),
 ];
 
 const gear = (

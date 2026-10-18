@@ -2125,6 +2125,10 @@ function BattleBoard({
                 object.name,
                 resolvedTerrainTheme,
               );
+              const entranceKind = generatedEntranceKind(object.name);
+              const entranceEdge = entranceKind
+                ? generatedEntranceEdge(object, scene.gridColumns, scene.gridRows)
+                : null;
               return (
                 <span
                   aria-label={object.name}
@@ -2132,7 +2136,7 @@ function BattleBoard({
                     object.currentHp === 0 ? 'is-destroyed' : ''
                   } ${object.hasImage ? 'has-image' : ''} ${object.imageAnimated ? 'is-animated' : ''} ${
                     objectEffects[object.id] ? `has-${objectEffects[object.id]}-effect` : ''
-                  }`}
+                  } ${entranceKind ? `is-map-entrance is-${entranceKind} is-edge-${entranceEdge}` : ''}`}
                   key={object.id}
                   onContextMenu={(event) => showContextMenu(event, undefined, object)}
                   style={cellStyle(
@@ -2145,7 +2149,11 @@ function BattleBoard({
                   )}
                   title={object.name}
                 >
-                  {systemAsset?.kind === 'PROP' ? (
+                  {entranceKind ? (
+                    <span aria-hidden="true" className="battle-map-entrance">
+                      <b>{entranceKind === 'exit' ? '↗' : '→'}</b>
+                    </span>
+                  ) : systemAsset?.kind === 'PROP' ? (
                     <span
                       aria-hidden="true"
                       className="battle-generated-environment"
@@ -2169,7 +2177,7 @@ function BattleBoard({
                       )}
                     />
                   ) : null}
-                  {!object.hasImage && environmentSprite === null ? (
+                  {!entranceKind && !object.hasImage && environmentSprite === null ? (
                     <strong>{object.kind === 'CLUE' ? '?' : '◆'}</strong>
                   ) : null}
                   {object.showLabel ? <small>{object.name}</small> : null}
@@ -5284,9 +5292,30 @@ function generatedBattleBackground(
   return {
     backgroundImage: `${weatherLayer}, ${lightingLayer}, url("${backgroundPresetImageUrl(preset)}")`,
     backgroundPosition: 'center, center, center',
-    backgroundRepeat: 'no-repeat',
-    backgroundSize: 'cover, cover, cover',
+    backgroundRepeat: 'no-repeat, no-repeat, repeat',
+    backgroundSize: 'cover, cover, 314px 314px',
   };
+}
+
+function generatedEntranceKind(name: string): 'entrance' | 'exit' | null {
+  const normalized = name.toLocaleLowerCase('ru-RU');
+  if (normalized === 'выход') return 'exit';
+  if (normalized === 'вход' || normalized.startsWith('дополнительный вход')) return 'entrance';
+  return null;
+}
+
+function generatedEntranceEdge(
+  object: Pick<BattleSceneObject, 'x' | 'y'>,
+  columns: number,
+  rows: number,
+): 'top' | 'right' | 'bottom' | 'left' {
+  const distances = [
+    ['top', object.y],
+    ['right', columns - 1 - object.x],
+    ['bottom', rows - 1 - object.y],
+    ['left', object.x],
+  ] as const;
+  return [...distances].sort((left, right) => left[1] - right[1])[0]![0];
 }
 
 function inferTerrainTheme(
