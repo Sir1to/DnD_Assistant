@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { searchReference, type ReferenceSearchSource } from './reference-search';
+import {
+  filterFormulaGroups,
+  searchReference,
+  type ReferenceSearchSource,
+} from './reference-search';
 
 const source: ReferenceSearchSource = {
   monsters: [
@@ -95,5 +99,38 @@ describe('searchReference', () => {
 
     expect(result.groups[0]).toMatchObject({ category: 'SPELL', total: 8 });
     expect(result.groups[0]?.results).toHaveLength(3);
+  });
+});
+
+describe('filterFormulaGroups', () => {
+  it('filters by category until a query searches across every formula group', () => {
+    const groups = [
+      ...source.formulaGroups,
+      {
+        id: 'movement',
+        title: 'Движение',
+        summary: 'Памятка по карте.',
+        formulas: [
+          {
+            id: 'falling',
+            title: 'Падение',
+            formula: '1к6 за каждые 10 футов',
+            explanation: 'Максимум 20к6.',
+          },
+        ],
+      },
+    ];
+
+    expect(filterFormulaGroups(groups, '', 'movement').map(({ id }) => id)).toEqual(['movement']);
+    expect(filterFormulaGroups(groups, 'крит урон', 'movement')[0]?.formulas[0]?.id).toBe(
+      'critical-hit',
+    );
+  });
+
+  it('matches formulas by explanation and normalizes е/ё', () => {
+    expect(filterFormulaGroups(source.formulaGroups, 'натуральная 20')[0]?.formulas[0]?.id).toBe(
+      'critical-hit',
+    );
+    expect(filterFormulaGroups(source.formulaGroups, 'неизвестная формула')).toEqual([]);
   });
 });

@@ -121,6 +121,15 @@ test('reference search finds every catalogue type and opens a result', async ({ 
 
   await page.goto(`/campaigns/${campaignId}/reference`);
   const search = page.getByRole('searchbox', { name: 'Единый поиск в справочнике' });
+  const formulaSearch = page.getByRole('searchbox', { name: 'Поиск только по формулам' });
+
+  await expect(page.getByRole('button', { name: /Броски d20/ })).toHaveClass(/is-active/);
+  await formulaSearch.fill('концентрация после урона');
+  await expect(page.getByText('спасбросок Телосложения, СЛ = max')).toBeVisible();
+  await expect(page.getByRole('status')).toContainText('По запросу найдено: 1');
+  await formulaSearch.fill('такой формулы нет');
+  await expect(page.getByText('Такой формулы не нашлось')).toBeVisible();
+  await page.getByRole('button', { name: 'Сбросить поиск' }).click();
 
   await search.fill('Goblin');
   await expect(page.getByRole('heading', { name: 'Существа' })).toBeVisible();
@@ -138,6 +147,10 @@ test('reference search finds every catalogue type and opens a result', async ({ 
   await search.fill('урона');
   await expect(page.getByRole('heading', { name: 'Предметы' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Правила и формулы' })).toBeVisible();
+  await search.fill('критическое попадание');
+  await page.getByRole('button', { name: /Критическое попадание/ }).click();
+  await expect(page.getByRole('heading', { name: 'Атаки и защита' })).toBeVisible();
+  await expect(page.getByText('бросить кости урона атаки дважды')).toBeVisible();
 
   await search.fill('длинный меч');
   await page.getByRole('button', { name: /Длинный меч/ }).click();

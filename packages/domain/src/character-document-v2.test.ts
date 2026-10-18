@@ -164,6 +164,24 @@ describe('character document v2', () => {
     );
   });
 
+  it('rejects equipment outside the starting package in manual mode too', () => {
+    const { document } = migrateCharacterSheetDataV1(legacyFighter, 'MANUAL');
+    document.inventory.equipment.push({
+      optionId: 'spellbook',
+      name: 'Книга заклинаний',
+      quantity: 1,
+      notes: '',
+    });
+
+    expect(validateCharacterDocumentV2(document)).toContainEqual(
+      expect.objectContaining({
+        code: 'equipment.not-starting-option',
+        path: '/inventory/equipment/2/optionId',
+        severity: 'ERROR',
+      }),
+    );
+  });
+
   it('rejects a class spell above the character spell level', () => {
     const { document } = migrateCharacterSheetDataV1(legacyFighter, 'GUIDED');
     document.identity.classId = 'wizard';

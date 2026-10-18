@@ -43,11 +43,14 @@
 
 @media print {
   @page {
-    size: A4;
-    margin: 12mm;
+    size: Letter portrait;
+    margin: 0;
   }
 
+  html,
   body {
+    width: 8.5in !important;
+    margin: 0 !important;
     background: #fff !important;
   }
 
@@ -63,144 +66,445 @@
   .character-print-sheet {
     display: block;
     position: absolute;
-    inset: 0;
-    width: 186mm;
-    min-height: 273mm;
+    top: 0;
+    left: 0;
+    width: 8.5in;
     padding: 0;
     background: #fff;
-    color: #1c1712;
+    color: #111;
     font:
-      10pt/1.35 Georgia,
-      'Times New Roman',
-      serif;
+      8pt/1.2 Arial,
+      sans-serif;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
 
-  .character-print-sheet header,
-  .character-print-identity,
-  .character-print-stats,
-  .character-print-combat,
-  .character-print-columns {
-    display: grid;
-    gap: 3mm;
+  .character-print-page {
+    position: relative;
+    width: 8.5in;
+    height: 11in;
+    overflow: hidden;
+    break-after: page;
+    page-break-after: always;
   }
 
-  .character-print-sheet header {
-    grid-template-columns: 1fr 24mm;
+  .character-print-page:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  .character-print-template {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .character-print-page span,
+  .character-print-page div {
+    position: absolute;
+    box-sizing: border-box;
+  }
+
+  .character-print-name {
+    top: 6.8%;
+    left: 7%;
+    display: flex;
+    width: 35%;
+    height: 4.4%;
     align-items: center;
-    border-bottom: 1.5pt solid #5b3e24;
-    padding-bottom: 4mm;
-  }
-
-  .character-print-sheet h1 {
-    margin: 0;
-    font-size: 25pt;
-  }
-
-  .character-print-sheet h2 {
-    margin: 4mm 0 1.5mm;
-    color: #5b3e24;
-    font-size: 11pt;
-    text-transform: uppercase;
-  }
-
-  .character-print-sheet p,
-  .character-print-sheet ul {
-    margin: 1mm 0;
-  }
-
-  .character-print-sheet header p,
-  .character-print-sheet footer {
-    color: #6f6257;
-    font:
-      7.5pt/1.2 'Segoe UI',
-      Arial,
-      sans-serif;
-    letter-spacing: 0.08em;
-  }
-
-  .character-print-level {
-    display: grid;
-    place-items: center;
-    border: 1pt solid #5b3e24;
-    border-radius: 50%;
-    aspect-ratio: 1;
-  }
-
-  .character-print-level strong {
-    font-size: 22pt;
+    justify-content: center;
+    overflow: hidden;
+    font-size: 14pt;
+    font-weight: 700;
     line-height: 1;
+    text-align: center;
+    white-space: nowrap;
   }
 
-  .character-print-level span,
-  .character-print-identity span,
-  .character-print-combat span,
-  .character-print-stats span {
-    color: #6f6257;
-    font:
-      7pt/1.2 'Segoe UI',
-      Arial,
-      sans-serif;
-    text-transform: uppercase;
+  .character-print-field {
+    display: flex;
+    height: 3%;
+    align-items: center;
+    overflow: hidden;
+    font-size: 8pt;
+    white-space: nowrap;
   }
 
-  .character-print-identity {
-    grid-template-columns: repeat(3, 1fr);
-    margin-top: 4mm;
+  .character-print-class-level {
+    top: 5.7%;
+    left: 44%;
+    width: 18%;
   }
 
-  .character-print-identity > div,
-  .character-print-combat > div,
-  .character-print-stats > div,
-  .character-print-columns > section,
-  .character-print-story {
-    break-inside: avoid;
-    border: 0.6pt solid #c8b49f;
-    border-radius: 2mm;
-    padding: 2.5mm;
+  .character-print-background {
+    top: 5.7%;
+    left: 62.6%;
+    width: 16%;
   }
 
-  .character-print-identity > div,
-  .character-print-combat > div,
-  .character-print-stats > div {
-    display: grid;
-    gap: 1mm;
+  .character-print-player {
+    top: 5.7%;
+    left: 79.2%;
+    width: 13.5%;
+  }
+
+  .character-print-species {
+    top: 9.1%;
+    left: 44%;
+    width: 18%;
+  }
+
+  .character-print-ability {
+    left: 5%;
+    width: 9.4%;
+    height: 9%;
     text-align: center;
   }
 
-  .character-print-stats {
-    grid-template-columns: repeat(6, 1fr);
-    margin-top: 3mm;
+  .character-print-ability strong {
+    position: absolute;
+    top: 30%;
+    left: 0;
+    width: 100%;
+    font-size: 18pt;
   }
 
-  .character-print-stats strong,
-  .character-print-combat strong {
-    font-size: 15pt;
+  .character-print-ability small {
+    position: absolute;
+    right: 0;
+    bottom: 1%;
+    left: 0;
+    font-size: 10pt;
   }
 
-  .character-print-stats small {
+  .character-print-inspiration,
+  .character-print-proficiency {
+    left: 15.6%;
+    display: flex;
+    width: 4.6%;
+    height: 4.1%;
+    align-items: center;
+    justify-content: center;
+    font-size: 10pt;
+    font-weight: 700;
+  }
+
+  .character-print-inspiration {
+    top: 16.3%;
+  }
+
+  .character-print-proficiency {
+    top: 20.8%;
+  }
+
+  .character-print-row-value {
+    left: 18.3%;
+    width: 3.2%;
+    font-size: 7pt;
+    line-height: 1;
+    text-align: center;
+  }
+
+  .character-print-row-value.is-proficient::before {
+    position: absolute;
+    top: -0.05em;
+    left: -2.25em;
+    content: '●';
+    font-size: 6pt;
+  }
+
+  .character-print-skill-value {
+    left: 18.3%;
+  }
+
+  .character-print-passive {
+    top: 74.1%;
+    left: 5.1%;
+    display: flex;
+    width: 5.2%;
+    height: 3.6%;
+    align-items: center;
+    justify-content: center;
+    font-size: 11pt;
+    font-weight: 700;
+  }
+
+  .character-print-ac,
+  .character-print-initiative,
+  .character-print-speed {
+    top: 18.1%;
+    display: flex;
+    width: 8.8%;
+    height: 5.7%;
+    align-items: center;
+    justify-content: center;
+    font-size: 17pt;
+    font-weight: 700;
+  }
+
+  .character-print-ac {
+    left: 36.2%;
+  }
+
+  .character-print-initiative {
+    left: 45.3%;
+  }
+
+  .character-print-speed {
+    left: 54.6%;
+  }
+
+  .character-print-hp-max {
+    top: 25.6%;
+    left: 47%;
+    width: 14.5%;
     font-size: 9pt;
   }
 
-  .character-print-combat {
-    grid-template-columns: repeat(6, 1fr);
-    margin-top: 3mm;
+  .character-print-hp-current,
+  .character-print-hp-temporary {
+    left: 37.5%;
+    display: flex;
+    width: 25.2%;
+    height: 6%;
+    align-items: center;
+    justify-content: center;
+    font-size: 18pt;
+    font-weight: 700;
   }
 
-  .character-print-columns {
-    grid-template-columns: 1fr 1fr;
-    margin-top: 4mm;
+  .character-print-hp-current {
+    top: 26.1%;
   }
 
-  .character-print-story {
-    margin-top: 4mm;
+  .character-print-hp-temporary {
+    top: 33.4%;
+  }
+
+  .character-print-hit-dice {
+    top: 42.3%;
+    left: 38.1%;
+    width: 11.7%;
+    font-size: 12pt;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .character-print-hit-dice-total {
+    top: 40.6%;
+    left: 39.2%;
+    width: 8.5%;
+    font-size: 7pt;
+  }
+
+  .character-print-attacks {
+    top: 49.5%;
+    left: 36.3%;
+    display: grid;
+    width: 27.5%;
+    grid-auto-rows: 2.7%;
+    gap: 1.2%;
+  }
+
+  .character-print-attacks > span {
+    position: static;
+    display: grid;
+    grid-template-columns: 46% 23% 31%;
+    align-items: center;
+    min-height: 17pt;
+    font-size: 7pt;
+  }
+
+  .character-print-attacks b {
+    overflow: hidden;
+    padding: 0 3pt;
+    font-weight: 400;
+    white-space: nowrap;
+  }
+
+  .character-print-proficiencies,
+  .character-print-equipment,
+  .character-print-personality,
+  .character-print-features,
+  .character-print-page-two-appearance,
+  .character-print-page-two-backstory,
+  .character-print-page-two-notes {
+    overflow: hidden;
+    padding: 4pt;
+    font-size: 7.5pt;
+    line-height: 1.35;
     white-space: pre-wrap;
   }
 
-  .character-print-sheet footer {
-    margin-top: 5mm;
-    border-top: 0.5pt solid #c8b49f;
-    padding-top: 2mm;
-    text-align: right;
+  .character-print-proficiencies {
+    top: 79.7%;
+    left: 5.3%;
+    width: 27.8%;
+    height: 16.2%;
+  }
+
+  .character-print-equipment {
+    top: 77.7%;
+    left: 44.3%;
+    width: 19.2%;
+    height: 17.8%;
+    font-size: 6.5pt;
+  }
+
+  .character-print-personality {
+    top: 18.2%;
+    left: 68.8%;
+    width: 25.3%;
+    height: 6.7%;
+  }
+
+  .character-print-features {
+    top: 49.3%;
+    left: 68.6%;
+    width: 26.1%;
+    height: 46.2%;
+  }
+
+  .character-print-page-two-appearance {
+    top: 17.2%;
+    left: 5.3%;
+    width: 27.8%;
+    height: 27.8%;
+  }
+
+  .character-print-page-two-backstory {
+    top: 49%;
+    left: 5.3%;
+    width: 27.8%;
+    height: 46.8%;
+  }
+
+  .character-print-page-two-notes {
+    top: 47.9%;
+    left: 36.3%;
+    width: 58%;
+    height: 26.2%;
+  }
+
+  .character-print-spell-class {
+    top: 6.8%;
+    left: 7.4%;
+    display: flex;
+    width: 34%;
+    height: 4.4%;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    font-size: 14pt;
+    font-weight: 700;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .character-print-spell-ability,
+  .character-print-spell-save,
+  .character-print-spell-attack {
+    top: 6.7%;
+    display: flex;
+    width: 12.2%;
+    height: 3.9%;
+    align-items: center;
+    justify-content: center;
+    font-size: 13pt;
+    font-weight: 700;
+  }
+
+  .character-print-spell-ability {
+    left: 46%;
+    font-size: 10pt;
+  }
+
+  .character-print-spell-save {
+    left: 62.2%;
+  }
+
+  .character-print-spell-attack {
+    left: 79.2%;
+  }
+
+  .character-print-spell-list {
+    overflow: hidden;
+    padding: 0 8pt;
+    font-size: 7pt;
+    line-height: 1.72;
+    white-space: pre-wrap;
+  }
+
+  .character-print-spell-list-0 {
+    top: 23.1%;
+    left: 5.5%;
+    width: 28%;
+    height: 12.7%;
+  }
+
+  .character-print-spell-list-1 {
+    top: 44.4%;
+    left: 5.5%;
+    width: 28%;
+    height: 22%;
+  }
+
+  .character-print-spell-list-2 {
+    top: 72.7%;
+    left: 5.5%;
+    width: 28%;
+    height: 23.5%;
+  }
+
+  .character-print-spell-list-3 {
+    top: 23.1%;
+    left: 36.5%;
+    width: 28%;
+    height: 22%;
+  }
+
+  .character-print-spell-list-4 {
+    top: 51.5%;
+    left: 36.5%;
+    width: 28%;
+    height: 21.8%;
+  }
+
+  .character-print-spell-list-5 {
+    top: 81%;
+    left: 36.5%;
+    width: 28%;
+    height: 15.2%;
+  }
+
+  .character-print-spell-list-6 {
+    top: 23.1%;
+    left: 67.5%;
+    width: 27.5%;
+    height: 14.5%;
+  }
+
+  .character-print-spell-list-7 {
+    top: 44.7%;
+    left: 67.5%;
+    width: 27.5%;
+    height: 14.5%;
+  }
+
+  .character-print-spell-list-8 {
+    top: 66.3%;
+    left: 67.5%;
+    width: 27.5%;
+    height: 10.8%;
+  }
+
+  .character-print-spell-list-9 {
+    top: 84%;
+    left: 67.5%;
+    width: 27.5%;
+    height: 12.2%;
   }
 }
 .characters-topbar {
@@ -234,6 +538,36 @@
 }
 .character-actions .app-button:first-child {
   grid-column: 1 / -1;
+}
+.character-creation-guide {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--line));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--accent) 5%, var(--surface-raised));
+}
+.character-creation-guide > strong {
+  font-family: var(--font-serif);
+  font-size: 0.98rem;
+}
+.character-creation-guide > div {
+  display: grid;
+  gap: 3px;
+  padding-top: 9px;
+  border-top: 1px solid var(--line);
+}
+.character-creation-guide span {
+  color: var(--text);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+.character-creation-guide p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  line-height: 1.45;
 }
 .character-notice,
 .empty-copy {
@@ -811,7 +1145,135 @@
 }
 .formula-catalogue {
   display: grid;
-  gap: 30px;
+  gap: 22px;
+}
+.formula-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.7fr);
+  gap: 22px;
+  padding: clamp(18px, 3vw, 26px);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line));
+  border-radius: 18px;
+  background:
+    radial-gradient(
+      circle at 90% 0%,
+      color-mix(in srgb, var(--accent) 14%, transparent),
+      transparent 55%
+    ),
+    var(--surface);
+}
+.formula-intro h3 {
+  margin: 4px 0 8px;
+  font-family: var(--font-serif);
+  font-size: clamp(1.2rem, 2vw, 1.55rem);
+}
+.formula-intro p:not(.eyebrow) {
+  max-width: 620px;
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+.formula-search {
+  align-self: end;
+  display: grid;
+  gap: 7px;
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  font-weight: 750;
+}
+.formula-search input {
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 11px;
+  background: var(--surface-raised);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.88rem;
+}
+.formula-search input:focus {
+  border-color: var(--accent);
+  outline: 3px solid color-mix(in srgb, var(--accent) 15%, transparent);
+}
+.formula-group-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 2px 8px;
+  scrollbar-width: thin;
+}
+.formula-group-tabs button {
+  flex: 0 0 auto;
+  min-height: 38px;
+  padding: 8px 11px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 750;
+}
+.formula-group-tabs button:hover,
+.formula-group-tabs button:focus-visible,
+.formula-group-tabs button.is-active {
+  border-color: color-mix(in srgb, var(--accent) 65%, var(--line));
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface-raised));
+  color: var(--text);
+}
+.formula-group-tabs button span {
+  display: inline-grid;
+  min-width: 21px;
+  min-height: 21px;
+  margin-left: 4px;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--surface-inset);
+  color: var(--text-muted);
+  font-size: 0.66rem;
+}
+.formula-results-summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 18px;
+  padding-bottom: 13px;
+  border-bottom: 1px solid var(--line);
+}
+.formula-results-summary strong {
+  white-space: nowrap;
+}
+.formula-results-summary span {
+  max-width: 690px;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  line-height: 1.5;
+  text-align: right;
+}
+.formula-empty {
+  display: grid;
+  justify-items: start;
+  gap: 7px;
+  padding: 24px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 14px;
+  background: var(--surface);
+}
+.formula-empty p {
+  margin: 0;
+  color: var(--text-muted);
+}
+.formula-empty button {
+  margin-top: 4px;
+  padding: 8px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 9px;
+  background: var(--surface-raised);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
 }
 .formula-group {
   display: grid;
@@ -1449,6 +1911,17 @@
   }
   .reference-heading input {
     width: 100%;
+  }
+  .formula-intro {
+    grid-template-columns: 1fr;
+  }
+  .formula-results-summary {
+    align-items: start;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .formula-results-summary span {
+    text-align: left;
   }
   .reference-table-row {
     grid-template-columns: 1fr auto;

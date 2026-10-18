@@ -532,7 +532,6 @@ export function validateCharacterDocumentV2(document: CharacterDocumentV2): Char
       );
     }
     if (
-      document.creation.mode !== 'MANUAL' &&
       item.optionId &&
       equipmentIds.has(item.optionId) &&
       !guidedEquipmentIds.has(item.optionId)

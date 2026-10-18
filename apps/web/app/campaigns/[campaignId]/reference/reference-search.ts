@@ -30,6 +30,32 @@ export type ReferenceSearchResponse = {
   groups: ReferenceSearchGroup[];
 };
 
+export function filterFormulaGroups(
+  groups: Dnd5eFormulaGroup[],
+  query: string,
+  groupId = 'ALL',
+): Dnd5eFormulaGroup[] {
+  const normalizedQuery = normalizeSearchText(query);
+  const tokens = [...new Set(normalizedQuery.split(/\s+/).filter(Boolean))];
+
+  return groups.flatMap((group) => {
+    if (!normalizedQuery && groupId !== 'ALL' && group.id !== groupId) return [];
+    const formulas = group.formulas.filter((formula) => {
+      if (tokens.length === 0) return true;
+      const searchable = searchableText(
+        group.title,
+        group.summary,
+        formula.title,
+        formula.formula,
+        formula.explanation,
+        formula.note,
+      );
+      return tokens.every((token) => searchable.includes(token));
+    });
+    return formulas.length > 0 ? [{ ...group, formulas }] : [];
+  });
+}
+
 type SearchCandidate = ReferenceSearchResult & {
   searchable: string;
 };

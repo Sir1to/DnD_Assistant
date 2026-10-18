@@ -27,6 +27,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { CampaignNavigation } from '../../../components/campaign-navigation';
 import { apiRequest, readableError } from '../../../lib/api';
 import {
+  filterFormulaGroups,
   referenceResultAnchor,
   searchReference,
   type ReferenceSearchCategory,
@@ -201,7 +202,12 @@ export default function ReferencePage() {
             <UnifiedReferenceSearch response={unifiedSearch} onOpen={openSearchResult} />
           ) : (
             <>
-              {section === 'RULES' ? <FormulaCatalogue /> : null}
+              {section === 'RULES' ? (
+                <FormulaCatalogue
+                  key={referenceTarget?.category === 'RULE' ? referenceTarget.id : 'catalogue'}
+                  targetId={referenceTarget?.category === 'RULE' ? referenceTarget.id : null}
+                />
+              ) : null}
               {section === 'ENCOUNTER' ? (
                 <EncounterLab
                   campaignId={campaignId}
@@ -1039,14 +1045,79 @@ function MonsterRuleSection({
   );
 }
 
-function FormulaCatalogue() {
+function FormulaCatalogue({ targetId }: { targetId: string | null }) {
+  const [formulaQuery, setFormulaQuery] = useState('');
+  const [formulaGroupId, setFormulaGroupId] = useState(
+    dnd5eFormulaGroups.find((group) => group.formulas.some((formula) => formula.id === targetId))
+      ?.id ??
+      dnd5eFormulaGroups[0]?.id ??
+      'ALL',
+  );
+  const visibleGroups = filterFormulaGroups(dnd5eFormulaGroups, formulaQuery, formulaGroupId);
+  const visibleFormulaCount = visibleGroups.reduce((sum, group) => sum + group.formulas.length, 0);
+  const totalFormulaCount = dnd5eFormulaGroups.reduce(
+    (sum, group) => sum + group.formulas.length,
+    0,
+  );
+
   return (
     <div className="formula-catalogue">
-      <p className="reference-lede">
-        Здесь собраны постоянные правила SRD 5.2.1. У конкретного заклинания, предмета, особенности
-        класса или статблока может быть собственное исключение — его текст важнее общей формулы.
-      </p>
-      {dnd5eFormulaGroups.map((group) => (
+      <div className="formula-intro">
+        <div>
+          <p className="eyebrow">Быстрый доступ во время игры</p>
+          <h3>Найдите правило по ситуации или формуле</h3>
+          <p>
+            Ищите словами вроде «крит», «концентрация», «КД» или «падение». Поиск проверяет
+            название, саму формулу и пояснение.
+          </p>
+        </div>
+        <label className="formula-search">
+          <span>Поиск только по формулам</span>
+          <input
+            onChange={(event) => setFormulaQuery(event.target.value)}
+            placeholder="Например: атака заклинанием"
+            type="search"
+            value={formulaQuery}
+          />
+        </label>
+      </div>
+      <div className="formula-group-tabs" aria-label="Категории базовых формул">
+        <button
+          className={!formulaQuery && formulaGroupId === 'ALL' ? 'is-active' : ''}
+          onClick={() => {
+            setFormulaQuery('');
+            setFormulaGroupId('ALL');
+          }}
+          type="button"
+        >
+          Все <span>{totalFormulaCount}</span>
+        </button>
+        {dnd5eFormulaGroups.map((group) => (
+          <button
+            className={!formulaQuery && formulaGroupId === group.id ? 'is-active' : ''}
+            key={group.id}
+            onClick={() => {
+              setFormulaQuery('');
+              setFormulaGroupId(group.id);
+            }}
+            type="button"
+          >
+            {group.title} <span>{group.formulas.length}</span>
+          </button>
+        ))}
+      </div>
+      <div className="formula-results-summary" role="status">
+        <strong>
+          {formulaQuery
+            ? `По запросу найдено: ${visibleFormulaCount}`
+            : `${visibleFormulaCount} формул`}
+        </strong>
+        <span>
+          У конкретного заклинания, предмета, особенности класса или статблока может быть своё
+          исключение — его текст важнее общей формулы.
+        </span>
+      </div>
+      {visibleGroups.map((group) => (
         <section className="formula-group" key={group.id}>
           <div className="formula-group-heading">
             <h3>{group.title}</h3>
@@ -1064,6 +1135,15 @@ function FormulaCatalogue() {
           </div>
         </section>
       ))}
+      {visibleFormulaCount === 0 ? (
+        <div className="formula-empty">
+          <strong>Такой формулы не нашлось</strong>
+          <p>Попробуйте более короткий запрос или выберите категорию выше.</p>
+          <button onClick={() => setFormulaQuery('')} type="button">
+            Сбросить поиск
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }

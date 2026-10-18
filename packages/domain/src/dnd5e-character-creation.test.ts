@@ -10,6 +10,7 @@ import {
   recordDnd5eGuidedDecisions,
   resolveDnd5eGuidedChoices,
 } from './dnd5e-character-creation';
+import { validateCharacterDocumentV2 } from './character-document-v2';
 
 describe('D&D 5e guided character creation', () => {
   it('publishes a versioned, ordered decision graph with every supported ability method', () => {
@@ -217,5 +218,40 @@ describe('D&D 5e guided character creation', () => {
 
     document = applyDnd5eGuidedIdentity(document, 'level', 2);
     expect(resolveDnd5eGuidedChoices(document).availableSpellIds).toContain('bless');
+  });
+
+  it('creates every beginner build, species, and ability-method combination without rule errors', () => {
+    const options = dnd5eCharacterOptions();
+
+    for (const build of options.builds) {
+      for (const species of options.species) {
+        for (const method of options.guided.abilityMethods) {
+          const document = createDnd5eAutomaticCharacterDocument(build.id, species.id, method.id);
+          const errors = document
+            ? validateCharacterDocumentV2(document).filter(({ severity }) => severity === 'ERROR')
+            : ['document was not created'];
+
+          expect(errors, `${build.id} / ${species.id} / ${method.id}`).toEqual([]);
+        }
+      }
+    }
+  });
+
+  it('keeps every class and background pairing valid in the guided constructor', () => {
+    const options = dnd5eCharacterOptions();
+
+    for (const characterClass of options.classes) {
+      for (const background of options.backgrounds) {
+        let document = createDnd5eGuidedCharacterDocument();
+        document = applyDnd5eGuidedIdentity(document, 'speciesId', options.species[0]!.id);
+        document = applyDnd5eGuidedIdentity(document, 'classId', characterClass.id);
+        document = applyDnd5eGuidedIdentity(document, 'backgroundId', background.id);
+        const errors = validateCharacterDocumentV2(document).filter(
+          ({ severity }) => severity === 'ERROR',
+        );
+
+        expect(errors, `${characterClass.id} / ${background.id}`).toEqual([]);
+      }
+    }
   });
 });

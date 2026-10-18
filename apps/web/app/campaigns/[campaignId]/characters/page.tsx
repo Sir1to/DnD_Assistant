@@ -58,6 +58,50 @@ const abilityLabels: Record<AbilityKey, string> = {
   charisma: 'Харизма',
 };
 const abilityKeys = Object.keys(abilityLabels) as AbilityKey[];
+const printSkillRows: readonly { id: string; ability: AbilityKey }[] = [
+  { id: 'acrobatics', ability: 'dexterity' },
+  { id: 'investigation', ability: 'intelligence' },
+  { id: 'athletics', ability: 'strength' },
+  { id: 'perception', ability: 'wisdom' },
+  { id: 'survival', ability: 'wisdom' },
+  { id: 'performance', ability: 'charisma' },
+  { id: 'intimidation', ability: 'charisma' },
+  { id: 'history', ability: 'intelligence' },
+  { id: 'sleight-of-hand', ability: 'dexterity' },
+  { id: 'arcana', ability: 'intelligence' },
+  { id: 'medicine', ability: 'wisdom' },
+  { id: 'deception', ability: 'charisma' },
+  { id: 'nature', ability: 'intelligence' },
+  { id: 'insight', ability: 'wisdom' },
+  { id: 'religion', ability: 'intelligence' },
+  { id: 'stealth', ability: 'dexterity' },
+  { id: 'persuasion', ability: 'charisma' },
+  { id: 'animal-handling', ability: 'wisdom' },
+];
+const printSavingThrowProficiencies: Record<string, readonly AbilityKey[]> = {
+  barbarian: ['strength', 'constitution'],
+  bard: ['dexterity', 'charisma'],
+  cleric: ['wisdom', 'charisma'],
+  druid: ['intelligence', 'wisdom'],
+  fighter: ['strength', 'constitution'],
+  monk: ['strength', 'dexterity'],
+  paladin: ['wisdom', 'charisma'],
+  ranger: ['strength', 'dexterity'],
+  rogue: ['dexterity', 'intelligence'],
+  sorcerer: ['constitution', 'charisma'],
+  warlock: ['wisdom', 'charisma'],
+  wizard: ['intelligence', 'wisdom'],
+};
+const printSpellcastingAbilities: Partial<Record<string, AbilityKey>> = {
+  bard: 'charisma',
+  cleric: 'wisdom',
+  druid: 'wisdom',
+  paladin: 'charisma',
+  ranger: 'wisdom',
+  sorcerer: 'charisma',
+  warlock: 'charisma',
+  wizard: 'intelligence',
+};
 export default function CharactersPage() {
   const { campaignId } = useParams<{ campaignId: string }>();
   const router = useRouter();
@@ -223,7 +267,7 @@ export default function CharactersPage() {
                 setGuidedBuilderOpen(true);
               }}
             >
-              + Новый лист
+              + Создать лист
             </Button>
             <Button
               tone="quiet"
@@ -252,6 +296,31 @@ export default function CharactersPage() {
               }}
             />
           </div>
+          <section className="character-creation-guide" aria-labelledby="creation-guide-title">
+            <strong id="creation-guide-title">Какой способ выбрать?</strong>
+            <div>
+              <span>Создать лист</span>
+              <p>
+                Свободный ручной черновик. Можно оставить шаги незаполненными и вернуться к ним
+                позже; характеристики и выборы заполняете вы, а стартовое снаряжение остаётся в
+                рамках класса и предыстории.
+              </p>
+            </div>
+            <div>
+              <span>Конструктор 2.0</span>
+              <p>
+                Пошаговая сборка по правилам SRD. Показывает доступные варианты, считает производные
+                параметры и не даёт завершить лист с ошибками.
+              </p>
+            </div>
+            <div>
+              <span>Для новичка</span>
+              <p>
+                Короткий опрос о стиле игры, после которого приложение предложит готовые понятные
+                сборки.
+              </p>
+            </div>
+          </section>
           {notice ? <p className="character-notice">{notice}</p> : null}
           {createMutation.error || importMutation.error || folcharPreviewMutation.error ? (
             <p className="form-error">
@@ -536,6 +605,10 @@ function CharacterEditor({
   const [portraitEditorOpen, setPortraitEditorOpen] = useState(false);
   const classOption = options.classes.find(({ id }) => id === data.classId);
   const background = options.backgrounds.find(({ id }) => id === data.backgroundId);
+  const startingEquipmentIds = startingEquipmentIdsFor(options, data.classId, data.backgroundId);
+  const hasEquipmentOutsideStartingPackage = data.equipment.some(
+    ({ optionId }) => optionId && !startingEquipmentIds.has(optionId),
+  );
   const allowedSkillIds = new Set([
     ...(classOption?.allowedSkillIds ?? []),
     ...(background?.skillIds ?? []),
@@ -634,7 +707,12 @@ function CharacterEditor({
         />
         <div>
           <Button
-            disabled={saveMutation.isPending || pointBuyInvalid || !name.trim()}
+            disabled={
+              saveMutation.isPending ||
+              pointBuyInvalid ||
+              hasEquipmentOutsideStartingPackage ||
+              !name.trim()
+            }
             onClick={() => saveMutation.mutate()}
           >
             Сохранить
@@ -643,7 +721,7 @@ function CharacterEditor({
             Скачать .folchar
           </Button>
           <Button tone="quiet" onClick={() => window.print()}>
-            Печать A4
+            Печать листа
           </Button>
           <Button
             tone="quiet"
@@ -718,9 +796,22 @@ function CharacterEditor({
               <Field label="Класс">
                 <select
                   value={data.classId}
-                  onChange={(event) =>
-                    patchData({ classId: event.target.value, skillIds: [], spellIds: [] })
-                  }
+                  onChange={(event) => {
+                    const classId = event.target.value;
+                    const allowedEquipment = startingEquipmentIdsFor(
+                      options,
+                      classId,
+                      data.backgroundId,
+                    );
+                    patchData({
+                      classId,
+                      skillIds: [],
+                      spellIds: [],
+                      equipment: data.equipment.filter(
+                        ({ optionId }) => !optionId || allowedEquipment.has(optionId),
+                      ),
+                    });
+                  }}
                 >
                   <option value="">Не выбран</option>
                   {options.classes.map((item) => (
@@ -739,6 +830,7 @@ function CharacterEditor({
                       options.backgrounds.flatMap(({ skillIds }) => skillIds),
                     );
                     const next = options.backgrounds.find(({ id }) => id === value);
+                    const allowedEquipment = startingEquipmentIdsFor(options, data.classId, value);
                     patchData({
                       backgroundId: value,
                       skillIds: [
@@ -747,6 +839,9 @@ function CharacterEditor({
                           ...(next?.skillIds ?? []),
                         ]),
                       ],
+                      equipment: data.equipment.filter(
+                        ({ optionId }) => !optionId || allowedEquipment.has(optionId),
+                      ),
                     });
                   }}
                 >
@@ -882,14 +977,24 @@ function CharacterEditor({
       ) : null}
       <section className="character-section">
         <h3>Снаряжение</h3>
+        <p className={hasEquipmentOutsideStartingPackage ? 'form-error' : 'choice-help'}>
+          {data.classId || data.backgroundId
+            ? `Можно выбрать только стартовые предметы класса и предыстории: ${startingEquipmentIds.size}.`
+            : 'Сначала выберите класс и предысторию — доступное стартовое снаряжение ограничено ими.'}
+          {hasEquipmentOutsideStartingPackage
+            ? ' Уберите предметы, которые не входят в стартовый комплект.'
+            : ''}
+        </p>
         <div className="choice-grid">
           {options.equipment.map((item) => {
             const checked = data.equipment.some(({ optionId }) => optionId === item.id);
+            const allowed = startingEquipmentIds.has(item.id);
             return (
-              <label key={item.id}>
+              <label className={!allowed && !checked ? 'is-locked' : ''} key={item.id}>
                 <input
                   type="checkbox"
                   checked={checked}
+                  disabled={!allowed && !checked}
                   onChange={() =>
                     patchData({
                       equipment: checked
@@ -905,7 +1010,9 @@ function CharacterEditor({
                   <strong>
                     {item.name} · {item.cost}
                   </strong>
-                  <small>{item.description}</small>
+                  <small>
+                    {allowed ? item.description : 'Не входит в выбранный стартовый комплект'}
+                  </small>
                 </span>
               </label>
             );
@@ -1090,7 +1197,7 @@ function CharacterV2Summary({
             Скачать .folchar
           </Button>
           <Button tone="quiet" onClick={() => window.print()}>
-            Печать A4
+            Печать листа
           </Button>
           <Button tone="quiet" onClick={() => setShareOpen((open) => !open)}>
             Публичная ссылка
@@ -1766,17 +1873,17 @@ function GuidedCharacterBuilder({
               {masterCorrectionPaths.has('/inventory/equipment') ? <MasterCorrectionBadge /> : null}
               {document.creation.mode !== 'MANUAL' ? (
                 <p className="choice-help">
-                  Стартовый комплект определяется выбранными классом и предысторией. Произвольные
-                  предметы можно добавить позже в ручном режиме по согласованию с мастером.
+                  Стартовый комплект фиксирован выбранными классом и предысторией.
                 </p>
-              ) : null}
+              ) : (
+                <p className="choice-help">
+                  Выберите предметы только из стартового комплекта класса и предыстории. Доступно:{' '}
+                  {guidedChoices.availableEquipmentIds.length}.
+                </p>
+              )}
               <div className="guided-checkbox-grid">
                 {options.equipment
-                  .filter(
-                    (item) =>
-                      document.creation.mode === 'MANUAL' ||
-                      guidedChoices.availableEquipmentIds.includes(item.id),
-                  )
+                  .filter((item) => guidedChoices.availableEquipmentIds.includes(item.id))
                   .map((item) => (
                     <label key={item.id}>
                       <input
@@ -1810,6 +1917,11 @@ function GuidedCharacterBuilder({
                     </label>
                   ))}
               </div>
+              {guidedChoices.availableEquipmentIds.length === 0 ? (
+                <p className="choice-help">
+                  Сначала выберите класс и предысторию, чтобы получить доступный комплект.
+                </p>
+              ) : null}
             </>
           ) : null}
           {stepId === 'story' ? (
@@ -2012,132 +2124,165 @@ function PrintableCharacterSheet({
 }) {
   const data = sheet.data;
   const derived = documentResponse?.derived;
+  const characterClass = options.classes.find(({ id }) => id === data.classId);
+  const abilityModifiers = Object.fromEntries(
+    abilityKeys.map((key) => [key, abilityModifier(data.abilities[key])]),
+  ) as Record<AbilityKey, number>;
+  const proficiencyBonus =
+    derived?.proficiencyBonus ?? 2 + Math.floor((Math.max(1, data.level) - 1) / 4);
+  const savingThrowProficiencies = new Set(printSavingThrowProficiencies[data.classId] ?? []);
+  const spellcastingAbility = printSpellcastingAbilities[data.classId];
+  const spellcastingModifier = spellcastingAbility ? abilityModifiers[spellcastingAbility] : 0;
+  const spellsByLevel = Array.from({ length: 10 }, (_, level) =>
+    data.spellIds
+      .map((id) => options.spells.find((spell) => spell.id === id))
+      .filter((spell) => spell?.level === level),
+  );
   const optionName = (items: { id: string; name: string }[], id: string) =>
     items.find((item) => item.id === id)?.name ?? (id || '—');
+  const attacks = data.equipment
+    .map((item) => ({ item, option: options.equipment.find(({ id }) => id === item.optionId) }))
+    .filter(({ option }) => option?.category === 'WEAPON')
+    .slice(0, 3)
+    .map(({ item, option }) => {
+      const ability = ['rapier', 'shortbow', 'longbow', 'light-crossbow'].includes(option?.id ?? '')
+        ? 'dexterity'
+        : 'strength';
+      return {
+        name: item.name,
+        bonus: formatModifier(abilityModifiers[ability] + proficiencyBonus),
+        damage: option?.description.split('.')[0] ?? '',
+      };
+    });
+  const equipmentText = data.equipment
+    .map((item) => `${item.name}${item.quantity > 1 ? ` × ${item.quantity}` : ''}`)
+    .join('\n');
+  const selectedSkillNames = data.skillIds.map((id) => optionName(options.skills, id)).join(', ');
   return (
     <article className="character-print-sheet" aria-hidden="true">
-      <header>
-        <div>
-          <p>FOG OF LORE · D&D 5e SRD 5.2.1</p>
-          <h1>{sheet.name}</h1>
-          <span>{sheet.ownerDisplayName}</span>
-        </div>
-        <div className="character-print-level">
-          <strong>{data.level}</strong>
-          <span>уровень</span>
-        </div>
-      </header>
-      <section className="character-print-identity">
-        <div>
-          <span>Вид</span>
-          <strong>{optionName(options.species, data.speciesId)}</strong>
-        </div>
-        <div>
-          <span>Класс</span>
-          <strong>{optionName(options.classes, data.classId)}</strong>
-        </div>
-        <div>
-          <span>Предыстория</span>
-          <strong>{optionName(options.backgrounds, data.backgroundId)}</strong>
-        </div>
-      </section>
-      <section className="character-print-stats">
-        {abilityKeys.map((key) => {
-          const modifier = abilityModifier(data.abilities[key]);
+      <section className="character-print-page character-print-page-one">
+        <img alt="" className="character-print-template" src="/character-sheet/classic-1.png" />
+        <span className="character-print-name">{sheet.name}</span>
+        <span className="character-print-field character-print-class-level">
+          {optionName(options.classes, data.classId)}, {data.level} ур.
+        </span>
+        <span className="character-print-field character-print-background">
+          {optionName(options.backgrounds, data.backgroundId)}
+        </span>
+        <span className="character-print-field character-print-player">
+          {sheet.ownerDisplayName}
+        </span>
+        <span className="character-print-field character-print-species">
+          {optionName(options.species, data.speciesId)}
+        </span>
+        {abilityKeys.map((key, index) => (
+          <span
+            className="character-print-ability"
+            key={key}
+            style={{ top: `${[16.4, 27.2, 34.8, 44.2, 54.3, 63.5][index]}%` }}
+          >
+            <strong>{data.abilities[key]}</strong>
+            <small>{formatModifier(abilityModifiers[key])}</small>
+          </span>
+        ))}
+        <span className="character-print-inspiration">—</span>
+        <span className="character-print-proficiency">{formatModifier(proficiencyBonus)}</span>
+        {abilityKeys.map((key, index) => (
+          <span
+            className={`character-print-row-value ${savingThrowProficiencies.has(key) ? 'is-proficient' : ''}`}
+            key={`save-${key}`}
+            style={{ top: `${26.2 + index * 1.75}%` }}
+          >
+            {formatModifier(
+              abilityModifiers[key] + (savingThrowProficiencies.has(key) ? proficiencyBonus : 0),
+            )}
+          </span>
+        ))}
+        {printSkillRows.map(({ id, ability }, index) => {
+          const proficient = data.skillIds.includes(id);
           return (
-            <div key={key}>
-              <span>{abilityLabels[key]}</span>
-              <strong>{data.abilities[key]}</strong>
-              <small>
-                {modifier >= 0 ? '+' : ''}
-                {modifier}
-              </small>
-            </div>
+            <span
+              className={`character-print-row-value character-print-skill-value ${proficient ? 'is-proficient' : ''}`}
+              key={`${id}-${index}`}
+              style={{ top: `${41.1 + index * 1.75}%` }}
+            >
+              {formatModifier(abilityModifiers[ability] + (proficient ? proficiencyBonus : 0))}
+            </span>
           );
         })}
+        <span className="character-print-passive">
+          {derived?.passivePerception ??
+            10 +
+              abilityModifiers.wisdom +
+              (data.skillIds.includes('perception') ? proficiencyBonus : 0)}
+        </span>
+        <span className="character-print-ac">{derived?.armorClass ?? data.armorClass}</span>
+        <span className="character-print-initiative">
+          {formatModifier(derived?.initiative ?? abilityModifiers.dexterity)}
+        </span>
+        <span className="character-print-speed">{derived?.speed ?? data.speed}</span>
+        <span className="character-print-hp-max">{derived?.hitPointMaximum ?? data.hitPoints}</span>
+        <span className="character-print-hp-current">{sheet.runtime.currentHitPoints}</span>
+        <span className="character-print-hp-temporary">
+          {sheet.runtime.temporaryHitPoints || ''}
+        </span>
+        <span className="character-print-hit-dice">
+          {data.level}к{characterClass?.hitDie ?? '—'}
+        </span>
+        <span className="character-print-hit-dice-total">{data.level}</span>
+        <div className="character-print-attacks">
+          {attacks.map((attack) => (
+            <span key={attack.name}>
+              <b>{attack.name}</b>
+              <b>{attack.bonus}</b>
+              <b>{attack.damage}</b>
+            </span>
+          ))}
+        </div>
+        <span className="character-print-proficiencies">{selectedSkillNames}</span>
+        <span className="character-print-equipment">{equipmentText}</span>
+        <span className="character-print-personality">{data.personality}</span>
+        <span className="character-print-features">
+          {[
+            data.notes,
+            sheet.runtime.conditions.length
+              ? `Состояния: ${sheet.runtime.conditions.join(', ')}`
+              : '',
+          ]
+            .filter(Boolean)
+            .join('\n\n')}
+        </span>
       </section>
-      <section className="character-print-combat">
-        <div>
-          <span>Макс. HP</span>
-          <strong>{derived?.hitPointMaximum ?? data.hitPoints}</strong>
-        </div>
-        <div>
-          <span>Текущие HP</span>
-          <strong>{sheet.runtime.currentHitPoints}</strong>
-        </div>
-        <div>
-          <span>Временные HP</span>
-          <strong>{sheet.runtime.temporaryHitPoints}</strong>
-        </div>
-        <div>
-          <span>КД</span>
-          <strong>{derived?.armorClass ?? data.armorClass}</strong>
-        </div>
-        <div>
-          <span>Скорость</span>
-          <strong>{derived?.speed ?? data.speed}</strong>
-        </div>
-        <div>
-          <span>Инициатива</span>
-          <strong>
-            {derived ? `${derived.initiative >= 0 ? '+' : ''}${derived.initiative}` : '—'}
-          </strong>
-        </div>
+      <section className="character-print-page character-print-page-two">
+        <img alt="" className="character-print-template" src="/character-sheet/classic-2.png" />
+        <span className="character-print-name">{sheet.name}</span>
+        <span className="character-print-page-two-appearance">{data.appearance}</span>
+        <span className="character-print-page-two-backstory">{data.backstory}</span>
+        <span className="character-print-page-two-notes">{data.notes}</span>
       </section>
-      <div className="character-print-columns">
-        <section>
-          <h2>Навыки</h2>
-          <p>{data.skillIds.map((id) => optionName(options.skills, id)).join(', ') || '—'}</p>
-          <h2>Заклинания</h2>
-          <p>{data.spellIds.map((id) => optionName(options.spells, id)).join(', ') || '—'}</p>
-          <h2>Ресурсы</h2>
-          <p>{formatCounters(sheet.runtime.resources)}</p>
-          <h2>Ячейки заклинаний</h2>
-          <p>{formatCounters(sheet.runtime.spellSlots)}</p>
-        </section>
-        <section>
-          <h2>Снаряжение</h2>
-          <ul>
-            {data.equipment.length ? (
-              data.equipment.map((item, index) => (
-                <li key={`${item.optionId ?? item.name}:${index}`}>
-                  {item.name} × {item.quantity}
-                  {item.notes ? ` — ${item.notes}` : ''}
-                </li>
-              ))
-            ) : (
-              <li>—</li>
-            )}
-          </ul>
-          <h2>Состояния</h2>
-          <p>{sheet.runtime.conditions.join(', ') || '—'}</p>
-        </section>
-      </div>
-      <section className="character-print-story">
-        <h2>Личность и история</h2>
-        {data.appearance ? (
-          <p>
-            <strong>Внешность.</strong> {data.appearance}
-          </p>
-        ) : null}
-        {data.personality ? (
-          <p>
-            <strong>Личность.</strong> {data.personality}
-          </p>
-        ) : null}
-        {data.backstory ? (
-          <p>
-            <strong>История.</strong> {data.backstory}
-          </p>
-        ) : null}
-        {data.notes ? (
-          <p>
-            <strong>Заметки.</strong> {data.notes}
-          </p>
-        ) : null}
-        {!data.appearance && !data.personality && !data.backstory && !data.notes ? <p>—</p> : null}
+      <section className="character-print-page character-print-page-three">
+        <img alt="" className="character-print-template" src="/character-sheet/classic-3.png" />
+        <span className="character-print-spell-class">
+          {optionName(options.classes, data.classId)}
+        </span>
+        <span className="character-print-spell-ability">
+          {spellcastingAbility ? abilityLabels[spellcastingAbility] : '—'}
+        </span>
+        <span className="character-print-spell-save">
+          {spellcastingAbility ? 8 + proficiencyBonus + spellcastingModifier : '—'}
+        </span>
+        <span className="character-print-spell-attack">
+          {spellcastingAbility ? formatModifier(proficiencyBonus + spellcastingModifier) : '—'}
+        </span>
+        {spellsByLevel.map((spells, level) => (
+          <span
+            className={`character-print-spell-list character-print-spell-list-${level}`}
+            key={level}
+          >
+            {spells.map((spell) => spell?.name).join('\n')}
+          </span>
+        ))}
       </section>
-      <footer>Сформировано Fog of Lore · светлая печатная версия A4</footer>
     </article>
   );
 }
@@ -2155,9 +2300,17 @@ function characterIssueStep(path: string): string {
   return 'review';
 }
 
-function formatCounters(counters: Record<string, number>): string {
-  const entries = Object.entries(counters);
-  return entries.length ? entries.map(([name, value]) => `${name}: ${value}`).join(' · ') : '—';
+function startingEquipmentIdsFor(
+  options: CharacterOptionsResponse,
+  classId: string,
+  backgroundId: string,
+): Set<string> {
+  const characterClass = options.classes.find(({ id }) => id === classId);
+  const background = options.backgrounds.find(({ id }) => id === backgroundId);
+  return new Set([
+    ...(characterClass?.starterEquipmentIds ?? []),
+    ...(background?.equipmentIds ?? []),
+  ]);
 }
 
 function BeginnerWizard({

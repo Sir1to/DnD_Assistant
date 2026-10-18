@@ -50,4 +50,22 @@ describe('D&D 5e SRD 5.2.1 bestiary', () => {
   it('keeps all stored entries addressable', () => {
     expect(dnd5eBestiary.every(({ id }) => dnd5eMonsterById(id)?.id === id)).toBe(true);
   });
+
+  it('keeps every stat block complete enough for the reference and battle importer', () => {
+    const incomplete = dnd5eBestiary.flatMap((monster) => {
+      const fields = [
+        monster.name.trim().length === 0 ? 'name' : '',
+        monster.englishName.trim().length === 0 ? 'englishName' : '',
+        !monster.referenceUrl.startsWith('https://') ? 'referenceUrl' : '',
+        monster.armorClass <= 0 ? 'armorClass' : '',
+        monster.hitPoints <= 0 ? 'hitPoints' : '',
+        monster.initiativeModifier !== Math.floor((monster.abilityScores.dex - 10) / 2)
+          ? 'initiativeModifier'
+          : '',
+      ].filter(Boolean);
+      return fields.length > 0 ? [`${monster.id}: ${fields.join(', ')}`] : [];
+    });
+
+    expect(incomplete).toEqual([]);
+  });
 });

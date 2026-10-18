@@ -25,13 +25,47 @@ describe('D&D 5e character rules', () => {
 
   it('keeps references between options valid', () => {
     const options = dnd5eCharacterOptions();
+    const classIds = new Set(options.classes.map(({ id }) => id));
     const spellIds = new Set(options.spells.map(({ id }) => id));
     const equipmentIds = new Set(options.equipment.map(({ id }) => id));
     for (const characterClass of options.classes) {
       expect(characterClass.starterSpellIds.every((id) => spellIds.has(id))).toBe(true);
       expect(characterClass.starterEquipmentIds.every((id) => equipmentIds.has(id))).toBe(true);
     }
+    for (const background of options.backgrounds) {
+      expect(background.equipmentIds.every((id) => equipmentIds.has(id))).toBe(true);
+    }
+    expect(options.backgrounds.length).toBeGreaterThanOrEqual(13);
+    expect(new Set(options.backgrounds.map(({ id }) => id)).size).toBe(options.backgrounds.length);
     expect(options.spells.some((spell) => spell.level === 9)).toBe(true);
+    expect(new Set(options.spells.map(({ id }) => id)).size).toBe(options.spells.length);
+    expect(
+      options.spells.every(
+        (spell) =>
+          spell.name.trim().length > 0 &&
+          spell.description.trim().length > 0 &&
+          spell.referenceUrl.startsWith('https://') &&
+          Number.isInteger(spell.level) &&
+          spell.level >= 0 &&
+          spell.level <= 9 &&
+          spell.classIds.length > 0 &&
+          spell.classIds.every((id) => classIds.has(id)),
+      ),
+    ).toBe(true);
+    for (const spellcastingClassId of [
+      'bard',
+      'cleric',
+      'druid',
+      'paladin',
+      'ranger',
+      'sorcerer',
+      'warlock',
+      'wizard',
+    ]) {
+      expect(options.spells.some(({ classIds }) => classIds.includes(spellcastingClassId))).toBe(
+        true,
+      );
+    }
   });
 
   it('contains the core formula groups needed at the table', () => {

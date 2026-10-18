@@ -17,6 +17,11 @@ test('owner completes the guided character builder using the published decision 
   await page.getByRole('button', { name: 'Создать и открыть' }).click();
   await page.getByRole('link', { name: 'Персонажи' }).click();
 
+  const creationGuide = page.getByRole('region', { name: 'Какой способ выбрать?' });
+  await expect(creationGuide.getByText('Свободный ручной черновик.')).toBeVisible();
+  await expect(creationGuide.getByText('Пошаговая сборка по правилам SRD.')).toBeVisible();
+  await expect(creationGuide.getByText('Короткий опрос о стиле игры')).toBeVisible();
+
   await page.getByRole('button', { name: 'Конструктор 2.0' }).click();
   const builder = page.getByRole('dialog', { name: 'Концепция' });
   await builder.getByLabel('Имя героя').fill('Арина');
@@ -64,7 +69,7 @@ test('owner completes the guided character builder using the published decision 
   await expect(page.getByRole('heading', { name: 'Борин' })).toBeVisible();
   await expect(page.getByText('Лист 2.0 · готов')).toBeVisible();
 
-  await page.getByRole('button', { name: '+ Новый лист' }).click();
+  await page.getByRole('button', { name: '+ Создать лист' }).click();
   const manual = page.getByRole('dialog', { name: 'Концепция' });
   await expect(manual.getByLabel('Режим создания')).toHaveValue('Свободный ручной лист');
   await manual.getByLabel('Имя героя').fill('Черновик героя');
